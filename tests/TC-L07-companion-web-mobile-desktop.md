@@ -98,3 +98,15 @@ and contract evidence only. The current macOS workspace has no Windows
 SDK/.NET toolchain, so compilation, MSIX packaging, package assets, signing,
 Credential Manager/DPAPI integration, pairing, OBS WebSocket authentication
 and device/security evidence remain open.
+
+### L07-22 — Cross-client Companion action-result wire compatibility
+
+**Result:** PASS for Web/mobile/macOS; Windows smoke test added but requires a
+Windows/.NET runner (2026-08-16)
+
+The approved `CompanionActionResult` wire key is `eventId`. Web, mobile, macOS
+and Windows consumers reject the stale `resultEventId` spelling and accept a
+valid v1 result envelope. The macOS XCTest and portable Windows smoke project
+cover the native decoders; the Web/mobile contract suites cover their
+decoders. Windows compilation/runtime evidence remains a release gate because
+the current host has no .NET SDK.

@@ -181,3 +181,17 @@ mismatch and missing-key behavior remain unchanged. `go test ./...`,
 
 **Not proven by this case:** deployed OIDC/IAM, provider execution, staging
 retry behavior or production migration rollout.
+
+### L04-61 — Payment ingress to Alert Worker pump HTTP boundary
+
+**Result:** PASS (local TLS HTTP boundary evidence, 2026-08-16)
+
+The payment ingress handler was exercised with the real `WorkerPumpClient`
+against a TLS test server. The test asserts the canonical private pump path,
+propagates the server-derived Razorpay trace ID, persists the verified webhook
+through the durable store, and returns success after the pump accepts the
+request. A worker `503` is propagated as a retryable provider response with a
+`Retry-After` value; the already-persisted webhook remains safe for replay.
+
+**Not proven by this case:** deployed OIDC/IAM, Cloud Run routing, real Cloud
+Tasks, Razorpay delivery, provider sandbox/live behavior or staging recovery.

@@ -1,7 +1,7 @@
 # Phase 2 — YouTube
 
 **Status:** `Deferred / not in v1`  
-**Legacy authority:** `requirements/16_YOUTUBE_UNIFIED_EVENTS_AND_SUPPORTER_IDENTITY.md` and `tasks/youtube/P16-youtube-unified-events-and-supporter-identity.md`.
+**Legacy source filenames:** `requirements/16_YOUTUBE_UNIFIED_EVENTS_AND_SUPPORTER_IDENTITY.md` and `tasks/youtube/P16-youtube-unified-events-and-supporter-identity.md` from the frozen legacy snapshot. They are evidence only; see [`../../done/LEGACY_EVIDENCE_REGISTER.md`](../../done/LEGACY_EVIDENCE_REGISTER.md).
 
 Phase 2 owns YouTube OAuth scopes, polling, cursors, live data, SuperChat/membership/engagement normalization, supporter identity, catch-up summaries, associated Companion views, quota allocation, and recovery.
 

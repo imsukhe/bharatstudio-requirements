@@ -467,3 +467,17 @@ intent. Definite client validation responses clear it; provider/webhook/ledger
 truth is unchanged. The pure timeout, abort, key-reuse and retention policy
 tests pass 4/4, and the Web production build passes. This is browser-boundary
 evidence; provider, network, deployed and staging behavior remain open.
+
+## Cross-repository contract audit — 2026-08-16
+
+The payment-to-worker HTTP boundary and Companion action contract were checked
+against the Go services, Alerts API, OpenAPI document and desktop/mobile/web
+consumers. The payment ingress test exercises a real TLS `httptest` worker
+endpoint through `NewWorkerPumpClient`, asserting the canonical
+`/internal/v1/tasks/pump` path, trace propagation and retryable `503` behavior.
+The Companion action contract requires a UUID `targetId` in the API, OpenAPI
+and Web client; the Windows and macOS action-result consumers use the shared
+`eventId` wire key. Cron targets carry the canonical deployment service ID
+used by `bharatstudio-infra`. These are local cross-repository contract tests
+only; deployed OIDC/IAM, provider, browser/OBS, device and staging evidence
+remain open.

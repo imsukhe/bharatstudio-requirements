@@ -1,7 +1,7 @@
 # Phase 2 — Enterprise
 
 **Status:** `Deferred / not in v1`  
-**Legacy authority:** `requirements/28_ENTERPRISE_PAYMENT_ACCOUNTS_ROUTE_ALLOCATION_AND_SETTLEMENT.md` and `tasks/payments/P28-enterprise-payment-accounts-route-allocation-and-settlement.md`.
+**Legacy source filenames:** `requirements/28_ENTERPRISE_PAYMENT_ACCOUNTS_ROUTE_ALLOCATION_AND_SETTLEMENT.md` and `tasks/payments/P28-enterprise-payment-accounts-route-allocation-and-settlement.md` from the frozen legacy snapshot. They are evidence only; see [`../../done/LEGACY_EVIDENCE_REGISTER.md`](../../done/LEGACY_EVIDENCE_REGISTER.md).
 
 Phase 2 owns every Enterprise capability: organisation roles, invitations, bulk allocation, reporting, Razorpay Route, creator/enterprise split policy, settlement scheduling, finance/refund authority, transfers, reversals and audit views.
 

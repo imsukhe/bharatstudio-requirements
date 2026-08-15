@@ -2,11 +2,15 @@
 
 **Status:** `Deferred`  
 **Not a v1 task or implementation authority**  
-**Legacy sources:**
+**Legacy source filenames:**
 
-- `/Users/sukhdevsingh/Workspace/Personal /bharatstudio-alerts/repositories/bharatstudio-alerts/requirements/16_YOUTUBE_UNIFIED_EVENTS_AND_SUPPORTER_IDENTITY.md`
-- `/Users/sukhdevsingh/Workspace/Personal /bharatstudio-alerts/repositories/bharatstudio-alerts/requirements/21_CATCHUP_OFFLINE_GROWTH_ENGINE.md`
-- `/Users/sukhdevsingh/Workspace/Personal /bharatstudio-alerts/repositories/bharatstudio-alerts/tasks/youtube/P16-youtube-unified-events-and-supporter-identity.md`
+These are historical evidence names from the frozen legacy snapshot, not
+active paths in any current repository. The snapshot and migration treatment
+are recorded in [`../../done/LEGACY_EVIDENCE_REGISTER.md`](../../done/LEGACY_EVIDENCE_REGISTER.md).
+
+- `requirements/16_YOUTUBE_UNIFIED_EVENTS_AND_SUPPORTER_IDENTITY.md`
+- `requirements/21_CATCHUP_OFFLINE_GROWTH_ENGINE.md`
+- `tasks/youtube/P16-youtube-unified-events-and-supporter-identity.md`
 
 ## Reopening gate
 

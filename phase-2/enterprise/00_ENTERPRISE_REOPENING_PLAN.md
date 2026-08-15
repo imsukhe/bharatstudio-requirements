@@ -2,10 +2,14 @@
 
 **Status:** `Deferred`  
 **Not a v1 task or implementation authority**  
-**Legacy sources:**
+**Legacy source filenames:**
 
-- `/Users/sukhdevsingh/Workspace/Personal /bharatstudio-alerts/repositories/bharatstudio-alerts/requirements/28_ENTERPRISE_PAYMENT_ACCOUNTS_ROUTE_ALLOCATION_AND_SETTLEMENT.md`
-- `/Users/sukhdevsingh/Workspace/Personal /bharatstudio-alerts/repositories/bharatstudio-alerts/tasks/payments/P28-enterprise-payment-accounts-route-allocation-and-settlement.md`
+These are historical evidence names from the frozen legacy snapshot, not
+active paths in any current repository. The snapshot and migration treatment
+are recorded in [`../../done/LEGACY_EVIDENCE_REGISTER.md`](../../done/LEGACY_EVIDENCE_REGISTER.md).
+
+- `requirements/28_ENTERPRISE_PAYMENT_ACCOUNTS_ROUTE_ALLOCATION_AND_SETTLEMENT.md`
+- `tasks/payments/P28-enterprise-payment-accounts-route-allocation-and-settlement.md`
 
 ## Reopening gate
 

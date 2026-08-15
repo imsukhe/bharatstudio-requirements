@@ -25,6 +25,8 @@ Keep `bharatstudio-crons` scheduler-only while moving every scheduled mutation b
 2. Implement private Alerts endpoints that perform each mutation transactionally; validate OIDC audience/identity and reject public access.
 3. Create schedule definitions and smoke tests in `bharatstudio-crons`; no SQL, provider credentials or business mutation code there.
 4. Create infrastructure/IAM in `bharatstudio-infra` with least privilege and environment isolation.
+5. Keep scheduler targets bound to the canonical deployment service ID (`alerts-api`, `payment-webhook`, or `alert-worker`) as well as the human/runtime service name; both are required before enablement.
+6. Define the authenticated request contract for every target: JSON `POST`, concrete UTC window and stable `schedule:<id>:<window>` idempotency key.
 5. Prove duplicate schedule firing, delayed execution, target timeout, partial provider outage, and manual replay are safe.
 6. Document operations dashboard, missed-run alert, backlog alert, run audit and recovery playbook.
 
@@ -40,6 +42,7 @@ Keep `bharatstudio-crons` scheduler-only while moving every scheduled mutation b
 - Corrected ownership: the scheduler no longer routes payment/refund reconciliation through the API ledger shell or outbox recovery through the API's ledger-only `outbox-recover` route. Payment and refund reconciliation run in the payment service, which owns the provider client and compensating recovery mutations; outbox recovery invokes the worker pump, which can list ready rows and create stable Cloud Tasks tasks. The worker never acknowledges a row merely because a schedule fired. The schedule contract and crons test assert the distinct services and audiences. OIDC binding, deployed audiences and staging proof remain open.
 - Tightened the scheduler contract so every schedule must declare a five-field UTC schedule, bounded timeout, monitoring signal, dead-letter signal, retry policy, idempotency key and rollback action. The disabled v1 fixtures now provide those fields and the crons test rejects an incomplete schedule shape; `npm test` passes.
 - Added `bharatstudio-crons/docs/SCHEDULER_OPERATIONS.md`, mapping every disabled v1 schedule to outcome, failure, dead-letter, freshness/backlog, disable/replay and rollback handling. The runbook explicitly keeps durable business state owned by the target service, forbids scheduler credentials/direct database work, and lists the evidence required before enablement. The contract test verifies that every schedule has its declared monitoring/dead-letter signals covered; live monitoring and rehearsal remain open.
+- Added an explicit `implementationStatus` to every scheduler definition. Payment/refund reconciliation, outbox recovery and overlay-session maintenance are marked `implemented` but remain disabled until deployment evidence exists; event/audit archival are marked `planned` and are mechanically required to remain disabled. This prevents a syntactically valid schedule from being mistaken for a live handler and blocks accidental activation of the unsupported archive targets.
 - Narrowed the Alerts API maintenance route to its currently implemented owner, `overlay-sessions`. Payment/refund jobs and outbox recovery are rejected before the API store is called because they belong to the private Go payment and alert-worker services; archive jobs remain disabled until their retention and handler contracts are approved. This prevents an unsupported scheduler target from returning a false success.
 - Re-ran the full local regression slice after the ownership correction: the Alerts API suite (current run 54/54), production build, contract validation, disposable PostgreSQL L02/L03 harness, payment/worker Go tests plus vet/race checks, scheduler contract, mobile checks and macOS check all passed. The database harness included duplicate maintenance-run calls, overlay-session expiry and retry, cross-service job rejection, multi-queue independent delivery projection and durable Companion test-alert creation. Earlier historical counts in this document remain historical.
 
@@ -72,6 +75,8 @@ Confirmed locally:
   expired sessions without deleting payment, alert or session evidence;
 - schedule definitions require OIDC metadata, UTC cadence, bounded timeout,
   retry/dead-letter, monitoring, idempotency and rollback fields;
+- each schedule declares whether its target is `implemented` or `planned`, and
+  planned archive schedules are tested as disabled;
 - the infrastructure template keeps Scheduler disabled, private-OIDC-only and
   forbidden from holding direct database credentials.
 
