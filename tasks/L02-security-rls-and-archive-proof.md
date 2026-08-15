@@ -63,3 +63,20 @@ L02 remains conditional/open for independent security/application review,
 production role/secret/IAM provisioning evidence, application-level negative
 tests in the deployed topology, and a data-preserving rollback/restore drill.
 No archival schedule is enabled by this audit.
+
+## Deep-audit remediation — 2026-08-16
+
+The role bootstrap was rechecked against the effective soft-archive migration
+and exposed one real least-privilege mismatch: `bsa_archive_owner` was being
+created with `BYPASSRLS`, while migration `0047` documents that the
+`SECURITY DEFINER` owner must be `NOLOGIN` and `NOBYPASSRLS`. This is fixed by
+changing `packages/db/roles/0001_v1_service_roles.sql` and adding forward
+migration `0058_v1_l02_archive_owner_rls_hardening.sql`, which normalizes
+existing installations and fails if the prerequisite role is missing.
+`packages/db/tests/l02_security_remediations.sql` now asserts `NOLOGIN`,
+`NOSUPERUSER` and `NOBYPASSRLS`. The disposable PostgreSQL harness passes after
+the change.
+
+This closes the local role-attribute mismatch only. Production role
+provisioning, secret/IAM evidence, independent security review and rollback
+rehearsal remain required before L02 can become `Verified`.

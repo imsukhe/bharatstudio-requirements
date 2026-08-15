@@ -111,6 +111,14 @@ immediately; durable replay and acknowledgement semantics are unchanged. This
 is covered by the 54/54 API pass and production build. Direct-Neon,
 cross-replica, fault-injection and OBS staging evidence remain pending.
 
+### 2026-08-16 deep-audit cases
+
+| ID | Setup and action | Expected result | Evidence and disposition |
+|---|---|---|---|
+| L03-04l | Load the public tip page with a valid channel, a 404 response, a 503/network failure and an expanded/malformed response | A valid channel reflects its own `acceptingTips` policy; a missing creator is distinct; transport/schema failure says tips are temporarily unavailable and never masquerades as creator policy | `apps/web/app/tips/[handle]/public-channel-loader.ts`, `public-channel-loader.test.ts`; Web suite 39/39; local pass, deployed/provider evidence pending |
+| L03-10h | Authenticate a protected route with lowercase `bearer` scheme | The server accepts the HTTP case-insensitive authentication scheme and applies the same session lookup and authorization | `apps/api/src/auth/pre-handler.ts`, `apps/api/test/app.test.ts`; API suite 63/63; local pass |
+| L03-10i | Inspect the static Alerts deployment artifact and manifest | `public/_headers` is published with CSP, framing, referrer, permissions and content-type protections; it contains no provider secret or database credential | `apps/web/public/_headers`, `apps/web/app/lib/security-headers.test.ts`, `bharatstudio-infra/deployment/v1/manifest.template.json`; Web suite 39/39, infra contract pass; deployed header retrieval remains pending |
+
 ## Closure rules
 
 - All applicable cases pass with dated evidence, or each exception is explicitly approved as `Conditionally complete` with owner and release gate.

@@ -178,6 +178,28 @@ remain open launch gates.
 
 The implementation is intentionally not calling L03 complete yet. The approved FRD-011 core configuration schema, semantic validation, authenticated editor and bounded core preview are implemented. L03-09 now has an active catalogue contract in `../active/launch/04_TEMPLATE_LIBRARY_AUTHORITY.md`; it remains blocked on completion and visual verification of the 359 missing runtime packages and browser/accessibility evidence defined in `TC-L03`. By owner direction, generation of additional BSA packages is deferred to the final implementation pass after the non-visual v1 gates; this does not reduce the approved 600-design scope. No arbitrary config editor or unapproved branding keys are accepted. Cross-replica overlay replay, live provider checkout and staging/browser evidence also remain open.
 
+### Deep-audit remediation — 2026-08-16
+
+- The public tip page now distinguishes a valid creator response, a genuine
+  `404` creator-not-found response and transport/non-2xx/malformed-response
+  failure. A temporary API outage is rendered as `Tips are temporarily
+  unavailable`, never as the creator intentionally closing tips. The pure
+  loader tests cover valid, 404, 503, missing-origin, network-failure and
+  expanded/malformed response cases.
+- Normal authenticated routes now accept the HTTP case-insensitive `Bearer`
+  authentication scheme, matching the overlay parser. API coverage includes a
+  lowercase `bearer` request.
+- The static Alerts build now includes `apps/web/public/_headers` with CSP,
+  framing, referrer, permissions and content-type protections. The
+  infrastructure manifest requires that file and names the required header
+  contract. The policy allow-list covers only Google sign-in, Razorpay
+  Checkout/API and the BharatStudio API domain; the production deployment
+  must publish this file and use the approved branded API origin.
+
+These are local code/build fixes. Authenticated browser/assistive-technology
+and OBS evidence, provider CSP/checkout behavior, deployed static-header
+verification, cross-replica staging and independent review remain open.
+
 ### Explicitly outside L03
 
 - Razorpay webhook/order/refund/reconciliation implementation: L04.

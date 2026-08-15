@@ -50,6 +50,16 @@ Executed against a fresh disposable `postgres:16-alpine` container after the F1â
 
 This closes the isolated database portion conditionally. It does not replace the independent security review or the application-level tests listed above.
 
+## 2026-08-16 deep-audit remediation
+
+The previous local evidence did not assert the archive function-owner role's
+RLS attributes. The assertion now requires `bsa_archive_owner` to be `NOLOGIN`,
+`NOSUPERUSER` and `NOBYPASSRLS`; the role bootstrap and forward migration
+`0058_v1_l02_archive_owner_rls_hardening.sql` enforce the same contract for
+fresh and existing installations. `pnpm db:test:l03` passes with the updated
+assertion. This is local synthetic evidence and does not substitute for
+production role/secret/IAM provisioning or independent review.
+
 ## 2026-08-15 rerun
 
 The disposable PostgreSQL harness was rerun after the L03â€“L05 evidence
