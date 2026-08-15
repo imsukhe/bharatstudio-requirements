@@ -7,6 +7,7 @@
 | Surface | Command/check | Result |
 |---|---|---|
 | Alerts API | `pnpm test` | 62 tests passed |
+| Alerts web | `pnpm test` | 35 tests passed |
 | Alerts contracts | `pnpm contracts:validate` | 11 fixture mappings, 35 OpenAPI paths and executable v1 capability exclusion scan passed |
 | Alerts web/API | `pnpm build` | TypeScript/API build and Next production build passed |
 | Alerts database | `pnpm db:test:l03` | L02 security, L03 application behaviour, payment ingress and worker-store integration passed in disposable PostgreSQL |
@@ -14,7 +15,7 @@
 | Payment service | `go test ./... && go vet ./... && go test -race ./...` | Passed |
 | Alert worker | `go test ./... && go vet ./... && go test -race ./...` | Passed |
 | Scheduler repository | `npm test` | 2 tests passed; all v1 schedules remain disabled |
-| Infrastructure repository | `npm test` | 8 deployment-contract tests passed; manifest remains `not-deployable` and contains no credentials |
+| Infrastructure repository | `npm test` | 9 deployment-contract tests passed; manifest remains `not-deployable` and contains no credentials |
 | Marketing repository | `npm test` | 5 tests passed |
 | Companion mobile | `npm run test:dependencies && npm test -- --runInBand && npm run lint && npm run typecheck` | Dependency hardening 2/2, Jest 52/52, lint and TypeScript passed; native/provider/device evidence remains open |
 | Companion macOS | `swift test` | 12 tests passed |
@@ -1968,3 +1969,27 @@ there is no UserDefaults/plaintext fallback. The complete Swift suite passes
 10/10. Physical Keychain/sandbox, lock/restart, pairing, signing and
 notarisation evidence remain open. No BSA visual package was generated or
 modified.
+
+### Remediation pass — 2026-08-15
+
+The audit identified an active Web Companion mismatch: the API and mobile
+notification preference/device contract existed, but the web page still said
+the service was unavailable. The page now consumes strict preference/device
+decoders and saves the three server-owned operational toggles. The mobile app
+now subscribes to foreground Firebase messages and renders only the approved
+local operational copy; it never displays tip, donor, payment or alert
+payloads.
+
+The deployment manifest now declares `NOTIFICATION_TOKEN_ENCRYPTION_KEY` as a
+required Alerts API environment value and
+`REQUIRED_NOTIFICATION_TOKEN_ENCRYPTION_KEY_SECRET_REF` as its secret source.
+This closes the configuration omission that could otherwise make token
+encryption unavailable at deployment. The web test command is now executable
+and covers 35 tests.
+
+Remediation evidence: web 35/35 tests and production build; Alerts API 62/62;
+infra deployment-contract tests 9/9; mobile Jest 52/52, lint, TypeScript and
+dependency-hardening 2/2; payment/worker Go tests and vet; macOS Swift tests
+12/12. External APNs/FCM delivery, physical-device/background behavior,
+provider credentials, deployed secret/IAM validation, Windows build/signing,
+store/legal and independent review remain open.

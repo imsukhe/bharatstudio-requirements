@@ -176,10 +176,11 @@ evidence remain separate unfinished work.
 The React Native Companion shell now has explicit Home, Activity, Health,
 Settings, Sessions and Help screens. Activity, health, plan/lock, and session
 views consume only the optional server projections passed by the controller;
-notification preferences show an explicit unavailable state until their
-server persistence contract exists. Session revocation is surfaced as a
-server-owned callback, and the UI does not invent OBS health or notification
-success. Tests remain 24/24 with lint and TypeScript passing. Native Google
+notification preferences now use the authenticated server persistence
+contract and remain explicitly unavailable only when that service is down.
+Session revocation is surfaced as a server-owned callback, and the UI does not
+invent OBS health or notification success. Tests remain 24/24 with lint and
+TypeScript passing. Native Google
 sign-in, secure platform storage, push/background behavior and device testing
 remain open implementation/release work.
 
@@ -423,11 +424,30 @@ existing queue controls and action layout, it renders recent alert activity,
 server freshness/overlay connection health, plan and slot entitlements,
 account device/session inventory with server-side revoke, and bounded help and
 recovery guidance. The web client validates the session projection before
-rendering it. Notification preferences are explicitly shown as unavailable in
-v1 because no approved persistence/API contract exists yet; the surface does
-not pretend that a preference was saved. `apps/web` TypeScript and production
-build pass after this change.
+rendering it. Notification preferences now use the approved authenticated
+persistence/API contract; the surface shows an explicit unavailable state only
+when that service cannot be loaded and never pretends a failed save succeeded.
+`apps/web` tests and production build pass after this change.
 
 This closes the local Web Companion screen-set implementation slice, but does
 not close authenticated browser QA, accessibility/localisation evidence,
 cross-replica/deployed health proof, provider staging, or independent review.
+
+### Notification settings and foreground delivery remediation — 2026-08-15
+
+The previous Web Companion copy incorrectly stated that notification
+preferences were unavailable in v1 after the authenticated preference/device
+API had been implemented. The web API client now validates the preference and
+device projections, the Web Companion exposes server-backed operational
+preference toggles, and the infrastructure manifest requires
+`NOTIFICATION_TOKEN_ENCRYPTION_KEY` plus its secret reference for
+staging/production. The mobile app now subscribes to the adapter's foreground
+message hook and renders only locally generated operational copy; tip, donor,
+payment and alert payload data is not accepted or displayed.
+
+Evidence: web test script added with 35/35 tests, web production build passes;
+infra deployment-contract tests pass 9/9; Alerts API tests pass 62/62;
+mobile Jest remains 52/52 with lint, TypeScript and dependency-hardening 2/2.
+Native APNs/FCM provider delivery, background OS behavior, key rotation,
+physical-device and store evidence remain open. Push remains best-effort and
+is never the correctness path for payments, queues or alert delivery.

@@ -141,6 +141,24 @@ concurrent overlays. This changes no durable replay, cursor, acknowledgement,
 payment or delivery state; the wake-up remains only a best-effort optimisation.
 The API/overlay wake-up suite is included in the 54/54 API pass and the production build passes.
 
+### Local production-readiness remediation — 2026-08-15
+
+The audit found and corrected two implementation/evidence gaps. The Web
+Companion no longer reports notification preferences as unavailable after the
+preference/device API was introduced; it now validates and updates the
+server-owned operational preference projection. The API `.env.example` and
+`bharatstudio-infra/deployment/v1/manifest.template.json` now require the
+AES-256-GCM notification-token encryption key and an explicit secret-manager
+reference, preventing staging/production from starting with an omitted key.
+
+The web workspace now has an executable test script. Its current contract and
+overlay suites pass 35/35, the Alerts API suite passes 62/62, the web/API
+production build passes, and the infrastructure deployment-contract suite
+passes 9/9. Razorpay provider approval/sandbox evidence, deployed direct
+listener/cross-replica SSE proof, browser/OBS accessibility and independent
+review remain open; these local results do not advance L03 to production
+verified.
+
 ### Overlay disconnect cancellation — 2026-08-15
 
 Closed the remaining local SSE waiter-lifecycle gap. The overlay route now
