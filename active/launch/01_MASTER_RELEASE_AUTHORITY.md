@@ -1,0 +1,143 @@
+# BharatStudio full-product v1 master release authority
+
+**Status:** `Proposed — release blocked; implementation and evidence work may continue`
+**Owner:** Project owner
+**Scope:** One public v1 launch of BharatStudio Alerts plus bundled Companion
+**Authority companion:** [`00_LAUNCH_SCOPE_AUTHORITY.md`](./00_LAUNCH_SCOPE_AUTHORITY.md)
+**Last reconciled:** 2026-08-15
+
+This is the release decision record for the new workspace. It does not replace
+the detailed task/test records and it does not promote local implementation,
+disabled infrastructure or document review into production readiness.
+
+## 1. Launch decision
+
+The product is released as one complete v1 product, not an Alerts beta followed
+by a later v1 completion. Public release requires every applicable L00–L10
+track to reach `Verified` or to carry an explicitly approved conditional
+exception with owner, expiry and rollback. YouTube and Enterprise remain Phase
+2 and must not be represented as launch features.
+
+### Included in v1
+
+- Alerts public tip page, creator dashboard, creator-direct Razorpay boundary,
+  durable queues, moderation/history, browser-source overlay and approved core
+  configuration/template-library integration.
+- Web Companion Console, React Native iOS/Android Companion, and Windows/macOS
+  native helper work within the approved scope and release gates.
+- BharatStudio parent marketing site with Alerts/Companion pages, pricing,
+  support and legal/policy index surfaces.
+
+### Excluded from v1
+
+- YouTube data/live polling, Super Chat/memberships, catch-up summaries and
+  YouTube chat/history ingestion.
+- Enterprise workspaces, invites, allocations, reporting, settlement splits,
+  enterprise payment routing and enterprise finance/refund authority.
+- Client-owned entitlement decisions, Companion in-app checkout, public
+  desktop APIs, arbitrary local commands and client-facing gRPC.
+
+## 2. Non-negotiable release invariants
+
+1. An accepted payment or alert evidence record is never dropped, deleted,
+   silently acknowledged or rewritten because of tier, queue, rate, session,
+   overlay, Companion, TTS, provider delay or capacity pressure. Limits may
+   hold, delay, aggregate under an approved rule or require operator action.
+2. Financial truth comes from the server/payment ledger, verified Razorpay
+   webhook/reconciliation evidence and compensating records—not browser
+   callbacks, support assertions or scheduler delivery receipts.
+3. Per-queue delivery state is independent. Multi-queue source routing requires
+   explicit duplicate consent on every participating binding; source/priority
+   and override snapshots are immutable after acceptance.
+4. Durable outbox/cursor replay is the overlay correctness path. SSE/`NOTIFY` is
+   a wake-up optimisation only; pooled session-scoped `LISTEN` is forbidden.
+5. RLS, service identity, server-owned entitlements and role-scoped projections
+   enforce access. UI hiding, client checks and public documentation are not
+   security boundaries.
+6. Schedules, Cloud Tasks and observability templates remain disabled until
+   private targets, IAM/OIDC, monitoring, retries, dead letters, recovery and
+   staging evidence are recorded.
+7. Public copy may claim only implemented and approved v1 behavior. Legal,
+   tax, privacy, provider and app-store conclusions require dated primary or
+   professional evidence.
+
+## 3. Lifecycle and evidence rule
+
+Each material track follows:
+
+`Proposed → Approved → Implemented → Verified → Superseded`
+
+It may instead be `Blocked` when an external dependency or unresolved defect
+prevents progress. A status transition requires the task record, acceptance
+record, dated evidence, reviewer/finding/disposition, owner and rollback or
+recovery evidence where relevant. No document may approve itself by merely
+describing the desired result.
+
+## 4. Track authority and current disposition
+
+| Track | Area | Governing task/test | Current disposition | Main remaining gate |
+|---|---|---|---|---|
+| L00 | Legacy freeze and inventory | `tasks/L00-*`, `tests/TC-L00-*` | Proposed/local inventory | final authority reconciliation |
+| L01 | Contracts and database baseline | `tasks/L01-*`, `tests/L01-*` | Local evidence available | independent/security and deployed DB proof |
+| L02 | RLS, archive and retention | `tasks/L02-*`, `tests/L02-*` | Isolated PostgreSQL proof conditionally passing | independent security/application review and deployment role/secret evidence |
+| L03 | Alerts web and Creator API | `tasks/L03-*`, `tests/TC-L03-*` | Local implementation slices passing | browser/accessibility, provider, cross-replica and staging |
+| L04 | Go payment boundary | `tasks/L04-*`, `tests/TC-L04-*` | Local persistence/provider-contract slices passing | Razorpay approval, sandbox/live and deployed IAM/staging |
+| L05 | Go dispatch and Cloud Tasks | `tasks/L05-*`, `tests/TC-L05-*` | Local routing/lease/pump slices passing | live Cloud Tasks, cross-replica overlay, capacity/failure rehearsal |
+| L06 | Scheduler boundary | `tasks/L06-*`, `tests/TC-L06-*` | Local disabled templates/operations contract passing | deployed OIDC/IAM, target recovery and monitoring rehearsal |
+| L07 | Companion web/mobile/desktop | `tasks/L07-*`, `tests/TC-L07-*` | Web/mobile/macOS scaffolds passing | Windows, native security, store/signing/device evidence and audit remediation |
+| L08 | Marketing/support/legal | `tasks/L08-*`, `tests/TC-L08-*` | Static parent/product surface passing | external evidence, support operations, public copy/hosting |
+| L09 | Observability/load/failure | `tasks/L09-*`, `tests/TC-L09-*` | Local instrumentation and contract passing | deployed dashboards, declared targets, capacity/fault proof |
+| L10 | Release readiness | `tasks/L10-*`, `tests/TC-L10-*` | Blocked | all L00–L09 and external gates |
+
+The 359 missing BSA runtime packages remain a deliberately tracked launch
+requirement under [`PENDING-04-TEMPLATE-RUNTIME-PACKAGE-COMPLETION.md`](../../pending/launch/PENDING-04-TEMPLATE-RUNTIME-PACKAGE-COMPLETION.md).
+New visual generation is deferred by owner direction until the final
+implementation pass; this authority does not reduce the approved catalogue
+scope.
+
+## 5. Release-blocking external and deployment gates
+
+The following cannot be closed from local tests or assumptions:
+
+- written Razorpay Technology Partner/connected-account approval and creator-
+  direct sandbox/live order, webhook, refund and reconciliation evidence;
+- chosen Neon region/compute plan, Cloud Run min/max/concurrency, direct and
+  pooled connection budgets, secrets, domains, WAF, backups and rollback;
+- private OIDC/IAM for payment, worker, scheduler, Cloud Tasks and metrics;
+- staging proof of duplicate/out-of-order webhook/task, queue burst, cross-
+  replica SSE, notification outage, offline overlay, crash, DLQ, TTS/provider
+  delay and restore/rollback behavior;
+- React Native store accounts/signing/review, Windows build/signing and
+  macOS signing/notarisation/distribution;
+- dated CA/legal/privacy/provider/app-store review, approved policy versions,
+  support staffing/on-call and incident rehearsal;
+- independent or explicitly documented self-review evidence as allowed by the
+  current governance decision.
+
+The canonical support and external-evidence register is
+[`05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`](./05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md).
+
+## 6. Go/no-go rule
+
+The release owner may approve public launch only when:
+
+1. every applicable L00–L09 acceptance case has dated evidence and a recorded
+   disposition;
+2. no unowned critical/high issue remains and all conditional exceptions have
+   an expiry, owner and mitigation;
+3. provider, legal/tax/privacy, store, infrastructure, support, monitoring,
+   backup/restore and rollback gates are affirmative;
+4. a production-like rehearsal reconciles payment ledger, webhook deliveries,
+   refunds, outbox, per-queue deliveries, overlay cursors and audit records;
+5. launch cohort, capacity guardrails, incident commander, freeze window,
+   rollback triggers and public status communication are active.
+
+Until then, the product is unreleased. No `READY FOR LAUNCH` wording may appear
+in a status file or public surface.
+
+## 7. Change control
+
+Any change to launch scope, payment flow, tier limits, pricing, data retention,
+platform, protocol, architecture, or public claims requires an update to this
+authority and the affected task/test/review records before implementation.
+Superseded material is archived with a reason; it is never silently deleted.
