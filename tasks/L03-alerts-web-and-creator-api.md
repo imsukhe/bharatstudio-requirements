@@ -481,3 +481,216 @@ and Web client; the Windows and macOS action-result consumers use the shared
 used by `bharatstudio-infra`. These are local cross-repository contract tests
 only; deployed OIDC/IAM, provider, browser/OBS, device and staging evidence
 remain open.
+
+## Corrected-findings-table remediation slice — 2026-08-16
+
+The following entries close every genuine gap named in the 2026-08-16
+corrected-findings table review of `bharatstudio-alerts` against the
+dashboard/login and backend gap audits, plus the six-item v1 scope addendum
+that followed it. Every item below was independently investigated against
+this repository's actual code (not ported mechanically from legacy) before
+being built, per this repository's own `AGENTS.md` rule. Verification
+throughout is: a fresh-DB migration apply via disposable Docker Postgres
+before any new SQL test was added to the permanent suite; the full
+`packages/db/tests/run-l03-application-behavior.sh` harness (all migrations,
+all SQL test files, Go integration tests, TS overlay-wakeup integration
+tests) green after every change; `apps/api`/`apps/web` `pnpm run build` and
+`pnpm run test` green after every change. None of this is deployed, staging,
+provider-sandbox, real-browser/OBS, or independent-review evidence — those
+gates remain open for all items below exactly as the section above already
+states for the rest of L03.
+
+### Billing lifecycle: request side — `661a4d6`
+
+Creators previously had no way to cancel, upgrade, downgrade, or reactivate a
+subscription once created — only the confirming (webhook) side existed. Adds
+`subscription_lifecycle_requests` (idempotent audit trail) and
+`app_private.get_active_subscription_ref`
+(`packages/db/migrations/0069_v1_l04_subscription_lifecycle_requests.sql`);
+does not let the app write `channel_subscriptions` state directly — that
+remains exclusively the payment service's job via a verified webhook, per the
+non-negotiable invariant that financial truth comes from provider evidence,
+not a request record. Same commit bundles the moderation UI's rejection-reason
+collection (`apps/web/app/dashboard/DashboardClient.tsx`) — the API's
+`reason` field on `POST /v1/channels/:id/moderation/:alertId` already existed
+from the initial repository commit; this closes the audit's finding that
+nothing in the UI ever collected or sent it, so no written reason ever
+reached the audit trail in practice.
+
+### Downgrade enforcement + entitlement production values — `08f3d22`
+
+Closes two compounding gaps recorded in
+`active/launch/01_MASTER_RELEASE_AUTHORITY.md`'s "Entitlement values
+addendum — 2026-08-16": `queueCount` was never actually set in any published
+entitlement version (free defaulted to `'{}'::jsonb`; the existing L03
+queue-creation entitlement check was consequently a no-op for every tier),
+and cancellation never reverted a channel's entitlement to free.
+`app_private.tier_queue_count(tier)` (Free=1, Pro=3, Creator=5, Studio=10,
+values carried from legacy's FRD-011 citation, approved via the addendum —
+not assumed) is now the single source of truth, and
+`app_private.publish_free_entitlement()` fires from
+`apply_channel_subscription_state`'s `cancelled` branch once Razorpay's own
+webhook confirms the access window is over — no cron/schedule introduced.
+`app_private.enforce_queue_count_entitlement` pauses the newest active queues
+beyond a tier's limit on downgrade, oldest-first retention, never deleted,
+with a `paused_reason` CHECK-constrained to distinguish `manual` from
+`tier_downgrade` so a later unrelated action can never re-label it
+(`packages/db/migrations/0070_v1_l03_l04_downgrade_enforcement.sql`).
+
+### Billing lifecycle UI — `ad99f1b`
+
+The dashboard billing panel was read-only. `BillingActionsPanel.tsx` adds
+subscribe cards (Free tier), upgrade/downgrade/cancel rows with inline
+confirm (paid tiers), and a reactivate banner once cancelled, against this
+app's real design tokens and the current approved pricing (Free ₹0, Pro
+₹199, Creator ₹399, Studio ₹499 — legacy's ₹349/₹449 figures are superseded,
+not reused). An action never itself asserts the new confirmed state; the
+panel always re-fetches `GET /v1/channels/:id/billing` (the webhook-confirmed
+projection) afterward.
+
+### Terms acceptance, DPDP privacy self-service, Razorpay payout onboarding UI — `ea39e83`
+
+All three had real, tested backend routes and zero web UI calling any of
+them. Terms: `/accept-terms` page + canonical document text
+(`apps/web/app/accept-terms/terms-content.ts`, Terms of Service ported
+verbatim from the legacy web app, Privacy Notice matching the already-
+published `bharatstudio-marketing` `/legal/privacy/` page — **not newly-
+drafted legal language; still needs dated legal review before this is final
+for production**, documented in the file header and the seed migration) plus
+login/dashboard routing that fails toward the terms gate rather than
+silently skipping it on a terms-status-unreachable error. DPDP: a
+self-service privacy dashboard section (access/correction/erasure-review
+requests, account export, account closure) reading/writing the pre-existing
+`account-store` routes. Payout onboarding: a UI for the pre-existing
+`payment-account` connect/status routes.
+
+### Server-side queue-mode dispatch semantics — `5ca128f`
+
+Investigated end-to-end (Go dispatch worker, DB ordering functions, overlay
+SSE contract, client renderer, current and legacy requirements docs) before
+concluding no backend gap actually existed: FIFO ordering, priority-with-
+aging selection, quiet/approval/moderation gates, the pause guard, per-
+binding rate limiting and no-drop claim semantics are all genuinely
+server-side (`packages/db/migrations/0065_v1_l05_queue_mode_ordering.sql`).
+Stacked/pills/aggregated are deliberately client-presentation-only
+(`apps/web/app/overlay/overlay-policy.ts`'s `selectPresentationGroup`) —
+every delivery is still projected and acknowledged as one durable event
+regardless of how the browser groups it visually. Closed with new ordering
+test coverage, not a behavior change.
+
+### Payments ledger page; tip-page donor-visibility scope check — `297adb8`
+
+`00_LAUNCH_SCOPE_AUTHORITY.md` already granted owner/admin "view financial
+amounts and raw payment/refund records," but no surface used that grant.
+`app_private.list_channel_payments`
+(`packages/db/migrations/0071_v1_l03_payment_ledger_read.sql`) plus
+`apps/web/app/payments/page.tsx` (cursor-paginated table + CSV export of
+already-authorized fields). Deliberately excluded: an "India-specific CA tax
+report" — a tax/compliance conclusion this repository's own governance rule
+prohibits deriving without dated primary evidence. Tip-page donor-visibility
+toggles were investigated and explicitly deferred (recorded as a scope
+boundary, not silently dropped) — see the commit body for the investigation.
+
+### Admin DLQ tooling — `18df411`
+
+`app_users.is_platform_admin` + `app_private.is_platform_admin()`
+(security definer) is the new cross-channel platform-admin identity;
+`apps/api/src/auth/pre-handler.ts`'s `requirePlatformAdmin` always composes
+auth+admin checks and fails closed (503) if its adapter is unconfigured,
+unlike the terms gate which degrades to "just authenticated." `event_outbox_
+deliveries.status` gains `'discarded'`; `alert_moderation_actions.action`
+gains `admin_replay`/`admin_discard` for a full audit trail
+(`packages/db/migrations/0073_v1_l03_admin_dlq_tooling.sql`). Investigated
+which "quarantined" states are genuinely reachable in this codebase before
+building tooling against them, rather than building against a declared-but-
+unreachable state.
+
+### Admin entitlement management — `e2b6d17`
+
+Per-channel entitlement view/history/override for support use
+(`packages/db/migrations/0074_v1_l03_admin_entitlement_management.sql`).
+Deliberately scoped to per-channel overrides only, not a speculative
+tier-wide entitlement-registry editor — `tier_queue_count` remains a
+fixed, code-owned function specifically so an accidental admin edit cannot
+silently change what every creator on a tier is charged or entitled to.
+
+### Featured-creator public API — `6afa05f`
+
+`channels.featured_consent` (opt-in, default false) +
+`app_private.list_featured_channels`
+(`packages/db/migrations/0072_v1_l03_featured_creator_listing.sql`), a
+settings-page consent toggle, and `bharatstudio-marketing`'s `/creators`
+page wired to fetch it client-side (the marketing site is a static export,
+so this required a scoped CSP `connect-src` widening for that one route
+only, verified via real before/after production builds) with the
+pre-existing honest empty state kept as the fallback when unconfigured.
+
+### Email delivery integration — `ea2fe98`
+
+Durable `email_outbox` (claim/complete via `for update skip locked`,
+mirroring `event_outbox_deliveries`'s pattern) + a real Resend HTTP sender
+behind an injectable `EmailSender` interface, credentials as the documented
+external gate — without them the drain loop leaves rows `pending`
+indefinitely rather than failing, per the non-negotiable invariant that
+accepted evidence is never dropped
+(`packages/db/migrations/0075_v1_l02_l03_l04_email_delivery.sql`). Three
+triggers: invoice/subscription events (hooked into
+`apply_channel_subscription_state`), DPDP export delivery (new opt-in
+`POST /v1/me/export/email`, additive to the existing synchronous export),
+and an overlay-expiry-reminder maintenance job (schedule stays disabled per
+the non-negotiable invariant; only the integration code ships). Google's
+`email`/`email_verified` ID-token claims, previously discarded, are now
+captured and stored, with the upsert logic never letting an unverified claim
+overwrite an already-verified address.
+
+### Referral/growth engine — `9679213`
+
+Design authority: `01_MASTER_RELEASE_AUTHORITY.md`'s "Referral credit
+mechanism addendum" and "Referral engine parameters and scope boundaries
+addendum" (both 2026-08-16) — a credit is a service-time credit (extends
+`current_period_end`), never a refund; legacy's refund-based "1 month free"
+mechanism was found structurally incompatible with this repository's
+payment-boundary invariants and was not built.
+`packages/db/migrations/0076_v1_l03_referral_growth_engine.sql`: FSM
+(`pending → paid_pending_hold → credited`, plus `flagged_fraud`/`revoked`/
+`expired`), a same-IP-subnet-hash fraud signal plus a self-referral CHECK
+constraint, 30-day reward, 14-day hold, monthly (5/30d) and concurrent-banked
+(12) credit caps — a capped or fraud-flagged referral is always recorded,
+never silently dropped. A real authorization-leak bug was caught and fixed
+during implementation before it ever reached the permanent test suite: the
+overview read function's banked/lifetime totals were originally independent
+uncorrelated subqueries that executed regardless of the caller's
+`has_channel_role` gate, so an unauthorized caller received a populated-but-
+zeroed row instead of an empty one — fixed by rewriting the function as
+plpgsql with an early return, with a regression test now in the permanent
+suite reproducing the exact scenario that exposed it.
+
+### Lottie/custom branding upload — `31b7ae9`
+
+Design authority: `01_MASTER_RELEASE_AUTHORITY.md`'s "Lottie/custom branding
+storage mechanism addendum — 2026-08-16" — bytea-in-Postgres storage
+(mirrors `alert_tts_audio`, 0067) rather than object storage, making the
+addendum's anticipated external-credentials gate moot rather than satisfied.
+`packages/db/migrations/0077_v1_l03_lottie_branding_upload.sql`: Studio-tier
+only, gate computed live from the channel's current
+`channel_entitlement_versions.tier` at both upload and overlay-serve time
+(not cached, so a downgrade takes effect on the very next overlay load with
+no separate cleanup job), upload slots keyed by the existing six-value
+`displayStyle` enum (this schema has no alert-type entity to key per-alert-
+type slots against). Content-safety validation
+(`apps/api/src/domain/lottie-validation.ts`) rejects embedded expressions and
+external asset references, deliberately stricter than what legacy's own
+shipped implementation checked for despite legacy's own spec demanding it.
+
+### Deliberate v1 scope boundaries recorded this session (not silent gaps)
+
+Tip-page donor-visibility toggles (deferred, investigated); the seven
+`configFeatures` entitlement dimensions beyond `queueCount` (remain unset —
+an unset key never invents a restriction, per the validator's tested
+behaviour; a future addendum must approve values before any are seeded);
+the max-attempt-exhaustion quarantine writer (not built — no reachable
+production trigger identified); referral device-fingerprint/PAN-dedup fraud
+signals, post-credit clawback, link-click tracking, and history pagination
+(all explicitly deferred, see the referral addendum); Lottie logo/branding-
+image upload as a distinct feature from animation upload (not part of the
+v1 addendum's actual line item, no corresponding approved authority exists).
