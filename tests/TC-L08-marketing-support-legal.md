@@ -44,3 +44,14 @@ security-boundary checks remain green; no public content, provider credential,
 private route or Phase-2 feature claim was introduced. External legal/provider,
 support, domain/HTTPS/email, analytics-consent, SEO/accessibility and rollback
 evidence remain open.
+
+### Marketing migration verification — 2026-08-16
+
+| ID | Setup/action | Expected result | Evidence |
+|---|---|---|---|
+| L08-11 | Run `npm test` after the parent/product migration | All static checks pass against the full published route set | `bharatstudio-marketing/tests/site.test.mjs`; 5/5 passed locally on 2026-08-16 |
+| L08-12 | Crawl the 21 checked-in HTML routes for metadata, stylesheet and brand identity | Every published page has a title, description, stylesheet and BharatStudio identity | `bharatstudio-marketing/public/`; local test pass on 2026-08-16 |
+| L08-13 | Resolve every root-relative link from the 21 routes | No published internal navigation link points to a missing checked-in target | `tests/site.test.mjs` internal-link test; pass locally on 2026-08-16 |
+| L08-14 | Inspect the migrated homepage in a local browser preview | Parent brand is visually distinct from Alerts and Companion; dark creator-focused visual system is preserved; dropdown navigation is present | Local browser DOM/screenshot review of `/` on 2026-08-16 |
+| L08-15 | Inspect the download and boundary copy | No unconfirmed product hostname, provider secret, internal architecture or unavailable integration is published | `public/download/index.html`, `public/features/index.html`; local content scan pass on 2026-08-16 |
+| L08-16 | Compare discovery files with the route set | Sitemap includes all published public routes and robots points to it | `public/robots.txt`, `public/sitemap.xml`; local test pass on 2026-08-16 |
