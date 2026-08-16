@@ -72,7 +72,13 @@ agree.
   sandbox evidence exist.
 - Email delivery and referrals are implemented only where required by a current
   v1 promise; otherwise they remain explicitly deferred and must not be implied
-  by public copy.
+  by public copy. **Superseded 2026-08-16**: 01_MASTER_RELEASE_AUTHORITY.md's
+  "v1 scope addendum — 2026-08-16" makes both v1-required. See that document's
+  entitlement-values-style addenda for the resolved design of each (referral
+  credit mechanism in particular: owner-approved as a service-time credit —
+  extends current_period_end, no refund, no recurring_price_paise mutation —
+  not legacy's refund-based "free month," which is incompatible with this
+  repo's payment-boundary invariants).
 - The no-op replay publisher is intentional. Durable database publication plus
   SSE wake-up is the correctness design; staging must prove the complete path.
 - Workspace/Enterprise and YouTube code must not be added to v1 remediation.

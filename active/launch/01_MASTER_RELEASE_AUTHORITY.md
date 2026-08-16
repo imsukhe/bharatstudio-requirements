@@ -104,6 +104,40 @@ restriction, so this is a deliberate scope boundary, not a silent gap.
 A future addendum must carry those values into this authority before any
 of them are seeded.
 
+### Referral credit mechanism addendum — 2026-08-16
+
+The "v1 scope addendum" above requires a referral/growth engine but does
+not specify how a referral credit is redeemed. Investigation found that
+BharatStudio Alerts legacy's mechanism — a full Razorpay refund of the
+next charge, "1 month free" — is structurally incompatible with this
+repository: there is no refund-creation code anywhere in
+`services/payment-webhook-go` (only read access to provider refunds
+exists), `channel_subscriptions.recurring_price_paise` is CHECK-locked to
+the three approved tier prices, and
+`app_private.apply_channel_subscription_state` explicitly raises if a
+subscription's price ever changes without a brand-new subscription.
+Building the legacy mechanism would mean adding new outbound
+money-movement code to the payment boundary — directly against
+non-negotiable invariant #2 below (financial truth comes from the
+server/payment ledger, not an inferred discount).
+
+Owner decision (interactive session): a referral credit is a
+**service-time credit, not a refund** — it extends the beneficiary
+subscription's `current_period_end` by an owner-approved number of days,
+recorded in a new ledger table and applied through the existing
+entitlement-publish path with `recurring_price_paise` never touched. This
+is a different product promise than legacy's "free month via refund" and
+is the approved v1 design, not an inference from legacy code. Reward
+size, fraud-signal set, and credit caps remain to be fixed in the L03
+task record for this feature (legacy's specific numbers — 1 month, 12
+active credits, 5/month, 14-day hold, 90-day expiry — are reference
+values only, not carried over as authority).
+
+This also resolves the conflict this addendum created with
+`06_BACKEND_GAP_REMEDIATION_AUTHORITY.md`'s "Decision boundaries" section,
+which had referrals as explicitly deferred; that document is updated to
+point back here.
+
 ## 2. Non-negotiable release invariants
 
 1. An accepted payment or alert evidence record is never dropped, deleted,
