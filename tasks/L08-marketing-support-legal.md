@@ -381,3 +381,101 @@ this pass's scope): deployment to a real Cloudflare Pages edge — the
 generated `_headers` file's behaviour is verified against Cloudflare's
 documented semantics and the local test suite, not against production
 Cloudflare infrastructure.
+
+### Prod-readiness audit remediation — 2026-08-17
+
+A page-by-page, component-by-component review of all 27 built routes and 7
+shared components (two independent inventory passes, one per product-page
+cluster and one per secondary/support/legal cluster) was run against five
+design/UX critique lenses and benchmarked against five live competitor
+sites (Ko-fi, Streamlabs, StreamElements, Buy Me a Coffee, Fourthwall,
+visited 2026-08-16). The full report is a local file, not checked into
+either repository. Findings that were plumbing/structure, not new public
+claims, were fixed and pushed directly to `bharatstudio-marketing` `master`
+at commit `34ae1ff` (owner explicitly authorised skipping the per-fix
+approval pause after the scope was surfaced):
+
+- `/pricing` plan-selection CTAs previously all pointed at the same
+  `/download` URL with no state carried forward — every tier click lost
+  the visitor's choice. `/download` now reads a `?plan=` query param
+  (added by `/pricing`'s CTAs) and reflects it back before the visitor
+  continues into Alerts.
+- `/download`'s Alerts-web and Android cards both used an identical bare
+  "A" icon-box glyph — the only visual differentiator on that page. Android
+  now uses a distinct glyph, and its "coming soon" copy tense now matches
+  the iOS card's (both correctly future-tense, not implying the surface is
+  already live).
+- `/legal/data-rights` was a complete, correct page with zero inbound links
+  from anywhere on the site (repo-wide grep confirmed). Now linked from
+  `/support`'s "Data concern" card, the `/legal` hub, and the sitewide
+  footer.
+- `/setup` — the page every "get started" CTA on the site ultimately routes
+  a visitor through — had zero outbound calls to action in its own body.
+  Added a closing "Open Alerts" / "Contact support" pair.
+- `/features`'s hero had no CTA at all, the only hero on the site with
+  none. Added "See pricing" / "Compare plans".
+- `/compare` and `/status` previously opened with bespoke intro markup
+  instead of the shared `page-hero` wrapper every other page uses,
+  producing a visibly different vertical rhythm and a smaller H1 on
+  `/status`. Both now use the shared wrapper.
+- `CommissionCalculator` (used on `/compare`) was hardcoded to the Pro
+  plan's ₹199 fee with no way to change it — a visitor considering
+  Creator/Studio saw a savings estimate that wasn't theirs. Added a plan
+  selector (Pro/Creator/Studio) using the already-approved `/pricing`
+  figures; no new prices introduced.
+- The `⚠` warn-state cell in `CompareTable`'s Section B previously carried
+  meaning through color alone (an amber icon with only an `aria-label` for
+  screen readers). Added a visible "Caution" text label in the cell itself.
+- Consolidated the comparison-table pattern that existed as two separate
+  implementations (`CompareTable` on `/compare`, a bespoke inline table on
+  `/pricing`): added `MultiCompareTable` to `components/CompareTable.tsx`
+  alongside the existing `CompareTable` (unchanged, zero regression risk to
+  `/compare`'s three existing tables) and switched `/pricing` to use it.
+  Output confirmed byte-identical to the original inline table.
+
+**One item in this pass touches L08-02/L08-04 directly and does not close
+either gate.** `/apps/alerts` and `/features` previously never mentioned
+the AI-voice/11-Indian-languages, Lottie-animation, 4-built-in-themes or
+72-hour-buffer claims, despite being the pages whose job is to describe the
+Alerts feature set — those claims existed only on `/compare`, itself
+legacy-ported content with hedged/pending-review language per the prior
+migration entry above. The owner explicitly authorised propagating the
+same, unchanged wording onto `/apps/alerts` and `/features` after this
+scope concern was raised in chat. **This does not constitute the L08-02
+pricing-copy-vs-authority review or the L08-04 feature-claims legal/CA
+review — both remain `not run`.** It only removes an inconsistency between
+pages that were describing the same product differently; the underlying
+claims carry the same pending-review status they already had on `/compare`.
+`D-C053` (no competitor names in rendered HTML) was preserved throughout —
+no page gained a named-competitor reference.
+
+**Real evidence, this pass:**
+
+- `tsc --noEmit` clean after every edit.
+- `npm run build` succeeds: 31/31 static routes prerender, CSP header
+  generator reports 32 route-specific blocks (64 inline-script hashes),
+  unchanged from before this pass.
+- `tests/site.test.mjs` — all 8 tests pass, including internal-link
+  resolution (confirms the new `/legal/data-rights` links and the
+  `?plan=` query-param CTAs resolve) and the `/creators` honest-empty-state
+  test (unaffected by this pass).
+- Every change spot-checked live in a local browser: screenshots and DOM
+  queries confirmed the plan-forwarding banner renders correctly for a
+  `?plan=studio` link, the icon collision is resolved, the shared
+  `page-hero` wrapper renders identically to sibling pages, the warn-label
+  text renders next to (not instead of) the icon, the `CommissionCalculator`
+  plan selector recomputes the total correctly on change, and the
+  `/pricing` table swap to `MultiCompareTable` produces identical visible
+  output to the original inline table.
+- Commit `34ae1ff` on `bharatstudio-marketing` `master` (pushed directly,
+  fast-forward, no merge commit — branch `marketing-audit-fixes-2026-08-16`
+  was created, reviewed, and merged into `master` before push per the
+  owner's explicit instruction).
+
+**Still open, unchanged by this pass:** everything L08-02 through L08-05
+already listed as `not run` — dated legal/CA/provider review of the
+pricing and feature claims, SEO/accessibility scans, and the icon-box
+rollout was intentionally scoped down (see prior conversation record) to
+avoid inventing semantically-unbacked glyphs across every remaining grid
+on the site; the ones added this pass reuse the alerts page's own
+established glyph set where a real semantic match existed.

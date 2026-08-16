@@ -55,3 +55,12 @@ evidence remain open.
 | L08-14 | Inspect the migrated homepage in a local browser preview | Parent brand is visually distinct from Alerts and Companion; dark creator-focused visual system is preserved; dropdown navigation is present | Local browser DOM/screenshot review of `/` on 2026-08-16 |
 | L08-15 | Inspect the download and boundary copy | No unconfirmed product hostname, provider secret, internal architecture or unavailable integration is published | `public/download/index.html`, `public/features/index.html`; local content scan pass on 2026-08-16 |
 | L08-16 | Compare discovery files with the route set | Sitemap includes all published public routes and robots points to it | `public/robots.txt`, `public/sitemap.xml`; local test pass on 2026-08-16 |
+
+### Prod-readiness audit remediation — 2026-08-17
+
+| ID | Setup/action | Expected result | Evidence |
+|---|---|---|---|
+| L08-17 | Run the full local verification chain (`tsc --noEmit`, `npm run build`, `npm test`) after the audit-remediation edit set | Type-check clean, all 31 static routes prerender with CSP headers regenerated, all site tests pass | `tsc --noEmit` clean; `npm run build` 31/31 routes, 32 CSP blocks; `tests/site.test.mjs` 8/8 pass locally on 2026-08-17 |
+| L08-18 | Confirm the new internal links (`/legal/data-rights` from `/support`, `/legal`, and the footer; `?plan=` query-param CTAs from `/pricing` to `/download`) resolve | No new broken internal link is introduced | `tests/site.test.mjs` internal-link resolution test; pass locally on 2026-08-17 |
+| L08-19 | Browser-verify the plan-forwarding banner, icon-collision fix, shared `page-hero` adoption on `/compare`/`/status`, warn-label text, `CommissionCalculator` plan selector, and the `/pricing` → `MultiCompareTable` swap | Each renders correctly and the table swap produces output identical to the prior inline table | Local browser screenshots + DOM queries on 2026-08-17; `git diff` review of `components/CompareTable.tsx` and `app/pricing/page.tsx` |
+| L08-20 | Confirm no competitor name was introduced in any rendered HTML while propagating the AI-voice/languages/Lottie/themes/buffer claims from `/compare` onto `/apps/alerts` and `/features` | `D-C053` (no competitor names) holds; wording is unchanged from the existing `/compare` copy, not a new claim | Diff review of `app/apps/alerts/page.tsx`, `app/features/page.tsx` against `app/compare/page.tsx`'s existing text on 2026-08-17 — **does not satisfy L08-02 or L08-04**, both remain `not run` |
