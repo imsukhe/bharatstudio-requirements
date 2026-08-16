@@ -44,9 +44,11 @@ agree.
   plus route-specific rate limiting. A verification failure occurs before the
   payment service call and remains retryable for the viewer.
 - Sarvam TTS synthesis is an explicit provider adapter with a 1.5-second hard
-  timeout, bounded Indic locale/text input, cache-key contract and chime
-  fallback. Credentials, provider sandbox evidence and durable multi-replica
-  audio artifact storage remain external release gates.
+  timeout, bounded Indic locale/text input, a durable cache/artifact path, an
+  authenticated alert-worker enrichment caller and chime fallback. The worker
+  never blocks or drops a visual alert when TTS fails. Credentials, provider
+  sandbox evidence and production artifact-capacity validation remain external
+  release gates.
 - Deployment manifests pin the API/payment/worker split, direct-vs-pooled
   database endpoints, Cloud Run caps, OIDC audience equality, Cloud Tasks
   retries/DLQ and secret names. They are substitution templates, not proof
