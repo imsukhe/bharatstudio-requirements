@@ -163,3 +163,168 @@ ambiguous responses, and retain it until the browser checkout handoff
 succeeds. Focused `tip-client` tests pass 4/4 and the Web production build
 passes. This does not prove deployed network behavior, provider retry,
 Razorpay checkout or staging reconciliation.
+
+## Corrected-findings-table remediation cases — 2026-08-16
+
+Each case below follows the fresh-DB-Docker-Postgres migration verification,
+full `run-l03-application-behavior.sh` harness, and `apps/api`/`apps/web`
+build+test discipline recorded in `tasks/L03-alerts-web-and-creator-api.md`'s
+matching dated entry, which each case links to rather than restating. None of
+these are deployed, staging, provider-sandbox, real-browser/OBS, or
+independent-review evidence — see the section preamble above for why those
+gates apply to all of L03, not only these cases.
+
+### L03-29 — billing lifecycle request/confirm separation
+
+**Result:** PASS (local DB/API evidence, 2026-08-16)
+
+A cancel/upgrade/downgrade/reactivate request is recorded idempotently and
+only ever tells the payment service what to attempt next; `channel_
+subscriptions` state is written exclusively by the pre-existing verified-
+webhook path. Migration `0069_v1_l04_subscription_lifecycle_requests.sql`
+applies cleanly on a fresh database; the L03 harness (including a dedicated
+`l04_downgrade_enforcement.sql`-adjacent lifecycle-request coverage) and the
+API/web suites pass. Evidence: commit `661a4d6`.
+
+### L03-30 — downgrade enforcement and entitlement production values
+
+**Result:** PASS (local DB/API evidence, 2026-08-16)
+
+`tier_queue_count` values (Free=1, Pro=3, Creator=5, Studio=10) are now the
+single enforced source of truth for queue-creation entitlement, approved via
+`01_MASTER_RELEASE_AUTHORITY.md`'s "Entitlement values addendum," and a tier
+downgrade pauses the newest queues beyond the new ceiling with a `paused_
+reason` CHECK distinguishing `manual` from `tier_downgrade` so it is never
+mislabeled by an unrelated later action; cancellation now correctly reverts a
+channel's entitlement to free once the webhook confirms it. Migration
+`0070_v1_l03_l04_downgrade_enforcement.sql` and its
+`l04_downgrade_enforcement.sql` test pass in the harness. Evidence: commit
+`08f3d22`.
+
+### L03-31 — billing lifecycle UI
+
+**Result:** PASS (local Web evidence, 2026-08-16)
+
+`BillingActionsPanel.tsx` never itself asserts a new confirmed billing state
+— every action re-fetches `GET /v1/channels/:id/billing` afterward, so a
+slower webhook still lands correctly on the next normal load. Web production
+build and contract tests pass. Evidence: commit `ad99f1b`.
+
+### L03-32 — terms acceptance, DPDP self-service, payout onboarding UI
+
+**Result:** PASS (local Web evidence, 2026-08-16), legal review of terms/
+privacy text explicitly OPEN
+
+Three pre-existing, tested backend surfaces (terms acceptance, DPDP privacy
+self-service, Razorpay payout onboarding) gain their first web UI. Login/
+dashboard routing fails toward the terms gate rather than silently skipping
+it when terms status is unreachable. **The Terms of Service and Privacy
+Notice canonical text is ported from legacy/the marketing site, not newly
+drafted or legally reviewed for this launch — this is explicitly recorded as
+open in both the source file header and the seed migration, and must not be
+read as legal approval.** Web production build and contract tests pass.
+Evidence: commit `ea39e83`.
+
+### L03-33 — server-side queue-mode dispatch semantics (audit closure)
+
+**Result:** PASS — no backend gap found (local evidence, 2026-08-16)
+
+An end-to-end investigation (Go dispatch worker, DB ordering functions,
+overlay SSE contract, client renderer) confirmed FIFO/priority-with-aging/
+quiet/approval/moderation/pause/rate-limit/no-drop semantics are genuinely
+server-side, and that stacked/pills/aggregated grouping is deliberately
+client-presentation-only over the same durably-acknowledged delivery. Closed
+with new ordering test coverage rather than a behavior change. Evidence:
+commit `5ca128f`.
+
+### L03-34 — payments ledger page
+
+**Result:** PASS (local DB/API/Web evidence, 2026-08-16)
+
+`app_private.list_channel_payments` and `apps/web/app/payments/page.tsx`
+give the owner/admin financial-visibility grant already present in
+`00_LAUNCH_SCOPE_AUTHORITY.md` its first actual UI (cursor-paginated table,
+CSV export of already-authorized fields only — explicitly not a tax/CA-
+compliance report). Migration `0071_v1_l03_payment_ledger_read.sql` and its
+test pass in the harness; Web build/tests pass. Tip-page donor-visibility
+toggles were investigated and recorded as an explicit scope deferral, not
+built. Evidence: commit `297adb8`.
+
+### L03-35 — admin DLQ tooling
+
+**Result:** PASS (local DB/API evidence, 2026-08-16)
+
+Cross-channel platform-admin identity (`is_platform_admin`) is enforced
+fail-closed (503, not silent degrade to "authenticated only") when its
+adapter is unconfigured. DLQ list/replay/discard actions are fully audited
+via `alert_moderation_actions`. Investigated which "quarantined" states are
+actually reachable before building tooling against them. Migration
+`0073_v1_l03_admin_dlq_tooling.sql` and `l03_admin_dlq_tooling.sql` pass in
+the harness; 7 dedicated route tests pass. Evidence: commit `18df411`.
+
+### L03-36 — admin entitlement management
+
+**Result:** PASS (local DB/API evidence, 2026-08-16)
+
+Per-channel entitlement view/history/override for support use, deliberately
+scoped to per-channel overrides only — no tier-wide entitlement-registry
+editor was built, since `tier_queue_count` staying a fixed, code-owned
+function is what prevents an accidental edit from silently changing what an
+entire tier is charged or entitled to. Migration
+`0074_v1_l03_admin_entitlement_management.sql` and its test pass in the
+harness. Evidence: commit `e2b6d17`.
+
+### L03-37 — featured-creator public listing
+
+**Result:** PASS (local DB/API/Web evidence, 2026-08-16)
+
+Opt-in `featured_consent` (default false) plus a public listing function and
+a scoped marketing-site CSP widening limited to the one route that needs it,
+verified via real before/after production builds showing the CSP is
+byte-identical everywhere else. Migration
+`0072_v1_l03_featured_creator_listing.sql` and its test pass in the harness.
+Evidence: commit `6afa05f`.
+
+### L03-38 — email delivery integration
+
+**Result:** PASS locally; Resend credentials OPEN (documented external gate,
+2026-08-16)
+
+Durable outbox with claim/complete semantics; without Resend credentials
+configured, the drain loop leaves rows `pending` (never `failed`), so no
+accepted delivery evidence is ever dropped while the credential gate remains
+open. Three real triggers wired: invoice/subscription events, DPDP export
+delivery, overlay-expiry reminder (schedule stays disabled per the non-
+negotiable invariant — integration code only). Migration
+`0075_v1_l02_l03_l04_email_delivery.sql` and `l02_l04_email_delivery.sql`
+pass in the harness; 11 dedicated apps/api tests pass. Evidence: commit
+`ea2fe98`.
+
+### L03-39 — referral/growth engine
+
+**Result:** PASS (local DB/API/Web evidence, 2026-08-16)
+
+Full FSM, fraud signal, and service-time credit ledger per the approved
+"service-time credit, no refund" design. A genuine authorization-leak bug
+(an unauthenticated caller could read real banked/lifetime credit totals
+through two uncorrelated subqueries that bypassed the `has_channel_role`
+gate) was found and fixed via a real Docker Postgres smoke test *before* it
+reached the permanent suite; a regression test for the exact scenario is now
+in `l03_referral_growth_engine.sql`, which passes 13 assertion blocks in the
+harness alongside 12 dedicated apps/api tests. Evidence: commit `9679213`.
+
+### L03-40 — Lottie/custom branding upload
+
+**Result:** PASS (local DB/API/Web evidence, 2026-08-16); object-storage
+external gate made moot by design, not satisfied
+
+Studio-tier gate is computed live from current tier at both upload and
+overlay-serve time (not cached), so a downgrade hides an uploaded animation
+on the very next overlay load with no separate cleanup job while the
+uploaded row itself remains intact for a later re-upgrade. Content-safety
+validation rejects embedded expressions and external asset references,
+stricter than what legacy's own shipped implementation checked for despite
+legacy's own spec demanding it. Migration
+`0077_v1_l03_lottie_branding_upload.sql` and `l03_lottie_branding_upload.sql`
+pass in the harness (8 assertion blocks) alongside 18 dedicated apps/api
+tests. Evidence: commit `31b7ae9`.
