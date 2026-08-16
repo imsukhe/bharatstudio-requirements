@@ -138,6 +138,71 @@ This also resolves the conflict this addendum created with
 which had referrals as explicitly deferred; that document is updated to
 point back here.
 
+### Referral engine parameters and scope boundaries addendum — 2026-08-16
+
+The prior addendum left reward size, fraud-signal set, and credit caps
+unfixed pending the L03 task record. Implemented in
+`packages/db/migrations/0076_v1_l03_referral_growth_engine.sql`, fully
+verified against a disposable Postgres 16 database (fresh-DB apply,
+functional smoke test, and the permanent `l03_referral_growth_engine.sql`
+suite registered in the L03 harness) — parameters fixed:
+
+- **Reward**: 30 service-time days per credited referral.
+- **Hold**: 14 days after the referred channel's first paid conversion
+  before a credit is granted — same purpose legacy's hold served (blocks
+  an immediate-cancel abuse pattern), just with nothing to claw back
+  since there is no refund.
+- **Pending-referral expiry**: 90 days — a referral that never converts
+  to a paid subscription in this window is marked `expired`.
+- **Banked-credit expiry**: 180 days — a credit earned but not yet
+  applied (the referrer had no active subscription of its own to extend)
+  expires if it sits unconsumed this long.
+- **Monthly credit cap**: 5 credited referrals per referrer per rolling
+  30 days. A 6th referral hitting its hold expiry within the same window
+  is marked `flagged_fraud` with `flags.reason =
+  'monthly_credit_cap_exceeded'` — recorded, not silently dropped or
+  silently over-credited.
+- **Concurrent banked-credit cap**: 12 unconsumed credits per referrer.
+  A credit earned past this cap is recorded in the ledger with
+  `status = 'expired'` (forfeited) rather than extending liability
+  further — the referral itself still reaches `credited`, but the credit
+  applied is zero. Every forfeiture is auditable in `referral_credits`.
+- **Fraud signal (v1)**: same-IP-subnet-hash reuse across a single
+  referrer's own referred channels — two or more referred signups
+  sharing a server-computed /24 (IPv4) or ~/48 (IPv6) subnet hash trip
+  auto-`flagged_fraud` on the second repeat. IP hashing happens
+  server-side from the request's own connection, never from a
+  client-supplied header, and only a hash is ever stored. The
+  self-referral CHECK constraint (`referrer_channel_id <>
+  referred_channel_id`) is a second, independent layer.
+
+Deliberately out of scope for v1 (legacy had partial equivalents; none
+carry forward as a gap since none were load-bearing for the approved
+design):
+- **Device fingerprinting** as a second fraud signal — this repo has no
+  client-side fingerprint collection anywhere; building one speculatively
+  for this feature alone was rejected as scope creep. The `referrals`
+  table carries a nullable `device_fingerprint_hash` column so a future
+  addendum can wire it up without a new migration.
+- **PAN-dedup fraud signal** — legacy itself left this as an
+  unconfirmed-API `TODO`; still unconfirmed here.
+- **Post-credit clawback** on a later cancellation/chargeback of the
+  referred channel's subscription — the 14-day hold is the entire fraud
+  window; once a credit is granted, the service-time already extended is
+  not reversed. Given the 30-day/12-credit caps bound total exposure per
+  referrer, this is an accepted, deliberately bounded risk, not an
+  oversight.
+- **Referral link click tracking** — the self-serve dashboard reports
+  attributed/converted/credited referrals, not raw link-click analytics;
+  no click-event table was built.
+- **Referral-history pagination** — `list_channel_referrals` returns the
+  latest 100 rows, unpaginated, matching the entitlement-history view's
+  precedent; a cursor-paginated version is deferred until real usage
+  shows it is needed.
+- **Global referral-code capture** — the web client only captures a
+  `?ref=` code at `/login`, the realistic entry point for a referred
+  creator; it is not captured on every route.
+
 ## 2. Non-negotiable release invariants
 
 1. An accepted payment or alert evidence record is never dropped, deleted,
