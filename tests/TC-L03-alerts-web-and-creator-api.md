@@ -328,3 +328,107 @@ legacy's own spec demanding it. Migration
 `0077_v1_l03_lottie_branding_upload.sql` and `l03_lottie_branding_upload.sql`
 pass in the harness (8 assertion blocks) alongside 18 dedicated apps/api
 tests. Evidence: commit `31b7ae9`.
+
+### L03-41 — resumable onboarding wizard
+
+**Result:** PASS (local Web/API/DB evidence, 2026-08-16)
+
+Named regression `apps/web/app/onboarding/onboarding-routing.test.ts`
+proves the owner's literal acceptance case: a freshly-signed-up account and
+a returning account that signed out mid-onboarding both resolve to
+`/onboarding/step-1` — the same destination, from the same
+`resolvePostAuthDestination` function every routing decision point shares.
+Live verification: synthetic session (fresh DB user, zero channels) landed
+on step-1; token removed from `sessionStorage` and restored (sign-out/
+sign-in simulation); reloaded `/onboarding`; confirmed identical landing;
+completed channel creation (real `POST /v1/channels` → `201`); advanced to
+step-2; skipped payout; landed on `/dashboard`. `apps/web` suite 55/55 (6
+new); `pnpm build` passes 18 routes. Evidence: this session, 2026-08-16.
+
+### L03-42 — dashboard multi-page IA
+
+**Result:** PASS (local Web evidence, 2026-08-16)
+
+`/dashboard/{alerts,customise,mod,billing,referrals}` — legacy's sidebar
+section split, this repository's own components and API client (no legacy
+UI code ported), each independently routed with its own data fetch
+following the pre-existing `/companion`/`/payments`/`/settings` pattern.
+Verified live: every new page plus the trimmed Overview loads and renders
+real data for a freshly-onboarded synthetic channel. `pnpm build` passes (5
+new static routes); `tsc --noEmit` clean. Evidence: this session,
+2026-08-16.
+
+### L03-43 — regression: unsubscribed-channel billing-view shape
+
+**Result:** PASS — real bug found via live testing and fixed, not a
+pre-existing known gap (local DB/API/Web evidence, 2026-08-16)
+
+`app_private.get_billing_view`'s zero-subscription-row default paired the
+annual charged/service shape (10/12) with a monthly interval default,
+violating `channel_subscriptions`'s own CHECK constraint invariant for a
+real row. Never previously exercised — every channel used in prior L03
+testing already had a real subscription row. The web client's own
+`parseBillingView` (widened earlier this session) correctly rejected the
+mismatched shape, so the failure mode was a closed "Server response was
+invalid" rather than silently wrong billing data. Fixed in migration
+`0078_v1_l03_l04_free_billing_view_default_shape.sql`; new regression block
+in `l03_application_behavior.sql` uses a channel that deliberately never
+receives an `apply_channel_subscription_state` call. Verified against a
+disposable fresh PostgreSQL 16 container via
+`run-l03-application-behavior.sh` (`L03_APPLICATION_BEHAVIOR=PASS`, no
+regression in any other harness assertion), and confirmed the running dev
+database's real API response changed from `annualMonthsCharged:10,
+annualServiceMonths:12` to `1, 1` after applying the migration via direct
+`curl`. Evidence: this session, 2026-08-16.
+
+**Review disposition:** independent fresh review unavailable this session;
+self-reviewed only, per governance's stated fallback. `Conditionally
+complete` pending that review — see the L03-41/42/43 task-file entries for
+the full self-review note.
+
+### L03-44 — payout onboarding as a real dashboard gate
+
+**Result:** PASS (local DB/API/Web evidence, 2026-08-16)
+
+Owner-reported gap (reached `/dashboard` and `/companion` while still on
+the payout step, having neither connected nor skipped) confirmed, then an
+explicit owner decision (via `AskUserQuestion`) to make payout a real
+gate. `channels.payout_onboarding_skipped_at` +
+`app_private.skip_payout_onboarding` (migration
+`0079_v1_l03_payout_onboarding_gate.sql`, owner/admin-only, idempotent)
+give "explicitly skipped" a persisted state distinct from "never reached
+it" — both previously looked identical (no payment account either way),
+which is what made a real gate unsafe before. `GET /v1/me` now projects
+`payoutOnboardingDone` per channel; `onboarding-routing.ts`'s
+`resolvePostAuthDestination` became a 3-way decision every routing call
+site (bare `/onboarding`, step-1's guard, `AppShell`'s gate covering all 9
+shell-wrapped pages) shares. `POST /v1/channels/:id/payout-onboarding/skip`
+is now actually called by the "Skip for now" button — it previously just
+navigated away without recording anything, the real bug behind the
+owner's report.
+
+A genuine regression was hit mid-implementation (a required new API field
+briefly broke every page's `getCurrentUser()` parse until the migration
+was applied and the dev server restarted — Turbopack stale-serving,
+already a known issue in this environment) and fixed live with the owner
+watching before continuing.
+
+`apps/web` suite 58/58 (3 new, including the exact "signed out on the
+payout step, signed back in" resume case from the owner's report);
+`apps/api` suite 145/145 (2 new); `run-l03-application-behavior.sh`
+against a disposable fresh PostgreSQL 16 container passes all 79
+migrations and every harness assertion, including a new
+`L04_PAYMENT_ACCOUNT_ONBOARDING` block (idempotent skip, viewer-role
+rejection, unknown-channel rejection); both `tsc --noEmit` clean;
+`pnpm build` 18/18 routes. Live-verified against the real running dev
+database with real synthetic sessions: direct navigation to `/dashboard`
+and `/companion` both redirect to the payout step for an account that
+hasn't touched it; skip persists server-side and unlocks the dashboard;
+sign-out/sign-in after skipping stays unlocked; registering a real payment
+account also unlocks it; revisiting the create-channel step after full
+onboarding redirects straight to the dashboard. Evidence: this session,
+2026-08-16.
+
+**Review disposition:** self-reviewed only, per governance's stated
+fallback for when independent review is unavailable. `Conditionally
+complete`.

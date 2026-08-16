@@ -694,3 +694,262 @@ signals, post-credit clawback, link-click tracking, and history pagination
 (all explicitly deferred, see the referral addendum); Lottie logo/branding-
 image upload as a distinct feature from animation upload (not part of the
 v1 addendum's actual line item, no corresponding approved authority exists).
+
+## Onboarding wizard, dashboard multi-page IA, and a real billing-shape bug found in the process — 2026-08-16
+
+Within L03 Task item #4 ("Implement creator onboarding, ... alert settings,
+queue controls, moderation and history") — no new authority needed, this is
+already the approved scope, not new scope. Owner directed a like-legacy
+step-by-step onboarding flow and a legacy-like multi-page dashboard IA,
+reusing this repository's own components/data rather than porting legacy
+UI code.
+
+### L03-41 — resumable onboarding wizard (channel creation moved out of the dashboard)
+
+**Result:** PASS (local Web/API/DB evidence, 2026-08-16)
+
+New `/onboarding`, `/onboarding/step-1` (confirm + create channel),
+`/onboarding/step-2` (connect payout, optional/skippable) replace the
+inline create-channel form that used to live directly in
+`DashboardClient.tsx`. `LoginClient.tsx`, `/onboarding`'s own redirector,
+and each step page's own guard all resolve "is this account done with
+setup" through one shared pure function,
+`apps/web/app/onboarding/onboarding-routing.ts`'s
+`resolvePostAuthDestination` — derived from real, already-persisted account
+state (`channels.length > 0`), not a separate stored step counter that
+could drift from it. This is a deliberate, investigated departure from
+legacy's `creators.onboarding_step` DB column + `requireStep` guard
+(`apps/web/src/app/onboarding/step-guard.ts` in the legacy repository):
+legacy's own step 1 has nothing to persist (a stateless "Google account
+connected" splash) and legacy's step 2 (connect payout) cannot come before
+channel creation in this schema's actual API shape — `registerPaymentAccount`
+is scoped to a `channelId` that does not exist yet — so the only step
+genuinely worth gating on here is channel creation, and channel existence
+is already a real, durable fact with nothing new to keep in sync.
+
+Explicit acceptance case requested by the owner — "test user on step 2 [of
+onboarding], logs out, comes back on sign in, take to step 2 only, all
+cases" — is covered by
+`apps/web/app/onboarding/onboarding-routing.test.ts`, including a named
+regression test asserting that a freshly-signed-up account and a
+returning-account-with-no-channel resolve to the exact same destination
+(there is no way to distinguish them without inventing a persisted flag,
+and none was invented). Verified live against a real synthetic session
+(fresh DB user, zero channels): landed on step-1, session token removed
+from `sessionStorage` and restored (simulating sign-out/sign-in), reloaded
+`/onboarding`, confirmed same landing; then completed channel creation
+(real `POST /v1/channels` → 201), advanced to step-2, skipped payout,
+landed on `/dashboard`. `apps/web` test suite: 55/55 (6 new). `pnpm build`
+passes (18 routes, including the 3 new onboarding routes).
+
+### L03-42 — dashboard multi-page IA (legacy's sidebar sections, this repository's own data)
+
+**Result:** PASS (local Web evidence, 2026-08-16)
+
+Legacy's dashboard is nine separate routes under a persistent sidebar
+(`apps/web/src/app/dashboard/{alerts,payments,customise,mod,referrals,
+settings,billing}` in the legacy repository, `page-design` has no
+equivalent here and was not invented). This repository's dashboard was one
+page holding every control. Split into `/dashboard` (trimmed Overview:
+welcome, channel summary, billing summary, quick links), `/dashboard/alerts`
+(`ChannelConfigEditor` + queues + test alert + staging-gated binding
+controls, moved verbatim from the old `DashboardClient.tsx`),
+`/dashboard/customise` (`BrandingPanel`, Studio-tier gated),
+`/dashboard/mod` (alert history + approve/hold/suppress/replay moderation),
+`/dashboard/billing` (`BillingActionsPanel`), `/dashboard/referrals`
+(`ReferralPanel`) — each an independently-routed page with its own data
+fetch, following the same pattern already proven by the pre-existing
+top-level `/companion`, `/payments`, `/settings` pages, rather than a
+shared-context refactor of the existing working `DashboardClient.tsx` logic
+(lower risk: every extracted handler is the exact one already shipped, not
+rewritten). `AppShell`'s sidebar nav gained the five new items in legacy's
+own relative ordering (Overview, Alerts, Payments, Customise, Mod console,
+Referrals, Settings, Billing, then this repository's own Companion/Overlay
+items, which have no legacy equivalent, appended after). Verified live:
+every one of the 5 new pages plus Overview loads and renders its real data
+for a freshly-onboarded synthetic channel. `apps/web` `pnpm run build`
+passes (5 new static routes); `tsc --noEmit` clean.
+
+### L03-41/42 amendment — terms folded in as step 1 of 3, a real dropped feature restored, layout fix
+
+**Result:** PASS (local Web evidence, 2026-08-16)
+
+Two owner-directed follow-ups after L03-41/42 landed:
+
+- **Terms as onboarding step 1 of 3** (legacy had 3 visible steps; matching
+  that count was explicitly requested). `/accept-terms` — kept at its
+  existing URL so every place that already redirects an unaccepted account
+  there keeps working unchanged — now renders inside the same
+  `OnboardingShell` progress chrome as step 1, with "create channel" and
+  "connect payout" as steps 2/3. No change to `onboarding-routing.ts`'s
+  contract: terms remains a separate, earlier-checked gate (server-enforced
+  too — `POST /v1/channels` already requires `requireAuthAndTerms`, so a
+  channel provably cannot exist without terms already accepted, confirmed
+  by reading `apps/api/src/routes/channels.ts:49`). Verified live end-to-end
+  with a third fresh synthetic user: accept-terms → create channel → skip
+  payout → dashboard, terms acceptance confirmed written to
+  `user_terms_acceptances` via direct query.
+- **Restored dropped feature**: owner asked "make sure any feature already
+  present in the new dashboard isn't missed" during the L03-41/42 split. A
+  self-audit against the pre-split `DashboardClient.tsx` found one real
+  drop — the inline Web Companion queue controls (target-queue selector +
+  pause/resume/send-test buttons) had been replaced with a plain promo
+  link during the Overview trim. Restored in full (state, fetch, handler,
+  markup) alongside the link to the fuller `/companion` page, not instead
+  of it. Everything else in the pre-split file was confirmed present in
+  one of the 6 new/updated pages; the only other removals (three stale
+  static placeholder cards that never reflected real data, and a static
+  "next actions" checklist now superseded by the real onboarding wizard)
+  were dead/superseded content, not working features.
+- **Layout fix**: the onboarding progress indicator shared a flex row with
+  the brand logo, so it centered only within the space left over after the
+  logo rather than on the full page width. Moved to its own row below the
+  topbar.
+
+`apps/web` test suite 55/55, `tsc --noEmit` clean, `pnpm build` passes 18
+routes.
+
+### L03-43 — regression: unsubscribed-channel billing view returned an inconsistent shape
+
+**Result:** PASS — real bug found and fixed via live onboarding testing, not
+a pre-existing known gap (local DB/API/Web evidence, 2026-08-16)
+
+Testing L03-41 against a **freshly onboarded** channel (never previously
+exercised — every channel used in this repository's testing before now,
+including the seeded demo/studio channel, already had a real
+`channel_subscriptions` row) surfaced a genuine defect:
+`app_private.get_billing_view` (migration
+`0048_v1_l04_subscription_billing_projection.sql`) defaulted a
+channel-with-zero-subscription-rows to `charged_months=10,
+service_months=12` (the **annual** shape) paired with `billing_interval=
+'monthly'` — violating the exact invariant this schema's own
+`channel_subscriptions` CHECK constraint enforces for a real row
+(`billing_interval = 'monthly' and charged_months = 1 and service_months =
+1`, only `'annual'` gets 10/12; see also this session's earlier
+`annualMonthsCharged`/`annualServiceMonths` widening in
+`apps/web/app/lib/api.ts`'s `parseBillingView`, which is what made the
+client correctly **reject** the mismatched shape instead of silently
+rendering it — the dashboard failed closed with "Server response was
+invalid" rather than showing wrong billing data). Fixed in
+`packages/db/migrations/0078_v1_l03_l04_free_billing_view_default_shape.sql`
+(`create or replace function`, no existing `channel_subscriptions` rows
+touched — only the synthesized zero-row projection changes) and covered by
+a new regression block in `packages/db/tests/l03_application_behavior.sql`
+using a channel that deliberately never receives an
+`apply_channel_subscription_state` call, unlike every other channel in that
+fixture file. Verified: `packages/db/tests/run-l03-application-behavior.sh`
+passes end-to-end against a disposable fresh PostgreSQL 16 container (all
+78 migrations, `L03_APPLICATION_BEHAVIOR=PASS` plus every other harness
+assertion still green — no regression introduced), and the running dev
+database's real API response for the actual test channel changed from
+`annualMonthsCharged:10, annualServiceMonths:12` to `1, 1` after applying
+the migration, confirmed via direct `curl`.
+
+### Self-review disposition
+
+Independent fresh review was not available in this session; this is a
+self-review only, recorded per this repository's own rule for that case.
+Scope was verified against L03 Task item #4 before implementation (already
+approved, not new scope). All three items above have real, dated local
+test evidence (unit, DB harness against a fresh disposable container, and
+live browser verification against synthetic sessions) rather than
+implementation claimed without it. Remaining open exactly as the rest of
+L03 already states: staging/deployed evidence, provider sandbox, real
+browser/OBS/accessibility matrix, and independent review. This entry is
+`Conditionally complete` pending that independent review, consistent with
+governance's stated fallback when one is unavailable.
+
+### L03-44 — payout onboarding as a real dashboard gate — 2026-08-16
+
+**Result:** PASS (local DB/API/Web evidence, 2026-08-16)
+
+Owner directly observed and reported the exact scenario the L03-41/42
+amendment above had left intentionally non-gating: reaching `/dashboard`
+and `/companion` from a fresh browser tab while sitting on the onboarding
+payout step, having neither connected a payout account nor clicked "Skip
+for now". Confirmed as the (then-)intended design in conversation, then
+the owner explicitly asked for it to become a real gate — recorded via
+`AskUserQuestion` rather than assumed, since it's a genuine product
+decision with real schema cost either way.
+
+A real gate needs the missing third state — "explicitly skipped" — to be
+persisted, or a returning creator who skipped would be sent back to this
+screen forever, indistinguishable from one who never reached it (both
+have zero `payment_accounts` rows). Added:
+
+- `packages/db/migrations/0079_v1_l03_payout_onboarding_gate.sql`:
+  `channels.payout_onboarding_skipped_at`, plus
+  `app_private.skip_payout_onboarding(channel_id, user_id)`
+  (security-definer, owner/admin-only via `has_channel_role`, idempotent —
+  a second call keeps the first skip time via `coalesce`).
+- `GET /v1/me`'s underlying query (`apps/api/src/auth/session-store.ts`)
+  now projects `payoutOnboardingDone` per channel: `(skipped_at is not
+  null) or exists(a payment_accounts row)`. One extra boolean, no extra
+  round trip — every onboarding-routing decision already fetches
+  `getCurrentUser()`.
+- `POST /v1/channels/:id/payout-onboarding/skip`
+  (`apps/api/src/routes/payment-accounts.ts` +
+  `apps/api/src/db/payment-account-store.ts`), same auth/role pattern as
+  the existing PUT/DELETE payment-account routes on that file.
+- `apps/web/app/onboarding/onboarding-routing.ts`'s
+  `resolvePostAuthDestination` extended from a 2-way (`/dashboard` vs.
+  `/onboarding/step-1`) to a 3-way decision, adding `/onboarding/step-2`
+  when a channel exists but payout isn't done. Every call site (the bare
+  `/onboarding` redirector, step-1's own guard, `AppShell`'s gate, which
+  now applies the full 3-way check to all 9 shell-wrapped pages in one
+  place) re-derives from this single function rather than duplicating the
+  condition.
+- `/onboarding/step-2`'s "Skip for now" button now actually calls
+  `skipPayoutOnboarding` before navigating, instead of navigating
+  directly — this was the actual bug in the pre-gate design: skipping
+  never recorded anything.
+- Brand text changed from "BharatStudio Alerts" to "BharatStudio" (two-
+  tone wordmark, matching `bharatstudio-marketing`'s and legacy's own
+  logo treatment) across all in-app chrome (`TopNav`, `AppShell`,
+  `OnboardingShell`, browser tab title, the accept-terms lede) — separate
+  owner request, product now spans Companion and more, not just Alerts.
+  The legally-ported Terms of Service document body text
+  (`accept-terms/terms-content.ts`) was deliberately left untouched — its
+  `content_hash` is locked to the seeded `terms_documents` row, and
+  changing defined-term product-name text inside a legal document is a
+  legal-content decision this repository's own governance rule requires
+  dated evidence for, not a casual rename.
+
+**A real regression was hit and fixed during this work**: the API/web
+contract change (a new required `payoutOnboardingDone` field) briefly
+broke every page's `getCurrentUser()` call — the migration lagged the
+code for a few minutes, then the Next.js dev server served stale JS with
+the old parser shape against the new API response even after the
+migration was applied (this environment's Turbopack does not reliably
+hot-reload, a recurring issue already recorded earlier in this file's
+history). Diagnosed live with the owner watching, fixed by applying the
+migration and restarting the dev server, confirmed via direct `curl`
+against the API before touching the browser.
+
+**Evidence:**
+- `apps/web` test suite: 58/58 (3 new — `onboarding-routing.test.ts`
+  gained payout-gate cases including the exact "signed out on step 2/3,
+  signed back in" resume regression the owner's report described).
+- `apps/api` test suite: 145/145 (2 new — idempotent skip + safe-403
+  rejection in `payment-account-routes.test.ts`).
+- `packages/db/tests/run-l03-application-behavior.sh` against a
+  disposable fresh PostgreSQL 16 container: exit 0, all 79 migrations
+  applied cleanly, `L04_PAYMENT_ACCOUNT_ONBOARDING=PASS` (new assertion
+  block: idempotent skip, viewer-role rejection, unknown-channel
+  rejection) alongside every other harness assertion still green.
+- `apps/web`/`apps/api` `tsc --noEmit`: clean. `pnpm build`: 18/18 routes.
+- Live-verified every path with real synthetic sessions against the
+  actual running dev database: (1) a channel-owning account with neither
+  a payment account nor a skip record, direct navigation to `/dashboard`
+  and to `/companion` both correctly redirect to the payout step; (2)
+  clicking "Skip for now" persists `payout_onboarding_skipped_at`
+  (confirmed via direct DB query) and unlocks the dashboard; (3) signing
+  out and back in after skipping lands directly on the dashboard, not
+  back on the payout step; (4) registering a real payment account (not
+  skipping) also unlocks the dashboard, confirmed via a `payment_accounts`
+  row query; (5) revisiting `/onboarding/step-1` directly after being
+  fully onboarded redirects straight to the dashboard rather than
+  re-showing the create-channel form.
+
+**Self-review only** — independent fresh review not performed in this
+pass, per this repository's own fallback rule. `Conditionally complete`.
