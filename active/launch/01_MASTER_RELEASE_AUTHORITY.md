@@ -203,6 +203,67 @@ design):
   `?ref=` code at `/login`, the realistic entry point for a referred
   creator; it is not captured on every route.
 
+### Lottie/custom branding storage mechanism addendum — 2026-08-16
+
+The "v1 scope addendum" line item reads: *"Lottie/custom branding upload:
+Studio-tier per-alert-type animation upload — object-storage credentials
+remain an external gate per §5, but the integration code is v1-required."*
+§5 does not actually enumerate object storage among its release-blocking
+gates (Razorpay, Neon/Cloud Run, OIDC/IAM, staging proofs, store signing,
+legal review) — the clause was describing the anticipated obvious
+approach (S3/GCS), not mandating it as the only one.
+
+**Decision: store uploaded Lottie animations as `bytea` in Postgres,
+mirroring the already-approved `alert_tts_audio` pattern**
+(`packages/db/migrations/0067_v1_l03_tts_event_enrichment.sql`) exactly —
+zero-grant table, RLS enabled, all access through `security definer`
+functions, a hard size CHECK (2,000,000 bytes, the same cap already
+reviewed and accepted for TTS audio), and the same overlay-token-scoped
+serve-by-artifact-id pattern the audio route already uses (fingerprinted
+bearer token, never a session cookie, `cache-control: private, no-store`).
+This makes the object-storage credentials gate moot for v1 rather than
+satisfying it — the same substitution the referral engine made for its
+own external-dependency line (service-time credit instead of a payment
+refund). Implemented in
+`packages/db/migrations/0077_v1_l03_lottie_branding_upload.sql`.
+
+**"Per-alert-type" interpretation.** This schema has no alert-type
+entity — amount brackets (`channel_configs.values.brackets`) are
+per-instance, editable config data, not a stable reference target for an
+upload slot. `displayStyle` is the fixed six-value enum every bracket
+already carries (`small_pill | compact_card | standard_card | large_card
+| banner | celebration`, `apps/web/app/lib/api.ts`'s `ChannelConfigValues`).
+Upload slots are keyed by `displayStyle`, not by bracket instance: a
+Studio channel may upload one custom Lottie animation per `displayStyle`
+value, and any bracket (or the channel default) configured with that
+style picks up the associated animation. This is the same cardinality
+legacy's fixed three-alert-type slots had, translated onto a stable enum
+that already exists in this codebase instead of an entity that doesn't.
+
+**Tier gate.** `app_private.tier_custom_branding_allowed(tier)` mirrors
+`tier_queue_count`'s exact fail-closed shape (0070) — `studio` → true,
+everything else → false, raises on an unrecognised tier. Deliberately
+**not** cached as a new `channel_entitlement_versions.values` key (which
+would need its own addendum under the "Entitlement values addendum"
+rule above, and would risk drifting from `tier` on a downgrade) — the
+gate is computed live from the channel's current `tier` at both upload
+time and overlay-serve time, so a Studio-tier downgrade takes an
+uploaded animation out of rendering on the very next overlay load without
+a separate cleanup job, the same way queue-count downgrade enforcement
+(0070) already works structurally, just without needing its own
+maintenance sweep.
+
+**Content validation.** Legacy's own requirements spec for this feature
+(`24_LOTTIE_AND_ADVANCED_ANIMATION_PLAN.md`) demanded rejecting embedded
+expressions and external asset references in an uploaded Lottie
+document; the shipped legacy implementation did not actually check for
+either, only JSON validity and a `v`/`layers` shape check. A Lottie
+document is untrusted content rendered inside the overlay browser
+source — this implementation carries the stricter validation legacy's
+own spec called for (structural shape, no `"expr"` expression fields, no
+non-empty external `u`/`p` asset URLs) rather than the narrower check
+legacy actually shipped.
+
 ## 2. Non-negotiable release invariants
 
 1. An accepted payment or alert evidence record is never dropped, deleted,
