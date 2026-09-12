@@ -21,9 +21,11 @@ The `tier_availability` value is the minimum tier required for a design:
 | Tier | Available variants | Branding |
 |---|---:|---|
 | Free | v01–v06 | BharatStudio watermark/text required |
-| Pro | v01–v06 | BharatStudio watermark/text required |
+| Pro | v01–v06 | ~~BharatStudio watermark/text required~~ **No watermark — see amendment below** |
 | Creator | v01–v14 | Creator text/logo options; BharatStudio rules still apply |
 | Studio | v01–v20 | Full approved branding controls; no BharatStudio watermark |
+
+> **AMENDED 2026-09-07 (Part 12 item 2; owner decision 2026-09-02, `BharatStudio-MASTER-PLAN.md` v3.0 §3.4).** The watermark requirement on Pro above is **superseded, not deleted** — it is struck through in place as the record of what was originally approved. The current rule is **watermark on Free only**; Pro, Creator, Studio and Enterprise carry no BharatStudio watermark or attribution anywhere. This is shipped: migration `0096_v1_l03_tts_fallback_and_amount_ladder.sql` (item 7 of that migration) adds the `channel_entitlement_versions.tier = 'free'` lookup that `get_overlay_events` folds into the delivery payload as `watermark: tier = 'free'`, and the overlay renderer at `apps/web/app/overlay/[overlayId]/page.tsx` reads that flag. This is implemented and passes locally; it has **not** been verified against a deployed/staging environment — no environment in this program has been.
 
 The server is authoritative for the effective tier and catalogue version.
 Clients may display locked designs but cannot self-grant access. The current

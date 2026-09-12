@@ -91,3 +91,19 @@ Public launch is blocked until:
 Until then, the marketing site must describe this surface as a support and
 policy index, not as proof that the underlying approval exists.
 
+## 6. Amendment — the four external items and their true state, 2026-09-07
+
+The actual launch critical path is these four external items. All four are
+**UNFILED as of 2026-09-07 (confirmed with the owner)**:
+
+| Evidence area | State as of 2026-09-07 |
+|---|---|
+| **Google OAuth app verification** — approval for the YouTube read scopes AND the high-sensitivity chat-write scope | Unfiled. Blocks any YouTube capability/claim; new go/no-go gate added to `tasks/L10-release-readiness-and-rollout.md`. |
+| **YouTube Data API quota** — sufficiency for projected concurrent live-chat polling | Unfiled. Blocks any YouTube capability/claim; new go/no-go gate added to `tasks/L10-release-readiness-and-rollout.md`. |
+| **Legal sign-off** — privacy, terms, refunds, grievance, data-rights | Unfiled, and its required scope has grown to cover viewer accounts, DPDP deletion, and the plaintext reset URL that transits `email_outbox` (`apps/api/src/domain/viewer-reset-store.ts`). See `tasks/L08-marketing-support-legal.md` amendment, 2026-09-07. |
+| **Razorpay Route enquiry** — the five questions insisting on an enterprise-owned parent account (`bharatstudio-alerts/docs/BharatStudio-MASTER-PLAN.md` §9.2) | Unfiled — enquiry sent, no answer received. Not itself a v1 launch gate (Enterprise is out of v1), but on the critical path for L21/Enterprise planning given its long lead time. |
+
+No code or test status changes any of these four. All four require external
+provider or professional evidence this repository does not and cannot
+self-approve, per `governance/AGENTS.md` and Section 4 above.
+
