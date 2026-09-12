@@ -6,3 +6,7 @@
 Phase 2 owns YouTube OAuth scopes, polling, cursors, live data, SuperChat/membership/engagement normalization, supporter identity, catch-up summaries, associated Companion views, quota allocation, and recovery.
 
 Before any code is written, this folder needs a freshly approved narrow FRD slice, quota evidence, provider-scope confirmation, a Go worker design, cursor/replay/load tests, privacy review, and rollback plan. No v1 surface may request YouTube data permissions or display YouTube integration controls.
+
+## Narrow requirement slices
+
+- [YT-IDENTITY-01 — YouTube channel identity, handle protection, and tip-page trust](01_YOUTUBE_CHANNEL_IDENTITY_HANDLE_PROTECTION_AND_TIP_PAGE_TRUST.md) — proposed; permanent BharatStudio protection for verified current and historical YouTube handles, channel-ID ownership, and donor-facing verification.

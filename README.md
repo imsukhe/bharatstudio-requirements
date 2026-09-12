@@ -6,6 +6,7 @@ This is the sole active requirements authority for all BharatStudio repositories
 
 - `active/launch/` — approved v1 scope and active launch authority.
 - `pending/launch/` — only narrow, agreed, genuinely unfinished requirement slices. Each file must name its exact legacy source and acceptance evidence.
+- `pending/platform/` — proposed shared-Platform authority slices, including their package ledger and approval boundary; separate from Alerts launch ownership.
 - `done/` — completed/reused evidence inventory; not a source for new implementation.
 - `phase-2/youtube/` and `phase-2/enterprise/` — deliberately deferred requirements and task plans.
 - `migration/` — legacy-code inventory, disposition, rewrite plan, and cutover plan.
