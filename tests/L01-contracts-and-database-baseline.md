@@ -1,14 +1,14 @@
 # L01 acceptance and test record — contracts and database baseline
 
-**Status:** `Static contract tree complete; database/fixture evidence passing; cross-language and independent review pending`  
-**Task:** `../tasks/L01-contracts-and-database-baseline.md`  
+**Status:** `Static contract tree complete; database/fixture evidence passing; cross-language and independent review pending`
+**Task:** `../tasks/L01-contracts-and-database-baseline.md`
 **Contract draft:** `/Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts/contracts/CONTRACT_BASELINE.md`
 
 These tests are the minimum acceptance record for the v1 baseline. They use synthetic data and an isolated database only.
 
 | ID | Setup/action | Expected result |
 |---|---|---|
-| L01-01 | Validate OpenAPI, JSON Schemas, fixtures and enums in CI | OpenAPI 3.1 parses, all local `$ref` targets resolve, and no YouTube/Enterprise scope appears; every committed fixture validates with Draft 2020-12 and `uuid`/`date-time`/`uri` format enforcement; no undocumented required field exists | `pnpm contracts:validate`; 11 fixture/schema pairs and 32 OpenAPI paths pass with Ajv 2020 + `ajv-formats` + YAML parser. |
+| L01-01 | Validate OpenAPI, JSON Schemas, fixtures and enums in CI | OpenAPI 3.1 parses; all local `$ref` targets resolve; every operation has a unique ID, tags, declared path parameters, typed request bodies and typed non-204 success responses; and no YouTube/Enterprise scope appears. Every committed fixture validates with Draft 2020-12 and `uuid`/`date-time`/`uri` format enforcement. | `pnpm contracts:validate`; 11 fixture/schema pairs, 35 OpenAPI paths and 42 operation contracts pass with Ajv 2020 + `ajv-formats` + YAML parser. |
 | L01-02 | Submit two concurrent Razorpay deliveries with the same verified `x-razorpay-event-id` | One provider-delivery record, one financial effect, one alert evidence path |
 | L01-03 | Submit distinct provider event IDs referencing the same payment/refund entity | Deliveries remain separately traceable; business-entity uniqueness rules do not erase delivery evidence |
 | L01-04 | Route one permitted source event to queues A and B; block A and process B | B progresses independently; no global event status blocks B; audit records identify source, binding and queue |
@@ -60,3 +60,71 @@ This closes only the locally executable contract slice plus the macOS Swift
 consumer slice recorded as L01-14. React Native and Windows/C# consumer checks,
 independent architecture review, and a data-preserving upgrade/rollback drill
 remain open acceptance evidence.
+
+## Operation-contract hardening — 2026-09-09
+
+The structural OpenAPI validator previously proved only YAML parsing and local
+reference resolution. It now also rejects an operation without a unique
+`operationId`/tag, a missing or optional path parameter, an untyped request
+body, or an untyped successful response (other than `204`). Its deterministic
+negative harness mutates a temporary copy of the document and proves all three
+failure modes: duplicate operation ID, missing `202` response schema, and
+missing `{handle}` declaration. `pnpm contracts:validate` passed locally with
+**11** fixture mappings, **35** paths, **42** operation contracts and **3**
+negative operation-contract cases.
+
+During the same runtime-to-contract comparison, the documented channel patch
+body was corrected: `avatarUrl` was a stale field the API rejects; the actual
+bounded `featuredConsent` and `handle` fields are now documented. The
+maintenance contract was also corrected from its obsolete
+`schemaVersion/jobId/requestedAt` body to runtime's `idempotencyKey` and
+optional `window`, and its `202` now has a typed `MaintenanceResult` response.
+This is local structural evidence only. Runtime routes beyond the currently
+approved v1 OpenAPI surface still require their own scope decision and complete
+request/response/fixture coverage; this record does not silently declare them
+published.
+
+`pnpm contracts:route-inventory` now makes that boundary reproducible: it
+found **159** literal Fastify operations, **42** covered by the approved v1
+OpenAPI, **117** outside it, and **0** stale documented operations. It fails if
+a route declaration cannot be statically inventoried, so a new non-literal
+registration cannot silently bypass this QA report. The 117 are an active
+contract-completion queue, not accepted omissions.
+
+### Public donor contract completion — 2026-09-09
+
+The first completion slice published receipt mint/resolve and TipIntent
+resolve/confirm browser flows. It adds redacted wire fixtures and privacy/tamper
+negatives, and is governed by
+[`TC-L01-public-donor-contract-completion-slice.md`](TC-L01-public-donor-contract-completion-slice.md).
+Current inventory is **159** literal runtime operations, **46** OpenAPI-covered,
+**113** pending and **0** stale. The 113 remain an active completion queue.
+
+### Public profile contract completion — 2026-09-09
+
+Public profile search and lookup are now typed as the deliberately minimal
+opt-in projection. The fixture validator rejects financial history in that
+projection. Current inventory is **159** literal runtime operations, **48**
+covered, **111** pending and **0** stale.
+
+### Public sticker contract completion — 2026-09-09
+
+The anonymous curated-sticker picker and paid-order selection acknowledgement
+are now typed with redacted fixtures. The fixture validator rejects injected
+internal sticker metadata and payment-order detail; the focused route suite
+also proves malformed, unavailable and disabled selections fail closed. Current
+inventory is **159** literal runtime operations, **51** covered, **108** pending
+and **0** stale. The remaining 108 are an active contract-completion queue.
+
+### Public featured-creators contract completion — 2026-09-09
+
+The opt-in featured listing now has a typed anonymous contract and redacted
+fixture. The schema rejects an injected internal channel identifier, while the
+focused runtime suite proves its minimal projection, bounded query/unavailable
+store behavior and credential-free CORS exception. Current inventory is **159**
+literal runtime operations, **52** covered, **107** pending and **0** stale.
+
+The same review removed the stale optional `avatarUrl` from the older
+`PublicChannel` OpenAPI schema. The runtime and migration already excluded that
+field, so this narrows documentation to the actual public data boundary; the
+OpenAPI/fixture validation was rerun successfully.

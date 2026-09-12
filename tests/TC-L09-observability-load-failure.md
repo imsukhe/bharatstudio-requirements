@@ -50,3 +50,19 @@ These results do not establish capacity or production monitoring. L09-03 and
 L09-04 remain pending until the final deployed topology is available for
 metrics scrape, target load, timeout/retry/provider outage, SSE reconnect,
 database failure, backup/restore and rollback rehearsal.
+
+### Fresh disposable load/fault evidence — 2026-09-09
+
+Two independently provisioned PostgreSQL 16 runs passed after applying the
+complete current migration chain through `0111`:
+
+- `sh scripts/load/run-l09-load-self-test.sh` — 20 synthetic tips at
+  concurrency 5: **20 succeeded**, 0 failed/quarantined/unacknowledged, with
+  `capturedPaymentsWithoutLiveEvent=0` and `duplicateLiveEvents=0`; the
+  harness's teardown assertion also passed (5/5).
+- `sh scripts/load/run-l09-fault-self-test.sh` — duplicate-webhook fault
+  self-test passed 5/5 with fault injection enabled only under `NODE_ENV=test`.
+
+These are repeatable local durability/fault checks, not capacity measurements,
+real Razorpay delivery, Cloud Tasks, Cloud Run, provider, staging, backup or
+rollback evidence. L09-03 and L09-04 remain open.

@@ -8,6 +8,25 @@
 
 This is the acceptance record for the Alerts web and TypeScript Creator API. It does not approve the draft API, database migrations, Razorpay production connection, or any YouTube/Enterprise capability.
 
+## Deterministic local integration rerun — 2026-09-09
+
+All runs used a fresh disposable PostgreSQL 16 container with the 110 committed
+migrations and synthetic data only. The SQL proof suite passed **44/44** in
+per-file isolated cloned databases; the fixture harness passed **8/8**. The
+real SQL-store concurrency integration passed **2/2**, proving two simultaneous
+queue creates cannot exceed the allocation and two configuration updates cannot
+claim the same next version. Two independent PostgreSQL LISTEN clients both
+received a wake-up notification, and the cross-replica overlay flow proved an
+event written through one SQL client was delivered/acknowledged through another
+and not replayed afterwards.
+
+`apps/api` TypeScript checking, **401/401** API tests and production build
+passed. `apps/web` TypeScript checking, **289/289** web tests and production
+build passed. The five-way Companion action catalogue check passed with the
+same 17 actions and group assignments in SQL, API, macOS, Windows and mobile.
+This is strong local/integration evidence, not a substitute for browser/device,
+provider sandbox, staging, production IAM or independent review evidence.
+
 ## Preconditions
 
 1. L01 contract verification is complete for the exercised endpoints and fixtures.
@@ -432,3 +451,41 @@ onboarding redirects straight to the dashboard. Evidence: this session,
 **Review disposition:** self-reviewed only, per governance's stated
 fallback for when independent review is unavailable. `Conditionally
 complete`.
+
+## Deterministic local QA rerun — 2026-09-09
+
+Each local harness was executed independently so a later successful command
+cannot mask an earlier failure:
+
+| Surface | Command | Result |
+|---|---|---|
+| Durable application behavior | `sh packages/db/tests/run-l03-application-behavior.sh` | Pass: L02 security remediations, L03 behavior/payment-ledger/featured/admin paths, L02 email/terms, L03 TTS, and L05 queue policy markers |
+| Clean schema suite | `sh packages/db/tests/run-sql-suite.sh` | Pass: **44/44** SQL proofs, including L14–L17, L20, L22 and L24 |
+| Contract fixtures | `sh scripts/fixtures/run-self-test.sh` | Pass: **8/8** |
+| API | `cd apps/api && npx tsc --noEmit && npm test && npm run build` | Pass: **402/402** and production TypeScript build |
+| Web | `cd apps/web && npx tsc --noEmit && npm test && npm run build` | Pass: **289/289** and Next production build |
+| Go services | `go vet ./... && go test -race ./...` in each of alert-worker, payment-webhook and youtube-poller | Pass; packages without test files reported as such, none failed |
+| Deployment guard | `pnpm deployment:test && pnpm deployment:validate` | Pass: **1 positive/4 negative** manifest cases plus canonical validator |
+| API contracts | `pnpm contracts:validate` | Pass: 11 fixtures, 35 paths/42 operations, 3 negative operation cases |
+
+The web test runner emits Node/JSDOM deprecation and intended navigation
+warnings, but all assertions pass; no source exception or test failure was
+suppressed. This is local/disposable evidence only and does not close provider,
+Cloud Run/IAM, database migration, native/device, store, legal, staging or
+independent-review gates.
+
+## Batch 8 addendum — 2026-09-07 (post-reconciliation): moderator seat enforcement
+
+New acceptance evidence for migration `0104_v1_l03_moderator_seat_enforcement.sql`, verified by reading `packages/db/tests/l03-seat-moderator-seat-limit.sql` directly (not re-run in this pass; the SQL file's own inline comments enumerate its assertions, cited below as the evidence).
+
+| Case | Setup and action | Expected result | Evidence |
+|---|---|---|---|
+| L03-MOD-01 | Call `app_private.tier_moderator_seat_limit` for each known tier and one unknown tier | Returns 0/0/2/5 for free/pro/creator/studio; raises `22023` for an unrecognised tier | `packages/db/tests/l03-seat-moderator-seat-limit.sql` section 1 (function-level) |
+| L03-MOD-02 | Attempt the first moderator grant on a Free-tier channel | Rejected, distinguishably (`23514`, not `22023`/`42501`/`23503`) | Same file, section 2 |
+| L03-MOD-03 | Retier a channel to Creator (limit 2) and grant two moderators | Both succeed | Same file, section 3 |
+| L03-MOD-04 | Attempt a third moderator grant on the same at-limit Creator channel | Rejected, distinguishably, no row added | Same file, section 4 |
+| L03-MOD-05 | Grant owner/admin/operator roles on the same already-at-limit channel | Always succeeds — these roles never count against the moderator limit | Same file, section 5 |
+| L03-MOD-06 | Downgrade an at-limit channel from Creator to Free | Neither existing moderator is removed — 0104 hooks no entitlement-publish path | Same file, section 6 |
+| L03-MOD-07 | Simulate a channel that predates enforcement and already exceeds its (now Free) limit; attempt to add another moderator | Existing over-limit moderators are untouched (grandfathered); the new addition is still rejected | Same file, section 7 |
+
+All seven cases are asserted directly in the SQL test file's structure (`\set ON_ERROR_STOP`-style inline `do $$ ... $$` blocks per the file's own section comments); pass/fail was not independently re-executed in this reconciliation pass — recorded as code-and-assertion-present, consistent with this task's own "not re-run" caveat elsewhere in this file. `app_private.set_channel_membership_role()` is confirmed (by direct reading of `0104_v1_l03_moderator_seat_enforcement.sql`) to be the sole write path into a moderator role, enforced as SECURITY DEFINER because RLS policy `channel_memberships_admin_write` (0002) would otherwise let an owner/admin bypass a route-only check via a direct table write.

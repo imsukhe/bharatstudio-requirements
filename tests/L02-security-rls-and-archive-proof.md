@@ -76,3 +76,39 @@ checked together. The status remains conditional rather than `Verified`:
 independent review, deployed role/secret/IAM evidence, application/deployment
 negative tests and data-preserving rollback/restore rehearsal are still
 required.
+
+## Credential-revocation regression — 2026-09-09
+
+The consent gate previously treated every authenticated write alike. That
+prevented an authenticated user whose legal documents had changed from
+revoking a lost session, removing a push-device token, or rotating/revoking an
+overlay bearer credential. Those are credential containment actions, not
+product configuration, so `DELETE /v1/me/sessions/{sessionId}`, `DELETE
+/v1/me/notifications/devices/{deviceId}`, `POST /v1/overlays/{overlayId}/rotate`
+and `DELETE /v1/overlays/{overlayId}` now require verified authentication but
+not current legal acceptance. Credential creation and normal product mutations
+remain consent-gated.
+
+`cd bharatstudio-alerts/apps/api && npx tsc --noEmit && npx tsx --test
+test/terms-gate.test.ts` passed **3/3**, including a pending-consent scenario
+that proves every affected store method was reached. The full API suite passed
+**401/401** and the production TypeScript build passed. This is local,
+synthetic evidence only; deployed identity/session and independent review
+remain open.
+
+## Credentialed CORS-origin configuration regression — 2026-09-09
+
+`APP_ORIGIN` is the sole credentialed CORS allowlist value. It now fails startup
+unless it is an absolute HTTP(S) origin containing only scheme, host and optional
+port; userinfo, paths, query strings and fragments are rejected. Staging and
+production additionally require HTTPS, while an otherwise valid trailing slash
+is canonicalised to the browser `Origin` form. This prevents a bad deployment
+value from silently starting an API whose credentialed browser requests can
+never match its CORS rule.
+
+`cd bharatstudio-alerts/apps/api && npx tsc --noEmit && npm test && npm run
+build` passed **402/402**. The added configuration test covers malformed,
+userinfo-bearing, path-bearing and production-HTTP negatives plus canonical
+normalisation. `pnpm contracts:validate` and `pnpm deployment:test` also passed.
+This is a local configuration-boundary proof, not domain/certificate/WAF or
+deployed CORS evidence.
