@@ -28,10 +28,49 @@ Release the complete v1 product only when every product, payment, security, prov
 ## Go/no-go criteria
 
 - All L00–L09 acceptance criteria have evidence; no unowned critical/high finding remains.
-- v1 contains no YouTube or Enterprise capability/claim.
+- v1 contains no Enterprise capability/claim. *(Amended 2026-09-07 — see below; was "v1 contains no YouTube or Enterprise capability/claim.")*
 - Payment, queue, overlay and scheduler recovery are proven in final staging.
 - Provider/legal/store gates are affirmative, current and documented.
 - Deployment and rollback are rehearsed; monitoring/on-call/support are live.
+- Google OAuth app verification is approved for the YouTube read scopes and the high-sensitivity chat-write scope. *(Added 2026-09-07.)*
+- YouTube Data API quota is confirmed sufficient for projected concurrent live-chat polling. *(Added 2026-09-07.)*
+
+### Amendment — YouTube go/no-go, 2026-09-07
+
+The go/no-go line above read, verbatim: "v1 contains no YouTube or Enterprise
+capability/claim." That is now false for YouTube. The connector, encrypted
+OAuth token storage with PKCE, the normalisation layer, the Go poller, the
+delivery path and the TipIntent short link all exist: migrations
+`packages/db/migrations/0086_v1_l15_youtube_connectors.sql`,
+`0091_v1_l15_youtube_delivery_and_idempotency.sql`,
+`0094_v1_l15_youtube_delivery_and_failure_recording.sql`,
+`0097_v1_l15_tipintent_short_link.sql`,
+`0099_v1_l15_ingest_failure_admin_surface.sql`,
+`0101_v1_l07_l15_tts_mute_enforcement_and_tipintent_wiring.sql` (in
+`bharatstudio-alerts`), plus `services/youtube-poller-go` (Go poller,
+build+vet clean per the master plan). The sentence is amended to: **"v1
+contains no Enterprise capability/claim."** Enterprise stays excluded from v1;
+nothing about that changes.
+
+Two external go/no-go gates are added that did not exist before, because
+shipped code is not the same thing as a shippable claim:
+
+- **Google OAuth app verification** must be approved for the read scopes AND
+  the high-sensitivity chat-write scope before any YouTube capability is a
+  launch claim.
+- **YouTube Data API quota** must be confirmed sufficient for projected
+  concurrent live-chat polling before any YouTube capability is a launch
+  claim.
+
+Both are **UNFILED as of 2026-09-07** (confirmed with the owner). The YouTube
+code's test status — however green — does not satisfy either gate; these are
+external provider approvals, not implementation evidence, and this repository
+does not draw provider/legal conclusions from code (`governance/AGENTS.md`).
+The YouTube code cannot ship as a v1 launch claim without both approvals on
+file, regardless of test status. See
+`active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` for the tracked
+external-evidence rows for these two items alongside the other unfiled
+external gates.
 
 ## Rollback
 
@@ -46,6 +85,22 @@ authenticated local metrics/readiness. The mobile lockfile has compatible
 dependency overrides, but its remaining React Native/Metro/image-size audit
 findings are still a release security gate.
 It does not satisfy final release gates.
+
+### Local container/manifest correction — 2026-09-09
+
+The API Cloud Run image reference had no checked-in API Dockerfile, and the
+manifest did not bind all values required by API production configuration.
+`bharatstudio-alerts` now supplies the root-built, non-root API image and the
+manifest verifier requires its compiled entrypoint plus the missing bindings.
+All three declared service images build locally and the API image returns its
+health response with the manifest's `HOST=0.0.0.0` binding. Reproducible
+commands and the non-claiming boundary are recorded in
+[`TC-L10-release-readiness-and-rollout.md`](../tests/TC-L10-release-readiness-and-rollout.md).
+
+This closes a local implementation defect; it does not advance L10-03 or the
+release status. Cloud Run deployment, IAM, actual secret versions, direct
+database readiness, migration/rollback rehearsal, capacity and failure proof
+remain external/staging gates.
 
 The latest local continuation also covers the native APNs/FCM adapter and
 server notification preference/device contract, macOS loopback OBS v5 client,
@@ -103,6 +158,15 @@ remains blocked until every applicable acceptance row has dated evidence,
 owners/approvers and rollback/recovery proof, including Razorpay/provider,
 Neon/Cloud Run/Cloud Tasks, native releases, legal/privacy/support, staging
 capacity/failure rehearsal, observability and independent review.
+
+### Fresh local package and smoke rerun — 2026-09-09
+
+The Alerts API/web test/build matrix, static deployment negatives, contracts
+and all three service images were rerun. The API liveness image smoke returned
+the expected bounded health envelope; API runs as `node` and both Go images as
+`nonroot:nonroot`. Exact commands and the non-claiming result are recorded in
+`TC-L10-release-readiness-and-rollout.md`. This does not change the L10 status
+or satisfy any deployed/provider/staging/release gate.
 
 ### Automatic continuation reconciliation — 2026-08-15
 

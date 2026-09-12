@@ -953,3 +953,84 @@ against the API before touching the browser.
 
 **Self-review only** — independent fresh review not performed in this
 pass, per this repository's own fallback rule. `Conditionally complete`.
+
+### Amendment — shipped Alerts/API work since L03-44, 2026-09-07
+
+Recording work that landed after the L03-44 entry above (all in
+`bharatstudio-alerts`, evidence is inline code/migration citation only, no
+runtime output per this repository's `AGENTS.md`):
+
+- **Entitlement retier and the eight published dimensions** —
+  `packages/db/migrations/0080_v1_l03_entitlement_retier_and_dimensions.sql`.
+- **TTS metering and hard stop** —
+  `packages/db/migrations/0081_v1_l03_tts_usage_metering.sql`.
+- **Queue-mode ladder correction** —
+  `packages/db/migrations/0083_v1_l03_queue_mode_ladder_correction.sql`.
+  `approval` was never a valid queue mode; `pills` had been omitted from the
+  ladder. Both corrected.
+- **TTS browser fallback, amount ladder, Free-only watermark** —
+  `packages/db/migrations/0096_v1_l03_tts_fallback_and_amount_ladder.sql`.
+- **Retention sweeps** —
+  `packages/db/migrations/0095_v1_l02_retention_sweeps.sql`.
+- **Released-handle resolution** —
+  `packages/db/migrations/0090_v1_l03_released_handle_resolution.sql`. This
+  migration also fixed **two defects** in 0087's
+  `app_private.change_channel_handle` that made every rename fail: (1) the
+  function's `returns table (id uuid, handle text, ...)` OUT parameters
+  shadowed the bare column names, so the `UPDATE ... WHERE id =
+  target_channel_id` statement raised `42702` (ambiguous column) on every
+  call — every other statement in the function had aliased the table to
+  avoid this, the UPDATE had not; (2) a second defect in the same function,
+  documented inline at `0090_v1_l03_released_handle_resolution.sql:69`. Both
+  defects had to be hit in sequence to be seen, which is why the function
+  shipped in 0087 without either being caught first.
+- **Support goals** — `packages/db/migrations/0102_v1_l16_support_goals.sql`.
+
+Current real counts as of 2026-09-07: `apps/api` 285/285, `apps/web` 187/187,
+SQL suite 36/36, 102 migrations total, drift check exit 0. This is local
+implementation/regression evidence only. Staging/deployed evidence, provider
+sandbox, real browser/OBS/accessibility matrix and independent review remain
+open exactly as the rest of this file already states.
+
+### Batch 8 amendment — 2026-09-07 (post-reconciliation): moderator seat enforcement
+
+Migration `packages/db/migrations/0104_v1_l03_moderator_seat_enforcement.sql`
+shipped since the reconciliation pass above. Verified by reading the
+migration. Moderator seats (0/0/2/5 free/pro/creator/studio) had been
+advertised on the pricing page since before this reconciliation but were
+never enforced — `channel_memberships.role = 'moderator'` had no seat
+accounting anywhere, so a Free channel could add unlimited moderators.
+
+**Over-limit strategy, recorded plainly:** existing over-limit channels are
+grandfathered — no channel is demoted, no existing membership row is deleted
+or rewritten, and the migration runs no backfill loop. Enforcement applies
+only at the moment a NEW moderator grant is attempted, through the single
+sanctioned write path this migration adds,
+`app_private.set_channel_membership_role()`. An already over-limit channel
+keeps failing the check (current active-moderator count >= tier limit) until
+its own removals bring it back into compliance; it is never silently forced
+into compliance.
+
+**Why the check lives inside the SECURITY DEFINER function, not a route:**
+`channel_memberships` already carries RLS policy
+`channel_memberships_admin_write` (migration 0002), which lets an owner or
+admin write the table directly as the `bsa_app` role. A route-level-only
+check would therefore be bypassable by a direct table write under that
+existing policy, so the seat limit is enforced inside the definer function —
+the same pattern `app_private.change_channel_handle` (0087) already uses —
+and `apps/api`'s route (`routes/channels.ts`) only calls the function and
+translates its exceptions to HTTP status codes; it does not reimplement the
+check.
+
+**Correction to the map handed into this task:** the map attributed both
+`0103` and `0104` to L03. Migration `0103` is filed and owned as L07
+(`0103_v1_l07_mute_synthesis_cost_gate.sql`, itself a follow-up to
+`0101_v1_l07_l15_tts_mute_enforcement_and_tipintent_wiring.sql`'s own "GAP 1"
+note) — it closes a cost gap in Companion's TTS-mute feature, not an L03
+Alerts-web/Creator-API item. It is out of this task's ownership boundary and
+is not recorded here; only `0104` (moderator seats) is genuinely L03-owned,
+confirmed by its own filename and migration header.
+
+Evidence: `packages/db/migrations/0104_v1_l03_moderator_seat_enforcement.sql`
+(header, and the `app_private.set_channel_membership_role()` function body).
+Nothing here has been proven in a deployed environment.

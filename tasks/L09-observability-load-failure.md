@@ -116,3 +116,51 @@ failure recovery, deployed telemetry, backup/restore or rollback evidence.
 ## Rollback
 
 Tests run in isolated staging. Production load changes require explicit L4 approval, a capacity cap and rollback/traffic-shedding plan.
+
+### Amendment — instrumentation built, and its unproven status, 2026-09-07
+
+Recording what was built since the entries above, in `bharatstudio-alerts`,
+with equal prominence given to what remains unproven:
+
+**Built:** 7 reliability metrics, 5 reconciliation queries, a 5-hop trace
+path (web → Creator API → payment service → outbox → Cloud Tasks → alert
+worker → SSE overlay, per this file's Task 2), and 7 runbooks under
+`docs/runbooks/`:
+`captured-payment-without-live-event.md`, `duplicate-live-event.md`,
+`lost-delivery.md`, `reconnect-replay-success.md`, `refund-failures.md`,
+`tts-failures.md`, `webhook-lag.md`.
+
+**None of it is proven in a deployed environment.** Specifically:
+
+- The 5 reconciliation queries have **never run against real Postgres** —
+  only against the disposable local/CI PostgreSQL 16 container harness
+  already recorded above (`pnpm db:test:l03`, the L02/L03 disposable
+  integration chain). No deployed Neon instance has executed them.
+- The 5-hop trace path was **verified by reading code, not by pushing one
+  real payment through five hops.** The "deployed trace path" acceptance
+  criterion (this file's Task 2) remains unmet; what exists is the local
+  payment/DB/task/overlay contract and service redaction test coverage
+  already described above, not an executed end-to-end trace.
+- **The grace thresholds are guesses.** No staged normal/peak load
+  measurement has produced the payment receipt/error budget, dispatch
+  latency, queue age, overlay SSE concurrency, recovery time or DB
+  pool/CPU targets this file's Task 1 requires be declared before testing;
+  any threshold value currently in the templates is provisional, not a
+  measured capacity decision.
+
+This does not change the status already recorded above: L09 remains open
+for final-region/topology measurement, staged load, deployed dashboards and
+alert routing, fault injection, and backup/restore/rollback/incident
+rehearsal. Local test evidence continues to demonstrate implementation
+correctness only, per this file's repeated own caveat.
+
+### Fresh local load/fault rehearsal — 2026-09-09
+
+The current full migration chain was applied to separate disposable PostgreSQL
+16 containers for the L09 normal-load and duplicate-webhook fault harnesses.
+The normal run accounted for all 20 synthetic tips with zero lost captured
+payments and zero duplicate live events; its teardown-world assertion passed.
+The fault harness passed 5/5 while the injector was explicitly limited to
+`NODE_ENV=test`. See `TC-L09-observability-load-failure.md` for commands and
+the exact scope boundary. These findings do not substitute for staging load,
+provider, deployment, backup/restore or rollback rehearsal.

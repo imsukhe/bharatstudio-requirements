@@ -479,3 +479,52 @@ rollout was intentionally scoped down (see prior conversation record) to
 avoid inventing semantically-unbacked glyphs across every remaining grid
 on the site; the ones added this pass reuse the alerts page's own
 established glyph set where a real semantic match existed.
+
+### Amendment — shipped marketing/site work and legal-scope growth, 2026-09-07
+
+Recording work landed since the entries above (`bharatstudio-marketing`
+unless noted) and the true state of legal sign-off:
+
+- **Studio ₹599 corrected everywhere** the plan price appears on the site,
+  matching `docs/BharatStudio-MASTER-PLAN.md` Part 3's locked pricing.
+- **Four product areas** shipped with per-route accent scoping — `/alerts`,
+  `/stream`, `/mirror` each carry their own accent token off the shared
+  token layer (master plan §2.10: Alerts gold, Stream a live/broadcast hue,
+  Mirror a cool neutral-tech hue), sharing typeface, spacing, card-bezel
+  system, nav, footer and legal pages per §2.7/§2.10's "one system, four
+  accents" design.
+- **Two pre-existing D-C053 violations found and cleared.** A repository
+  grep for competitor names in rendered blog HTML found two violations that
+  predated this pass, in addition to the ongoing D-C053 preservation already
+  recorded above (this file's `34ae1ff` entry). Both are cleared; D-C053
+  (no competitor names in rendered HTML) holds across the site.
+
+**Legal sign-off is UNFILED as of 2026-09-07 (confirmed with the owner), and
+its required scope has GROWN.** It now must cover, beyond the pricing/
+feature-claim review already recorded as `not run` above:
+
+- **Viewer accounts** — `bharatstudio-alerts` shipped a second
+  authentication surface (viewer signup/login/session, distinct from the
+  creator auth surface) per the master plan's 2026-09-02 decision to move
+  L14 fully into v1 (`docs/BharatStudio-MASTER-PLAN.md` line 18, line 1648,
+  line 1926).
+- **DPDP deletion** — the viewer account deletion flow must preserve the
+  immutable payment/audit record while deleting profile and linkage; this
+  needs its own legal review per the master plan (line 1657, line 1926).
+- **A password-reset email that transits a plaintext reset URL through
+  `email_outbox`.** `apps/api/src/domain/viewer-reset-store.ts`'s
+  `resetUrl()` builds the reset link and passes it into the `email_outbox`
+  payload (durable table defined in
+  `packages/db/migrations/0075_v1_l02_l03_l04_email_delivery.sql`,
+  consumed by `app_private.request_viewer_password_reset`, migration
+  0088). The URL/token sits as plaintext payload in that outbox row from
+  enqueue to send. This is a real data-handling fact for legal review, not
+  a security finding this repository draws a conclusion from
+  (`governance/AGENTS.md`: no legal/tax/provider/app-store conclusions from
+  code).
+
+This file's existing legal-sign-off rows (L08-02 pricing-copy-vs-authority
+review, L08-04 feature-claims legal/CA review) remain `not run`, now joined
+by these three new items. No governance conclusion is drawn here — only the
+scope-growth fact, per the master plan (line 1760, line 1926) and
+`active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`.

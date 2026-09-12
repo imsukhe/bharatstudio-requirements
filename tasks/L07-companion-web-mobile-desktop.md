@@ -451,3 +451,34 @@ mobile Jest remains 52/52 with lint, TypeScript and dependency-hardening 2/2.
 Native APNs/FCM provider delivery, background OS behavior, key rotation,
 physical-device and store evidence remain open. Push remains best-effort and
 is never the correctness path for payments, queues or alert delivery.
+
+### Amendment — shipped Companion work, 2026-09-07
+
+Recording work that landed since the entries above (all in
+`bharatstudio-alerts`, evidence is inline migration/source citation only):
+
+- **Device-code pairing** —
+  `packages/db/migrations/0082_v1_l07_companion_device_pairing.sql`.
+- **17-action catalogue and two-layer gate** —
+  `packages/db/migrations/0089_v1_l24_companion_action_catalogue.sql`.
+- **Activation signals** —
+  `packages/db/migrations/0093_v1_l24_companion_activation_signals.sql`.
+- **Feature reads and mute/cancel** —
+  `packages/db/migrations/0098_v1_l07_companion_feature_reads.sql`.
+- **Configurable entitlement separation** —
+  `packages/db/migrations/0100_v1_l24_companion_entitlement_separation.sql`.
+
+Current real counts as of 2026-09-07: mobile 79/79, macOS 34/34.
+
+**The Windows WinUI target has never been compiled.** As already recorded
+above under the native OBS WebSocket security-boundary slice, no Windows
+SDK/.NET toolchain is installed on this host — Windows source/XML validation
+has passed locally, but that is not compilation, and there is no build
+evidence for the Windows helper at any point in this file's history. The
+Windows target also **has no OBS UI section** — the macOS helper's OBS
+WebSocket v5 client boundary (loopback-only, hello/identify
+challenge-response, bounded request envelopes) has no corresponding
+Windows-side UI surfaced to a user; only the source/protocol boundary
+mirrors it. Windows compilation, OBS runtime, Credential Manager/DPAPI
+storage, pairing transport, signed commands, device evidence and any OBS UI
+remain open exactly as this file already states.
