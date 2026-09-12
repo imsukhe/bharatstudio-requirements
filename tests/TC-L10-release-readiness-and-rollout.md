@@ -18,6 +18,27 @@
 
 No document-only assertion, local unit test, or legacy load result can substitute for final staging/provider/store/legal evidence. Until all required rows pass, the product remains unreleased.
 
+## Local container and manifest regression — 2026-09-09
+
+The prior local deployment check could validate a Cloud Run API manifest whose
+referenced `alerts-api` image had no Dockerfile, and it did not require every
+configuration input that production startup rejects. That is remediated and
+tested as a **local L10-03 supporting check**:
+
+| Check | Reproducible command | Result |
+|---|---|---|
+| API image | `docker build --file apps/api/Dockerfile --tag bharatstudio-alerts-api:qa-local .` from `bharatstudio-alerts` | Pass; compiled TypeScript entrypoint and production dependency closure built |
+| API runtime probe | Run that image with `NODE_ENV=test`, `HOST=0.0.0.0`, `APP_ORIGIN=http://localhost:3100`, then `curl http://127.0.0.1:55442/healthz` | Pass: `{"status":"ok","service":"bharatstudio-alerts-api"}` |
+| Alert worker image | `docker build --file services/alert-worker-go/Dockerfile --tag bharatstudio-alert-worker:qa-local services/alert-worker-go` | Pass; image runs as `nonroot:nonroot` |
+| Payment webhook image | `docker build --file services/payment-webhook-go/Dockerfile --tag bharatstudio-payment-webhook:qa-local services/payment-webhook-go` | Pass; image runs as `nonroot:nonroot` |
+| Deployment contract | `pnpm deployment:test && pnpm deployment:validate` | Pass: one canonical manifest and four isolated hostile mutations. The validator rejects missing Google client-ID and direct-database bindings, a stale API command, and removal of all release substitutions; it also requires environment/host/app-origin, both database endpoints, payment origin/audience, internal service audience, notification-token encryption key, and Turnstile bindings |
+
+The API Cloud Run template now binds those startup-required values and keeps
+their values as deployment placeholders or secret references; it does not embed
+secrets. This proves only buildability, the non-sensitive liveness endpoint,
+and static manifest completeness. It is not Cloud Run/IAM/secrets provisioning,
+database connectivity, readiness, deployment, rollback, or staging evidence.
+
 ## Current disposition — 2026-08-15
 
 The local API/web, PostgreSQL, Go payment, Go worker, scheduler-template and
@@ -84,3 +105,21 @@ or modified.
 These are supporting local checks only. Provider, deployment/IAM, staging
 capacity/failure, native/store, legal/support, observability and independent
 review gates remain not run and continue to block release.
+
+### Fresh local packaging rerun — 2026-09-09
+
+The current Alerts tree was rebuilt and rerun locally:
+
+- API: TypeScript check, complete route suite, and production build passed.
+- Web: TypeScript check, **289/289** tests, and production build passed.
+- Static deployment check passed with one positive and four hostile negative
+  manifest mutations; contract validation passed 20 fixtures, 44 paths and 51
+  operations.
+- API, payment and worker Docker images all rebuilt successfully. The API
+  liveness smoke returned `{"status":"ok","service":"bharatstudio-alerts-api"}`
+  using `NODE_ENV=test`, and image inspection reports `node` for API and
+  `nonroot:nonroot` for both Go images.
+
+This is current local package/build/liveness evidence. It does not validate
+Cloud Run, IAM, actual secrets, database readiness, migration rollout, provider
+behavior, staging traffic, rollback, or any blocked L10 release row.
