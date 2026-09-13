@@ -886,7 +886,9 @@ these is not shipped, regardless of revenue.
   never assume it
 - TipIntent tokens are opaque — never encode amount, name or message in a query
   parameter (fraudulent-alert risk)
-- Never store banking credentials, even for a "preferred UPI app" preference
+- Never store banking credentials, even for a "preferred UPI app" preference. This
+  explicitly governs Compatibility Routing (§25): a provider mPIN, portal password or
+  consumer account password is never stored, and a route requiring one is not built
 - No automatic multi-rail payment routing. Provider-neutral yes; automatic routing no
 - Payment dedup must never derive from time or browser input — `X-Razorpay-Event-Id`
   with DB uniqueness across provider/environment/account/event
@@ -1849,7 +1851,197 @@ convention.
 
 ---
 
-## 25. Tier matrix
+## 25. Payment routing — Direct and Compatibility
+
+Razorpay Direct is the recommended, verified rail. **Compatibility Routing** is an
+honest second lane for creators who cannot use it yet — with a trust boundary drawn
+hard enough that a provider changing behaviour overnight cannot damage us.
+
+### 25.1 The two lanes
+
+**Direct Integration — recommended.** Razorpay today; Paytm Business, PhonePe Business,
+Google Pay Business and HDFC move here as official integrations land. Direct
+BharatStudio checkout, HMAC-verified webhook confirmation, full alerts, TTS, Sound
+Moments, receipts, goals, leaderboard, and refund reconciliation where the rail
+supports it.
+
+**Compatibility Routing — Beta, best-effort.** The creator configures their own
+provider identity. BharatStudio still owns the whole experience: the single supporter
+tip page, the payment attempt UI, the Sound Moment / TTS / overlay event, the activity
+dock, Companion control, goals and supporter interaction. Only the *payment
+confirmation signal* comes from whatever the provider exposes.
+
+### 25.2 How it is presented — never as a direct integration
+
+```text
+Compatibility Routing — Beta
+Uses available provider routing signals to trigger BharatStudio events.
+Alerts can be delayed, duplicated, missed, or stop working if the
+provider changes its behaviour.
+Recommended for creators who cannot yet use Razorpay.
+```
+
+The creator **accepts this on enabling the route**. It does not live in Terms.
+
+Live health state, shown on the dashboard and in Companion:
+
+| State | Meaning |
+|---|---|
+| **Active** | Recent routing signals arriving normally |
+| **Degraded** | Delayed or inconsistent signals |
+| **Paused** | Route disabled — provider change or reliability failure |
+| **Direct available** | An official integration now exists; migrate |
+
+### 25.3 The internal state boundary — the part that protects us
+
+A routed signal is **never** a verified payment. Internally:
+
+```text
+routed_signal_received  →  alert_queued  →  alert_delivered
+```
+
+`verified_payment` is reserved for a rail with a cryptographically verified provider
+confirmation. A routed signal is promoted to `verified_payment` only if an official
+direct integration later confirms it.
+
+**Works in routing mode:** tip-triggered alerts · creator-approved sounds and Sound
+Moments · TTS · stickers and visual effects · supporter message cards · goals, ticker,
+recent supporters · Companion event queue · Master Canvas · activity dock · outbound
+Streamer.bot and OBS bridge events.
+
+**Must stay unavailable in routing mode:** official payment receipts · automatic
+refunds · entitlement unlocks · prize distribution · membership or paid access ·
+payout splitting · tax reports · irreversible supporter badges · financial dispute
+decisions.
+
+That boundary means a provider silently changing its behaviour costs us delayed alerts,
+never a wrong receipt or a false financial record.
+
+### 25.4 The kill switch, built on day one
+
+1. Mark the route **degraded**.
+2. Stop accepting new payment attempts through it once confidence falls below threshold.
+3. Let already-started attempts settle or expire safely.
+4. Disable automatic alert triggering the moment duplicate or false signals appear.
+5. Tell the creator: *"This provider's compatibility route is temporarily unavailable.
+   Switch to Razorpay Direct or another active route."*
+6. **Keep their settings. Pause the route** rather than silently producing wrong alerts.
+
+**No generic QR fallback. No "mark as paid". No fake confirmation.** Ever.
+
+### 25.5 Per-provider assessment — and where I stop
+
+Competitor research shows the incumbent's actual flows. The product *structure* is
+worth copying. The credential handling is not.
+
+| Route | Their pattern | Our position |
+|---|---|---|
+| **Paytm Business** | Legal name, Business VPA, 21-char Merchant ID, optional QR upload to extract the VPA | **Safest to pursue.** Merchant identity only, no credentials. Build first — *once the signal mechanism is known* (§25.6) |
+| **Google Pay Business** | Fields locked; activation done manually by their support | **Assisted activation.** Acceptable: no credential, manual gate, low volume |
+| **PhonePe Business** | Creator creates a delegated **Supervisor** user on a spare number, logs in once to activate, then hands us the number — and must never log in again | **Gated.** See below |
+| **HDFC SmartHub Vyapaar** | Creator creates a **Cashier** user, sets a **4-digit mPIN**, and hands us the number and mPIN | **Gated.** See below |
+| **Amazon Pay** | Creator enters their Amazon **mobile/email and account password** | **Never build.** Non-negotiable |
+
+**Amazon: never.** Collecting a consumer account password is credential harvesting
+regardless of intent. It cannot be made safe with encryption, it violates the
+provider's terms, and one breach would end the company. No experimental gate, no
+opt-in, no exception.
+
+**PhonePe and HDFC: gated on three answers, not scheduled.** As described, these
+require us to hold a delegated login — and in HDFC's case a **4-digit mPIN**, which is
+a payment credential — and to operate a provider's business portal as that user. That
+collides directly with our own standing rule (§12.1: *never store banking credentials*)
+and with the reasoning that ruled out BYOK and InnerTube. Before any design work:
+
+1. **Does the provider permit it?** A written answer, or the relevant terms read
+   directly. Delegated-user credential sharing and automated portal access are commonly
+   prohibited. If prohibited, we do not build it, exactly as with BYOK.
+2. **Is there a sanctioned alternative?** A merchant webhook, a reporting API, or a
+   partner programme reaching the same signal without holding a credential.
+3. **If permitted, can the secret be avoided?** Store nothing reusable, or nothing at
+   all. An mPIN in our database is an unacceptable design even encrypted.
+
+If all three resolve favourably, these ship as compatibility routes with the §25.2
+labelling. If not, they do not ship, and the honest creator message is "use Razorpay
+Direct" rather than a route we cannot operate safely.
+
+### 25.6 The engineering point everyone skips
+
+**None of the competitor's cards reveal how the payment event is actually detected.**
+Merchant ID plus VPA does not, by itself, tell anyone that a payment happened. The card
+UI is the easy half; the *signal* is the product.
+
+So no compatibility route enters the build queue without a documented, permitted
+detection mechanism — webhook, reporting API, or sanctioned callback — named and
+verified. Building the card first and discovering the signal later is how we end up
+with the delegated-credential pattern by default.
+
+**What we build now, provider-agnostically:** the routing abstraction, the health-state
+machine, the honest labelling, the `routed_signal_received` state class, the capability
+restrictions of §25.3, and the kill switch. That framework is valuable on its own and
+lets any verified route slot in later.
+
+---
+
+## 26. Subscription lifecycle — paid integrations that fail gracefully
+
+Connect, import and compatibility features are paid. **A lapsed subscription must never
+turn a creator's live stream into a broken screen or a payment wall on camera.**
+
+### 26.1 Never charged for
+
+Viewing receipts · exporting their own data · recovering their account · disconnecting
+an integration · basic security controls (sessions, revoke, password, 2FA). Charging
+for any of these makes leaving hostile, and §13 makes portability a feature.
+
+### 26.2 The five states
+
+| State | Duration | Behaviour |
+|---|---|---|
+| **Active** | — | Everything works |
+| **Grace** | 14 days | Everything still works. Clear notices in Companion and dashboard, never on stream |
+| **Paused** | — | Paid connectors stop processing new third-party events. Imported setups and configuration become **read-only** |
+| **Retained** | 90 days | Encrypted connector settings, mappings, templates and history remain, available for renewal or export |
+| **Expired** | after notice | Provider credentials revoked, paid-only connector secrets and configuration deleted |
+
+Advance notices precede every transition, and the final deletion is announced more than
+once.
+
+### 26.3 What the creator sees after grace
+
+- **Existing OBS URLs keep working.** They must never become a payment wall and must
+  never advertise BharatStudio on stream. A billing problem is not the audience's
+  business.
+- The Master Overlay falls back to a **quiet safe state**: transparent, or basic native
+  alert behaviour, with no premium module output. No error text, no watermark change
+  mid-stream.
+- External synchronisation, outbound automations, multi-channel routing, premium packs
+  and bridge commands pause.
+- **Kept regardless:** account access, receipts, verified payment history, audit
+  history, exports, security controls.
+- Native and free behaviour stays independent of subscription status *and* of Platform
+  availability.
+- **Nothing is silently deleted** — not scenes, alert settings, media, or imported
+  mappings.
+- On renewal, configuration restores without reconnecting everything, unless the
+  provider token itself expired or was revoked.
+
+### 26.4 Desktop bridge resilience
+
+Where a local helper exists, it caches a **signed entitlement valid for 24 hours**. A
+billing hiccup or a connectivity outage must not break a live stream. The cache is
+short enough to bound abuse and long enough to cover any realistic outage.
+
+### 26.5 Why this is a competitive feature, not just courtesy
+
+Creators have been burned by tools that break mid-stream. A documented, generous,
+non-punitive lapse policy is a reason to switch — and it costs us little, because the
+expensive parts (connector processing, outbound automation, AI) are exactly what pauses.
+Storage and configuration are cheap to retain for 90 days.
+
+---
+
+## 27. Tier matrix
 
 **This is the seed for the capability registry (§20), not a hard-coded ladder.** Once
 the control plane exists, staff move any row at any time. What matters is that the
@@ -1865,14 +2057,14 @@ The principle, one line per tier:
 | **Studio ₹599** | Team and events — seats, approval, tournaments, pooled AI, priority |
 | **Enterprise** | Governance-blocked (§24) |
 
-### 25.1 Correctness — identical on every tier, forever
+### 27.1 Correctness — identical on every tier, forever
 
 Payment verification · immutable records · webhook dedup · reconciliation · refund
 tracking · queue durability and no-drop · retry and replay · security · privacy · audit
 · accessibility · downgrade preservation · legal disclosures · receipts · anonymous
 tipping with no login.
 
-### 25.2 The existing ladder (already enforced in code)
+### 27.2 The existing ladder (already enforced in code)
 
 | Dimension | Free | Pro | Creator | Studio |
 |---|---|---|---|---|
@@ -1903,7 +2095,7 @@ tipping with no login.
 **Queue count decided 2026-09-13: 1 / 2 / 3 / 5**, as shown. The 1/3/5/10 figure in
 L03's retier note is superseded.
 
-### 25.3 Proposed placement for everything new
+### 27.3 Proposed placement for everything new
 
 | Capability | Free | Pro | Creator | Studio |
 |---|---|---|---|---|
@@ -1949,13 +2141,25 @@ L03's retier note is superseded.
 | **AI credits** | trial | monthly | larger monthly | pooled team |
 | AI moderation (live) | — | — | yes | yes |
 | Thumbnail / Channel DNA | — | — | yes | yes |
+| **Integrations and import** | | | | |
+| BharatStudio tip page + native alert | yes | yes | yes | yes |
+| Razorpay Direct | yes | yes | yes | yes |
+| Compatibility Routing (a verified route) | — | — | yes | yes |
+| OBS scene / template import | — | — | yes | yes |
+| Streamlabs / StreamElements migration + bridge | — | — | yes | yes |
+| YouTube connection + advanced live controls | — | — | yes | yes |
+| Outbound events (Streamer.bot, SAMMI, Mix It Up, OBS WS) | — | — | yes | yes |
+| Multiple channels, brands, collaborators, advanced routing | — | — | — | yes |
+| Sponsor reports, multi-creator controls | — | — | — | yes |
+| Custom domains, API / outbound webhooks | — | — | — | add-on |
+| **Never charged for** (receipts, exports, account recovery, disconnecting an integration, security controls) | yes | yes | yes | yes |
 | **Ops** | | | | |
 | Sponsor manager + exposure log | — | — | — | yes |
 | Finance exports (Sheets, Tally) | — | — | yes | yes |
 | Post-stream analytics | basic | yes | yes | yes |
 | Priority support | — | — | — | yes |
 
-### 25.4 Rules that keep the matrix honest
+### 27.4 Rules that keep the matrix honest
 
 - **Nothing correctness-related ever moves up a tier.** §25.1 is immutable.
 - **Free must be genuinely usable**, not a demo. A Free creator takes real money, gets
@@ -1970,15 +2174,15 @@ L03's retier note is superseded.
 
 ---
 
-## 26. Master task register — nothing deferred
+## 28. Master task register — nothing deferred
 
 Status key: **U** usable · **X** unreachable · **P** partial · **A** absent · **B** blocked.
 Priority: **P0** launch-blocking · **P1** launch-shaping · **P2** post-launch · **P3** later.
 
-### 26.1 Foundation repairs
+### 28.1 Foundation repairs
 See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (P0, cheap).
 
-### 26.2 Payments and money
+### 28.2 Payments and money
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2013,7 +2217,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-28 | Paytm / Cashfree / PhonePe | B | — |
 | PAY-29 | Recurring memberships | B | — |
 
-### 26.3 Alerts, queues, overlay
+### 28.3 Alerts, queues, overlay
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2037,7 +2241,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ALQ-18 | Master Canvas single browser source with modules (§6) | A | P0 |
 | ALQ-19 | Vertical / second-output canvas | A | P2 |
 
-### 26.4 TTS
+### 28.4 TTS
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2052,7 +2256,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | TTS-09 | Mute / cancel in-flight from dashboard (companion API exists) | P | P1 |
 | TTS-10 | TTS character top-ups | A | P1 |
 
-### 26.5 Viewer identity, history, trust
+### 28.5 Viewer identity, history, trust
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2077,7 +2281,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-19 | YouTube identity attribution carried onto payments | A | P0 |
 | VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§14.2) | A | P1 |
 
-### 26.6 Engagement — interactions, widgets, goals, challenges
+### 28.6 Engagement — interactions, widgets, goals, challenges
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2114,7 +2318,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CHL-07 | `!challenge` chat command | A | P2 |
 | CHL-08 | Refundable multi-contributor challenges | B | — |
 
-### 26.7 Stickers, media, Alert Studio
+### 28.7 Stickers, media, Alert Studio
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2140,7 +2344,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | MED-20 | Curated meme/media queue module | A | P2 |
 | MED-21 | Lottie + custom branding upload, Studio-tier, live gate, bytea storage | U | — |
 
-### 26.8 Companion
+### 28.8 Companion
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2180,7 +2384,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-34 | Push tokens stored as fingerprint + ciphertext, raw never returned | U | — |
 | CMP-35 | Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them | A | P2 |
 
-### 26.9 Connectors and chat
+### 28.9 Connectors and chat
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2206,7 +2410,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-20 | Optional YouTube `/live` support page | A | P3 |
 | CON-21 | YouTube identity/trust model and namespaces (§14.2) | A | P1 |
 
-### 26.10 Entitlements, billing, admin, ops
+### 28.10 Entitlements, billing, admin, ops
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2249,7 +2453,7 @@ works, they must be instrumented from the first cohort, and they **cannot be
 reconstructed later**. Shipping without them means never knowing whether BharatStudio
 raised a creator's income.
 
-### 26.11 Marketing, legal, support
+### 28.11 Marketing, legal, support
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2263,7 +2467,7 @@ raised a creator's income.
 | MKT-08 | Support surface and staffing | A | P0 |
 | MKT-09 | Public copy matches versioned decisions with dated history | U | — |
 
-### 26.12 AI
+### 28.12 AI
 
 All **A** (absent) except the L23 seam. AI-01 safety rules + moderation queue ·
 AI-02 TTS-safe rewrite and PII protection · AI-03 title/description/translation ·
@@ -2274,7 +2478,7 @@ recommendations · AI-11 moderator copilot · AI-12 Clutch Mode intensity detect
 AI-13 sponsor-safe scanning. Priority P1 for AI-01/02/06, P2 for the rest.
 L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free.
 
-### 26.13 Live Support Hub
+### 28.13 Live Support Hub
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2302,7 +2506,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | HUB-22 | Post-stream supporter recap and receipt export | A | P2 |
 | HUB-23 | Milestone unlocks framed as a creator promise, never a contract | A | P1 |
 
-### 26.14 Customisation and gating
+### 28.14 Customisation and gating
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2313,7 +2517,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CUS-05 | Preset bundles that are fully editable afterwards | A | P2 |
 | CUS-06 | Per-source alert styling (Super Chat distinct from UPI tip) | A | P1 |
 
-### 26.15 Lobby Engine
+### 28.15 Lobby Engine
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2341,7 +2545,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | LOB-22 | Screened Guest Queue (audio-only, time-boxed) | A | P3 |
 | LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | **Never** | — |
 
-### 26.16 Giveaways and tournaments
+### 28.16 Giveaways and tournaments
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2359,7 +2563,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | TRN-05 | Standings overlay module | A | P2 |
 | TRN-06 | Sponsor slot with exposure log | A | P2 |
 
-### 26.17 Custom audio and creator media
+### 28.17 Custom audio and creator media
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2375,7 +2579,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | AUD-10 | Asset storage quota enforcement (MED-13 dependency) | A | P1 |
 | AUD-11 | Shared or discoverable music library | **Never** | — |
 
-### 26.18 Performance
+### 28.18 Performance
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2396,7 +2600,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | PRF-15 | Companion: optimistic UI, virtualised lists, no re-render storms | P | P1 |
 | PRF-16 | Published one-source-vs-many benchmark, re-run in CI | A | P1 |
 
-### 26.19 Control plane and admin
+### 28.19 Control plane and admin
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2414,7 +2618,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CTL-12 | Marketing sections behind flags (`kind = marketing_section`) | A | P1 |
 | CTL-13 | Admin MFA + durable admin registry (ADM-07 dependency) | A | P0 |
 
-### 26.20 New widgets
+### 28.20 New widgets
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2426,7 +2630,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | WID-06 | Match Countdown, Tournament Standings, Squad Roster | A | P2 |
 | WID-07 | Hours Streamed, Milestone Ticker, Top Clip, Recap Card | A | P2 |
 
-### 26.21 Co-Stream Room
+### 28.21 Co-Stream Room
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2446,7 +2650,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | COS-14 | Clip handoff consent | A | P2 |
 | COS-15 | Silent payment splitting | **Never** | — |
 
-### 26.22 Sound Moments and Rules Engine
+### 28.22 Sound Moments and Rules Engine
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2467,7 +2671,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | MIG-02 | Test/sandbox mode that never reaches viewers | A | P1 |
 | MIG-03 | Global emergency-disable button | A | P0 |
 
-### 26.23 Enterprise
+### 28.23 Enterprise
 
 All **B** (blocked) pending §24.5. EN-00 commercial/legal model · EN-01 org, roles,
 allocations · EN-02 immutable snapshot schema · EN-03 settlement adapters · EN-04
@@ -2476,7 +2680,41 @@ reconciliation · EN-07 scheduler handlers · EN-08 dashboard views · EN-09 pil
 Plus SSO, RBAC, shared brand kits, licensed packs, campaigns, cross-channel analytics,
 outbound webhooks, finance/audit exports, SLA support.
 
-### 26.24 Storage and media platform
+### 28.24 Payment routing
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| RTE-01 | Routing abstraction: a route is a signal source, not a rail | A | P1 |
+| RTE-02 | Health-state machine (active / degraded / paused / direct available) | A | P1 |
+| RTE-03 | `routed_signal_received → alert_queued → alert_delivered` state class, distinct from `verified_payment` | A | P1 |
+| RTE-04 | Capability restrictions in routing mode (§25.3) enforced server-side | A | P1 |
+| RTE-05 | Per-provider kill switch with confidence threshold | A | P1 |
+| RTE-06 | Explicit in-product acceptance of the Beta terms on enabling a route | A | P1 |
+| RTE-07 | Duplicate/false-signal detection disabling auto-alerts | A | P1 |
+| RTE-08 | Migration prompt when a Direct integration becomes available | A | P2 |
+| RTE-09 | Paytm Business route | **Gated on §25.6 signal mechanism** | P2 |
+| RTE-10 | Google Pay Business route (assisted activation) | **Gated on §25.6** | P3 |
+| RTE-11 | PhonePe Supervisor route | **Gated on §25.5 three answers** | — |
+| RTE-12 | HDFC Cashier route | **Gated on §25.5 three answers** | — |
+| RTE-13 | Amazon Pay consumer-credential route | **Never** | — |
+| RTE-14 | Generic QR fallback / "mark as paid" | **Never** | — |
+
+### 28.25 Subscription lifecycle
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| LIF-01 | Five-state lifecycle (active / grace 14d / paused / retained 90d / expired) | A | P1 |
+| LIF-02 | Grace-period notices in dashboard and Companion, never on stream | A | P1 |
+| LIF-03 | Paused: connectors stop, configuration read-only, nothing deleted | A | P1 |
+| LIF-04 | Retained 90d: settings, mappings, templates, history kept and exportable | A | P1 |
+| LIF-05 | Expired: credential revocation and paid-only secret deletion, after repeated notice | A | P1 |
+| LIF-06 | Overlay quiet safe state — no payment wall, no on-stream branding change | A | **P1** |
+| LIF-07 | Never-charged-for list enforced (receipts, exports, recovery, disconnect, security) | A | P1 |
+| LIF-08 | Renewal restores configuration without reconnecting, unless the token expired | A | P1 |
+| LIF-09 | Desktop bridge caches a signed entitlement for 24h | A | P2 |
+| LIF-10 | Free and native behaviour independent of subscription and Platform status | P | P0 |
+
+### 28.26 Storage and media platform
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2488,7 +2726,7 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 27. Blocked — with the exact unblocking condition
+## 29. Blocked — with the exact unblocking condition
 
 | Item | Unblocked by |
 |---|---|
@@ -2508,9 +2746,9 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 28. Decisions taken, and decisions still open
+## 30. Decisions taken, and decisions still open
 
-### 28.0 Decided 2026-09-13
+### 30.1 Decided 2026-09-13
 
 | Decision | Outcome |
 |---|---|
@@ -2522,8 +2760,11 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Co-Stream Room tier** | **Creator ₹399.** Squad grid (3–4 creators) stays Studio-only as the premium step. |
 | **Companion name** | **Kept.** The Bitfocus Companion collision is accepted as a known store-search and SEO risk rather than paid for with a rename. Revisit only if store search proves it costly. |
 | **Template catalogue** | **Still pending** — deliberately left open, not decided by default. |
+| **Paid integrations** | Connect, import, bridge, YouTube and compatibility routing are **Creator-tier and above**. Multi-channel, sponsor reports and multi-creator controls are Studio. Receipts, exports, account recovery, disconnecting an integration and security controls are **never** paid. |
+| **Lapse behaviour** | Five states: active → grace 14d → paused → retained 90d → expired. The overlay falls back to a quiet safe state; existing OBS URLs never become a payment wall or change branding on stream; nothing is deleted silently. |
+| **Amazon Pay routing** | **Never built.** It requires the creator's consumer account password. |
 
-### 28.1 Still open
+### 30.2 Still open
 
 **Needs data or legal input, not a snap judgement**
 
@@ -2561,7 +2802,7 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 29. Build order
+## 31. Build order
 
 Scope is Alerts, dashboard, overlay, Support Hub and mobile Companion. Nothing else.
 
@@ -2616,7 +2857,7 @@ Two things are not phases:
 
 ---
 
-## 30. Maintaining this document
+## 32. Maintaining this document
 
 This file is the product authority. Master plan Part 7 is superseded and should not be
 consulted for status.
