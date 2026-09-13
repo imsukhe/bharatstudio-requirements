@@ -2305,7 +2305,45 @@ L03's retier note is superseded.
 | Post-stream analytics | basic | yes | yes | yes |
 | Priority support | — | — | — | yes |
 
-### 27.4 Rules that keep the matrix honest
+### 27.4 Companion controls by tier
+
+Companion is available on **every** tier including Free — it is the cockpit that makes a
+first stream succeed — but what it can *do* is tiered.
+
+| Control | Free | Pro | Creator | Studio |
+|---|---|---|---|---|
+| View state, health signals | basic | full | full | full |
+| Concurrent control sessions | 1 | 1 | 2 | 4 |
+| Pause / resume queue | yes | yes | yes | yes |
+| Send test alert | yes | yes | yes | yes |
+| Recent tips, payment status | — | yes | yes | yes |
+| Mute / cancel TTS | — | yes | yes | yes |
+| Approve / reject moderation | — | — | yes | yes |
+| OBS control (scenes, sources, record) | — | — | yes | yes |
+| Scene presets, goal controls, markers | — | — | yes | yes |
+| Clutch Mode | — | yes | yes | yes |
+| Prepare Stream / Wrap Stream | — | yes | yes | yes |
+| Lobby operator console | — | — | yes | yes |
+| Co-stream control room | — | — | yes | yes |
+| Multi-operator, producer roles | — | — | — | yes |
+| Push notification types | 2 | all | all | all |
+
+#### 27.4.1 Why the grant is separate even while bundled
+
+Buying an Alerts tier issues a **distinct Companion membership record**, not an implied
+permission. That costs nothing today and it is what makes unbundling later a pricing
+change rather than a rebuild.
+
+The mechanism already exists: migration `0100` made Companion its own entitlement with
+a `source_key → grant` table read **live** on every call, explicitly supporting
+`source_key = 'standalone'` for a Companion-only channel. So the required work is to
+issue a grant row on subscription — not to design the separation.
+
+The one genuine blocker to actually selling it standalone remains **implicit channel
+provisioning** (CMP-12): a Companion-only signup has no channel, and nothing creates
+one. Until that exists, standalone is a config flag with no viable signup path.
+
+### 27.5 Rules that keep the matrix honest
 
 - **Nothing correctness-related ever moves up a tier.** §25.1 is immutable.
 - **Free must be genuinely usable**, not a demo. A Free creator takes real money, gets
@@ -2508,6 +2546,8 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-10 | Mirror actions (start/stop/screenshot) | B | — |
 | CMP-11 | Stream actions (go live / end) | B | — |
 | CMP-12 | Implicit channel provisioning for Companion-only signup | A | P1 |
+| CMP-36 | Issue a distinct Companion grant row on Alerts subscription (`0100` mechanism) | A | P1 |
+| CMP-37 | Companion available on Free with tier-limited controls (§27.4) | P | P1 |
 | CMP-13 | Stream health panel (all six signals, heartbeat ages) | P | P0 |
 | CMP-14 | Prepare Stream / go-live checklist (§5.1) | A | P0 |
 | CMP-15 | Run full test with per-hop report | P | P0 |
@@ -2925,6 +2965,9 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Control sessions** | Free 1 · Pro 1 · Creator 2 · Studio 4 concurrent, matching the recorded internal ceilings. |
 | **Control-plane authority** | Any platform admin proposes; a second approves. **Moving a paid capability into Free needs owner sign-off** — that is a revenue decision, not an ops one. `global_kill` stays available to a single admin for incidents. |
 | **Tournaments** | Creator gets single elimination up to 8 players. Studio gets double elimination, round robin, seeding and sponsor slots. |
+| **Lobby default** | **Open FIFO queue** for new creators. Member priority and creator pick are deliberate opt-ins, so the product does not read as pay-to-play by default. |
+| **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
+| **Companion packaging** | **Bundled now, unbundlable later — and modelled that way from the start.** Buying any Alerts tier *automatically grants a separate Companion membership record* rather than Companion being implied by the Alerts tier. Free gets Companion too, with controls limited per tier. |
 
 ### 30.2 Still open
 
@@ -2941,13 +2984,9 @@ outbound webhooks, finance/audit exports, SLA support.
 **Pricing and packaging**
 
 6. AI credit prices per feature and per credit class.
-7. Companion bundled-vs-standalone pricing. Must remain configurable either way, and
-   note that standalone is impossible until implicit channel provisioning exists.
 
 **Product behaviour**
 
-10. Sticker pack limits 10 / 25 / 50 — an implementation choice that was never signed off.
-13. Lobby: the default eligibility mode new creators get.
 
 **Governance**
 
