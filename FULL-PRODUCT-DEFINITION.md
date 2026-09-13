@@ -887,8 +887,11 @@ these is not shipped, regardless of revenue.
 - TipIntent tokens are opaque — never encode amount, name or message in a query
   parameter (fraudulent-alert risk)
 - Never store banking credentials, even for a "preferred UPI app" preference. This
-  explicitly governs Compatibility Routing (§25): a provider mPIN, portal password or
-  consumer account password is never stored, and a route requiring one is not built
+  explicitly governed Compatibility Routing (§25) until the 2026-09-13 owner decision.
+  **Amended:** a delegated *business* credential may be held under conditions C1–C7
+  (legal sign-off, provider terms verified, no sanctioned alternative, explicit consent,
+  KMS/HSM envelope encryption, instant revocation, blast-radius controls). A *consumer*
+  account password remains outside this exception
 - No automatic multi-rail payment routing. Provider-neutral yes; automatic routing no
 - Payment dedup must never derive from time or browser input — `X-Razorpay-Event-Id`
   with DB uniqueness across provider/environment/account/event
@@ -1942,6 +1945,65 @@ worth copying. The credential handling is not.
 | **HDFC SmartHub Vyapaar** | Creator creates a **Cashier** user, sets a **4-digit mPIN**, and hands us the number and mPIN | **Gated.** See below |
 | **Amazon Pay** | Creator enters their Amazon **mobile/email and account password** | **Never build.** Non-negotiable |
 
+**Owner decision 2026-09-13: proceed on a consent basis, subject to legal sign-off.**
+The creator gives explicit, specific, unbundled consent to share delegated-account data,
+and the T&C place responsibility for that sharing with them.
+
+**What that consent does and does not settle** — recorded so the risk is carried
+knowingly rather than assumed away:
+
+*Settled by consent.* The privacy and data-sharing dimension. With a DPDP-compliant
+purpose statement, unbundled consent, and a stated retention rule, collecting and
+processing the delegated-account data is defensible.
+
+*Not settled by consent, because the creator is not the party whose permission is
+missing:*
+
+1. **The provider's terms bind the account holder.** If PhonePe or HDFC prohibit
+   credential sharing or automated portal access, the creator's agreement with us does
+   not make it permitted — it puts the *creator* in breach and makes us the inducing
+   party. The realistic failure is not litigation against BharatStudio; it is the
+   provider terminating a creator's merchant account mid-stream. Our indemnity does not
+   give them their account back, and it is our product they will blame.
+2. **An mPIN is a payment authentication credential.** A contract between us and a
+   creator does not override Indian payment regulation, nor our own breach-notification
+   duties if it leaks.
+3. **Four digits × thousands of creators** is a low-entropy secret set of very high
+   value. That is a security problem independent of who agreed to what.
+
+**Therefore these routes proceed only when all of the following hold:**
+
+| # | Condition |
+|---|---|
+| C1 | **Legal sign-off**, specifically covering delegated-credential handling — folded into the existing unfiled legal gate, not a separate opinion |
+| C2 | The provider's terms read directly and recorded, with a dated note on whether delegated access is permitted. If clearly prohibited, we do not build it — consent does not cure a third-party prohibition |
+| C3 | No sanctioned alternative exists (merchant webhook, reporting API, partner programme) that reaches the same signal without a credential. If one exists, we build that instead |
+| C4 | Consent is explicit, specific, unbundled, revocable in one action, and re-confirmed whenever the scope changes. Never a pre-ticked box, never inside general Terms |
+| C5 | The secret is held under **KMS/HSM envelope encryption**, never in plaintext at rest or in logs, with per-access audit and no human read path |
+| C6 | A creator can revoke instantly, and revocation deletes the secret rather than disabling a flag |
+| C7 | Blast-radius controls: per-route kill switch (§25.4), anomaly detection on access patterns, and a rehearsed incident procedure specific to credential compromise |
+
+**Amazon Pay is still a harder case than these two.** PhonePe and HDFC use a *delegated,
+restricted* business user the creator creates for this purpose — bad, but scoped.
+Amazon's flow collects the creator's **primary consumer account password**, which is not
+scoped to anything: it is access to their shopping account, saved cards, addresses and
+order history. Consent does not make that proportionate, and no encryption design makes
+a stored consumer password safe. It remains flagged for an explicit owner decision
+rather than folded in with the other two.
+
+### 25.6 Per-provider assessment — and where I stop
+
+Competitor research shows the incumbent's actual flows. The product *structure* is
+worth copying. The credential handling is not.
+
+| Route | Their pattern | Our position |
+|---|---|---|
+| **Paytm Business** | Legal name, Business VPA, 21-char Merchant ID, optional QR upload to extract the VPA | **Safest to pursue.** Merchant identity only, no credentials. Build first — *once the signal mechanism is known* (§25.6) |
+| **Google Pay Business** | Fields locked; activation done manually by their support | **Assisted activation.** Acceptable: no credential, manual gate, low volume |
+| **PhonePe Business** | Creator creates a delegated **Supervisor** user on a spare number, logs in once to activate, then hands us the number — and must never log in again | **Gated.** See below |
+| **HDFC SmartHub Vyapaar** | Creator creates a **Cashier** user, sets a **4-digit mPIN**, and hands us the number and mPIN | **Gated.** See below |
+| **Amazon Pay** | Creator enters their Amazon **mobile/email and account password** | **Never build.** Non-negotiable |
+
 **Amazon: never.** Collecting a consumer account password is credential harvesting
 regardless of intent. It cannot be made safe with encryption, it violates the
 provider's terms, and one breach would end the company. No experimental gate, no
@@ -1965,7 +2027,7 @@ If all three resolve favourably, these ship as compatibility routes with the §2
 labelling. If not, they do not ship, and the honest creator message is "use Razorpay
 Direct" rather than a route we cannot operate safely.
 
-### 25.6 The engineering point everyone skips
+### 25.7 The engineering point everyone skips
 
 **None of the competitor's cards reveal how the payment event is actually detected.**
 Merchant ID plus VPA does not, by itself, tell anyone that a payment happened. The card
@@ -2694,10 +2756,13 @@ outbound webhooks, finance/audit exports, SLA support.
 | RTE-08 | Migration prompt when a Direct integration becomes available | A | P2 |
 | RTE-09 | Paytm Business route | **Gated on §25.6 signal mechanism** | P2 |
 | RTE-10 | Google Pay Business route (assisted activation) | **Gated on §25.6** | P3 |
-| RTE-11 | PhonePe Supervisor route | **Gated on §25.5 three answers** | — |
-| RTE-12 | HDFC Cashier route | **Gated on §25.5 three answers** | — |
-| RTE-13 | Amazon Pay consumer-credential route | **Never** | — |
+| RTE-11 | PhonePe Supervisor route | **Consent-gated on C1–C7** | P2 |
+| RTE-12 | HDFC Cashier route | **Consent-gated on C1–C7** | P2 |
+| RTE-13 | Amazon Pay consumer-credential route | **Owner decision pending** | — |
 | RTE-14 | Generic QR fallback / "mark as paid" | **Never** | — |
+| RTE-15 | Consent flow: explicit, unbundled, revocable, re-confirmed on scope change | A | P2 |
+| RTE-16 | KMS/HSM envelope encryption for any delegated secret, no human read path | A | P2 |
+| RTE-17 | Credential-compromise incident procedure, rehearsed | A | P2 |
 
 ### 28.25 Subscription lifecycle
 
@@ -2762,7 +2827,8 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Template catalogue** | **Still pending** — deliberately left open, not decided by default. |
 | **Paid integrations** | Connect, import, bridge, YouTube and compatibility routing are **Creator-tier and above**. Multi-channel, sponsor reports and multi-creator controls are Studio. Receipts, exports, account recovery, disconnecting an integration and security controls are **never** paid. |
 | **Lapse behaviour** | Five states: active → grace 14d → paused → retained 90d → expired. The overlay falls back to a quiet safe state; existing OBS URLs never become a payment wall or change branding on stream; nothing is deleted silently. |
-| **Amazon Pay routing** | **Never built.** It requires the creator's consumer account password. |
+| **Delegated-credential routes** | **Proceed on a consent basis**, subject to legal sign-off. PhonePe Supervisor and HDFC Cashier are consent-gated on conditions C1–C7 in §25.5. Consent settles the privacy dimension; it does not settle the provider's own terms, payment regulation, or the security of holding the secret — those are carried knowingly. |
+| **Amazon Pay routing** | **Still open.** Unlike the other two it takes a primary consumer account password, not a scoped delegated user. Escalated as its own decision. |
 
 ### 30.2 Still open
 
