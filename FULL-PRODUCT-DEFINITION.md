@@ -3393,22 +3393,88 @@ Social Relay, not the correctness list.
 **Status: proposed 2026-09-14, not approved.** No pack ships in v1 (§1.9 — packs are a
 P3 slice), so this is the price sheet for the first pack release, not a launch price.
 
-| Pack | Price | Eligibility | Ships in the first release? |
-|---|---|---|---|
-| **AI Credits** | ₹49 / ₹149 / ₹399 top-ups | Paid tiers | **Yes** |
-| **Storage Pack** | ₹49/mo for +500MB of new-upload space | Pro+ | **Yes** |
-| **Socials Pack** | ₹129/mo | Creator+ | **Yes**, and only once Social Relay is real |
-| **Multi-Channel Pack** | ₹199/mo per added channel or brand | Creator+ | **Yes** |
-| **Events Pack** | ₹129/mo | Creator+ | Hidden until the Lobby/tournament features exist |
-| **Team Seats** | ₹129/mo | Creator+ | Hidden until seat management ships (F18) |
-| **Sponsor Pack** | ₹149/mo | Creator+ | Hidden until the sponsor manager exists |
-| **Finance Pack** | ₹79/mo | Creator+ | Hidden until provider/legal/CA evidence is complete |
+| Pack | Price | Eligibility | What the creator gets | What is still missing — the actual gate |
+|---|---|---|---|---|
+| **AI Credits** | ₹49 / ₹149 / ₹399 top-ups | Paid tiers | Extra prepaid usage for AI writing, translation, summaries, moderation assistance and premium TTS | A **measured provider cost model**, per-action credit pricing, spend caps, abuse controls and a quality evaluation. Without the cost model we cannot price a unit; without spend caps one runaway loop bills a creator for a month |
+| **Storage Pack** | ₹49/mo, +500MB of new-upload space and +50 sound uploads | Pro+ | Room for more custom audio and media | The **asset quota pipeline is specified and not enforced** (MED-13, AUD-10), and the media lifecycle — quarantine, scan, provenance, takedown — is the §18.3 gate, still open |
+| **Socials Pack** | ₹129/mo | Creator+ | +3 connected accounts, scheduled posts, event-triggered posting, multilingual variants, social calendar | **Social Relay itself** (P3), plus each platform's approved API and permissions. No unofficial posting routes, ever |
+| **Multi-Channel Pack** | ₹199/mo per added channel or brand | Creator+ | A second channel or brand under one account | **Strong tenant and channel separation** — RLS boundaries, role scoping across channels, billing allocation, connector routing, and per-channel audit. This is the largest hidden item on the list |
+| **Events Pack** | ₹129/mo | Creator+ | Full brackets, lobby templates, recurring community nights, advanced giveaway formats | The **Lobby and tournament engine** (§16, §17) and the fair-giveaway safeguards. Free-entry and skill-based only stands (§33.1) |
+| **Team Seats** | ₹129/mo | Creator+ | +2 moderator or operator seats, +1 concurrent control session | Seat **management** — invitations, scoped permissions, audit, session control (F18). The enforcement exists in `0104`; the management UI does not |
+| **Sponsor Pack** | ₹149/mo | Creator+ | Sponsor campaign workspace, scheduled placements, exposure timeline, proof-of-delivery report | The sponsor manager, the campaign workflow, and **correctness of the evidence report** — a proof-of-delivery document that is wrong is worse than no report, because a creator will send it to a sponsor |
+| **Finance Pack** | ₹79/mo | Creator+ | Monthly statement, GST-ready export, TDS reference notes, payout-vs-bank reconciliation | Provider evidence **plus CA/tax/legal review**. It must not make an unsupported tax claim, and today we cannot make any |
 
-**Only four packs are visible at first: AI Credits, Storage, Socials, Multi-Channel.**
-A pack whose underlying feature is not real is a promise we cannot keep, and the
-Finance Pack in particular touches tax representations that need the CA row in
-`05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` closed first. Each hidden pack is a
-capability-registry row (§20) so it becomes visible without a release.
+#### 28.3.0 Why these are gated, and whether the gate is worth keeping
+
+The question is fair: every one of these would upsell, so why hold them? The answer
+differs per pack, and only two of the eight are being held for a reason we could
+choose to drop.
+
+**Held because selling it would be a false promise.** Sponsor and Finance. A
+proof-of-delivery report a creator forwards to a sponsor, and a GST-ready export a
+creator hands to their CA, are documents that leave our product and get relied on by a
+third party. Shipping either before it is correct does not lose us a sale later — it
+costs us the creator, because they find out in front of someone whose opinion of them
+matters. Finance additionally cannot make a tax claim of any kind until the CA row in
+`05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` closes.
+
+**Held because the feature does not exist yet.** Events and Socials. A pack is a
+capacity and scope multiplier on a real capability (§28.1); there is nothing to
+multiply. The gate lifts the day the engine ships, and no extra decision is needed.
+
+**Held because the enforcement is missing, not the feature.** Storage and Team Seats.
+Both are the closest to sellable — the quota ladder is specified, seat enforcement is
+already in `0104` — and both would sell a limit we cannot currently apply. Selling
+"+500MB" when no quota is enforced means the creator paid for something they already
+had, which is the worst version of an upsell.
+
+**Held because the price has no basis.** AI Credits. We can build it; we cannot yet
+say what ₹49 buys, and publishing a number we then have to cut is far more damaging
+than launching a month later (§33.2 item 5).
+
+**Held because of an architectural dependency people underestimate.** Multi-Channel —
+see below.
+
+#### 28.3.1 Practicality check on the four "first visible" packs
+
+The proposed initial set is AI Credits, Storage, Socials and Multi-Channel, on the
+grounds that each maps to a sentence a creator would say. That reasoning is right, and
+two of the four have dependencies that make them the *last* of the eight to be ready,
+not the first.
+
+| Pack | Realistic readiness |
+|---|---|
+| **Storage** | **Nearest.** Needs MED-13/AUD-10 enforcement and the §18.3 gate — both already P0/P1 work we are doing anyway |
+| **AI Credits** | **Near, once metered.** The ledger half exists (`0081`); what is missing is a measured cost model, which is a fortnight of real usage data, not an engineering project |
+| **Socials** | **Blocked on a P3 slice.** Social Relay is Phase 7. The pack cannot precede the feature by definition |
+| **Multi-Channel** | **The largest item on the list, disguised as a pack.** Tenant separation, cross-channel role boundaries, billing allocation, connector routing and per-channel audit are Enterprise-shaped problems (§24). Selling a second channel on top of weak separation risks one brand's data appearing under another — the single worst bug this product could ship |
+
+**Amended 2026-09-14: the pack system launches with the packs that are ready, not with
+a fixed set of four.** The four named above remain the *target* initial set, and the
+order they actually arrive in is **Storage → AI Credits → Socials → Multi-Channel**.
+Holding the pack system closed until the slowest of the four is ready would delay two
+sellable packs behind an Enterprise-shaped dependency for no benefit.
+
+**Multi-Channel does not ship until tenant separation has an isolation test suite that
+passes** — see §37.6. That is not a gate we relax for revenue.
+
+#### 28.3.2 The boundary that applies to every pack
+
+Restated because it is the one that would be easiest to erode under upsell pressure:
+
+- **A pack never limits access to existing payments, receipts, refunds, supporter
+  history, layouts, configurations, audit records, search or export** (§12.6). None of
+  those is capacity.
+- **Storage restricts new uploads only.** Running out blocks the next upload and
+  nothing else. Nothing already uploaded is hidden, truncated, degraded or deleted.
+- **A lapsed pack pauses future added capacity and retains everything.** Over-quota
+  assets go read-only and stay viewable and exportable; configuration and data are kept
+  (§26, §12.6.1 rule 4). A lapse is never a deletion trigger.
+- **A pack never grants correctness** (§30.1) and is never the only route to a
+  capability (§28.1).
+
+Each hidden pack is a capability-registry row (§20), so it becomes visible without a
+release the moment its gate closes.
 
 #### 28.3.1 Where I changed your numbers, and why
 
@@ -3821,7 +3887,7 @@ building" is how the unreachable-code problem in §2 happened.
 | **Provider or legal dependency** | The named external gate, or explicitly "none". Anything naming one inherits phase R until that gate closes |
 | **Failure behaviour** | What a creator and a supporter see when it fails. Never "it will not fail" |
 | **Kill switch** | The registry row that turns it off, and what a creator keeps when it is off |
-| **Acceptance test** | The **user path** a person traverses, not a unit test. Per §35.1, a test that seeds its own data proves nothing about reachability |
+| **Acceptance test** | The **user path** a person traverses, not a unit test. Per §35.1, a test that seeds its own data proves nothing about reachability. **§37.2 is the full definition of done, and §37.11 says which suites this row's area requires** |
 | **Evidence location** | Where the dated evidence lives. Local test output is never evidence |
 | **Rollback** | How it is undone after it has been live, including any data written |
 
@@ -4501,17 +4567,20 @@ outbound webhooks, finance/audit exports, SLA support.
 | ID | Item | State | Pri |
 |---|---|---|---|
 | PCK-01 | Pack as a capability-registry row, additive, lifecycle-aware | A | P2 |
-| PCK-02 | AI Credits pack — ₹49/₹149/₹399, paid tiers only. **First-release pack** | A | P1 |
-| PCK-03 | Socials Pack — ₹129/mo, Creator+. **First-release pack**, visible only once Social Relay is real | A | P2 |
+| PCK-02 | AI Credits pack — ₹49/₹149/₹399, paid tiers only. Ships once the **measured** cost model exists; the ledger half is in `0081` | A | P1 |
+| PCK-03 | Socials Pack — ₹129/mo, Creator+. Target initial set, but cannot precede Social Relay (Phase 7) | A | P2 |
 | PCK-04 | Events Pack — ₹129/mo, Creator+. Hidden until lobby/tournament features exist | A | P2 |
 | PCK-05 | Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) | A | P2 |
-| PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **First-release pack** | A | P2 |
+| PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **Nearest to ready**; needs MED-13/AUD-10 enforcement first | A | P2 |
 | PCK-07 | Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists | A | P2 |
-| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. **First-release pack**; the ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.1) | A | P3 |
+| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. Target initial set, but **last of the four to be ready**: blocked on the tenant-isolation suite (§37.6). The ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.1) | A | P3 |
 | PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation. Hidden until the CA/tax evidence row closes; sells the *prepared statement*, never access to the underlying records | A | **P1** |
 | PCK-10 | Pack attach-rate reporting to inform future tier composition | A | P3 |
 | PCK-11 | Hidden packs exist as registry rows so they become visible without a release | A | P2 |
 | PCK-12 | No pack, top-up or tier may sell retention, history depth, record search or export — enforced by CTL-14 | A | **P0** |
+| PCK-13 | Pack system launches with whatever is ready — arrival order Storage → AI Credits → Socials → Multi-Channel — not held for a fixed set of four | A | P2 |
+| PCK-14 | A lapsed pack pauses added capacity only; over-quota assets go read-only and stay viewable and exportable | A | P2 |
+| PCK-15 | Multi-Channel Pack blocked until the §37.6 tenant-isolation suite passes | A | P3 |
 | JOB-01 | Content calendar + public schedule page with notify-me | A | P2 |
 | JOB-02 | Consistency view: streak, hours, rest days framed kindly | A | P3 |
 | JOB-03 | Sponsor deliverable tracker with proof | A | P2 |
@@ -4623,7 +4692,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Co-Stream Room tier** | **Creator ₹399.** Squad grid (3–4 creators) stays Studio-only as the premium step. |
 | **Companion name** | **Kept.** The Bitfocus Companion collision is accepted as a known store-search and SEO risk rather than paid for with a rename. Revisit only if store search proves it costly. |
 | **Template catalogue** | **Still pending** — deliberately left open, not decided by default. |
-| **Paid integrations** | Connect, import, bridge, YouTube and compatibility routing are **Creator-tier and above**. Multi-channel, sponsor reports and multi-creator controls are Studio. Receipts, exports, account recovery, disconnecting an integration and security controls are **never** paid. |
+| **Paid integrations** | Connect, import, bridge, YouTube and compatibility routing are **Creator-tier and above**. Sponsor reports and multi-creator controls are Studio. **Multi-channel is a Studio capability, and the Multi-Channel Pack is the Creator-tier route to buying a single additional channel** — the pack sells scope on a capability Studio includes, which is exactly what §28.1 says a pack is for. Corrected 2026-09-14; an earlier version of this row listed multi-channel as Studio-only while §28.3 sold it from Creator. Receipts, exports, account recovery, disconnecting an integration and security controls are **never** paid. |
 | **Lapse behaviour** | Five states: active → grace 14d → paused → retained 90d → expired. The overlay falls back to a quiet safe state; existing OBS URLs never become a payment wall or change branding on stream; nothing is deleted silently. |
 | **Delegated-credential routes** | **Proceed on a consent basis**, subject to legal sign-off. PhonePe Supervisor and HDFC Cashier are consent-gated on conditions C1–C7 in §25.5. Consent settles the privacy dimension; it does not settle the provider's own terms, payment regulation, or the security of holding the secret — those are carried knowingly. |
 | **Amazon Pay routing** | **Never build. Corrected 2026-09-14.** The earlier "build under C1–C7" row contradicted §25.5, which prohibits it non-negotiably, and it was wrong. The Amazon Pay pattern requires the creator's **consumer account password** — not a delegated sub-user, not a merchant identifier. Consent does not cure holding a consumer credential: it does not bind Amazon, it does not satisfy the provider's own terms, and it converts a breach into an account takeover of the creator's shopping and payment identity. No admin switch, no beta label and no attestation makes it acceptable. The route is removed from the register (RTE-13) rather than left pending. |
@@ -4639,6 +4708,9 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
 | **Social Relay** | One event becomes an approved, platform-specific action. Approve-then-send is the default; auto-send is Creator+ and opt-in. Never auto-post tips, followers or alerts anywhere. |
 | **Packs** | Tiers sell a capability class, packs sell capacity and scope. A pack never grants correctness and is never the only route to a capability. |
+| **Pack gating** | Each of the eight packs is held for a stated reason, not out of caution (§28.3.0). Sponsor and Finance are held because selling them early produces a **document a creator forwards to a sponsor or a CA** — being wrong there costs the creator, not just us. Events and Socials are held because the feature does not exist and a pack multiplies a real capability. Storage and Team Seats are held because the **enforcement** is missing, and selling a limit we cannot apply means charging for something the creator already had. AI Credits is held because the price has no measured basis. |
+| **Pack launch sequencing** | **The pack system launches with whatever is ready, not with a fixed four.** Arrival order **Storage → AI Credits → Socials → Multi-Channel**. Socials cannot precede Social Relay; **Multi-Channel is the largest item on the list disguised as a pack** — tenant separation, cross-channel roles, billing allocation, connector routing and per-channel audit — and it does not ship until the tenant-isolation suite (§37.6) passes. Holding two sellable packs behind that dependency would be a choice with no benefit. |
+| **Testing and evidence** | **§37 is binding on every register row.** Done means: use cases, unit and contract tests, a reachability assertion, at least one real-browser or real-device E2E scenario, failure-path coverage, a measured performance number where the row is on a budgeted path, dated artefacts, and rollback proof. Merge gates and release gates are separated (§37.9), and §37.10 lists what is never evidence — including the local SQL harness, JSDOM tests, averages standing in for p99s, and any staging run we performed ourselves where a provider or counsel must speak. |
 | **Interop layer** | **Three separate capabilities, never merged** (§9.1): style packages, migration tools, event bridges. The boundary that makes all three safe: **BharatStudio never embeds a third-party browser-source URL, HTML, JavaScript, CSS or iframe in the Master Canvas** — no tier, no attestation and no advanced mode changes that (INT-19). |
 | **Canvas Packages** | A **signed, versioned, declarative** format: layout, theme tokens, an allowed animation set, bundled assets, configurable fields. No JS, no network fetch, no external font or asset URL, no executing CSS. This is also the answer to the template-catalogue problem — author a small first-party set well and let asset import cover the long tail. |
 | **Asset imports** | Creators bring assets they own from Canva, Figma, LottieFiles, Photoshop or purchased packs. **An imported asset is a creator upload**: same §18.3 gate, same attestation, quarantine, provenance and takedown, tenant-scoped, never shown to another creator. |
@@ -4861,6 +4933,9 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| §33.1 listed multi-channel as Studio-only while §28.3 sold a Multi-Channel Pack from Creator | Multi-channel is a Studio **capability**; the pack is the Creator-tier route to one additional channel — which is what §28.1 says a pack does |
+| Four packs were named as the first release with no readiness check | §28.3.1: Socials cannot precede Social Relay and Multi-Channel needs tenant isolation; the system launches with what is ready, in a stated order (PCK-13) |
+| The document specified no tests, evidence or performance numbers per task | §37: the ladder and what each level cannot prove, a definition of done, 56 named E2E scenarios across eight surfaces, a measured performance table, load/soak/chaos profiles, security/isolation/accessibility/localisation suites, evidence artefacts, merge-versus-release gates, and what is never evidence |
 | §9 described interop in six lines with no format, no boundary and no bridge architecture | §9.1–9.9: three separated capabilities, the no-embedded-third-party-code boundary, the Canvas Package format, asset imports on the §18.3 gate, the migration wizard, the outbound-only bridge path, per-integration positions, tier placement and build order (INT-01 to INT-20) |
 | No chat-bot product existed anywhere in the document | §36 BharatStudio Bot: six areas, deterministic multilingual first, AI recommends and never bans, one shared safety corpus with §12.2, a deliberately small first release, and an explicit statement of what blocks it (BOT-01 to BOT-17) |
 | The template catalogue had been open since v1.0 with no path | §9.2 answers it in principle — a declarative format plus imports replaces authoring 359 bespoke packages; the HTML prohibition becomes permanent rather than pending |
@@ -5031,3 +5106,297 @@ is not a less safe place.
 
 Nothing in Phases 0 to 2 depends on the bot, and it may not be used as a reason to
 start YouTube work early.
+
+---
+
+## 37. Testing, evidence and performance gates
+
+Added 2026-09-14. **This section is binding on every register row in §31.** A row
+without the evidence named here is not done, whatever its code looks like.
+
+### 37.0 Why this section exists
+
+496 + 324 + 97 passing tests coexist with a product where a creator cannot connect
+YouTube, cannot start hype mode, cannot send a sticker, and whose entire supporter
+history returns empty on every read (§2). Every one of those tests passed because it
+seeded its own data and called the function directly. **The suite was measuring the
+code, not the product.**
+
+So the rule that governs everything below: **a test that constructs the state it
+verifies proves the function works. Only a test that traverses the path a person takes
+proves the product works.** Both are needed. Only the second one closes a row.
+
+### 37.1 The ladder — what each level proves, and what it cannot
+
+| Level | Proves | Cannot prove | Blocks |
+|---|---|---|---|
+| **Unit** | A function's logic and its edge cases | That anything calls it | Merge |
+| **Contract** | Request and response shapes match the OpenAPI spec both ways | That the endpoint is reachable from a UI | Merge |
+| **Integration** | Two real components agree — API and a real Postgres, worker and a real queue | That a human can trigger the sequence | Merge |
+| **Reachability** | An exported client function has a caller · a SQL function granted to the app role has an application caller · a declared React handler prop is actually passed | Correct behaviour | Merge (this is F22, and it is the check that would have caught §2) |
+| **E2E** | A person completes the journey in a real browser or on a real device | Behaviour under load | Release |
+| **Load** | The system holds at the target concurrency | Behaviour over hours | Release |
+| **Soak** | No leak, no drift, no unbounded growth over a full stream | Behaviour when a dependency fails | Release |
+| **Chaos** | Correct degradation when something breaks | Anything about real providers | Release |
+| **External evidence** | The provider, the CA, the store or counsel said so, in writing, on a date | — | Release, and only this closes an evidence row |
+
+### 37.2 Definition of done, per register row
+
+§31.0 already requires ten fields before a row is schedulable. A row is **done** when
+all of the following exist and are linked from its entry in `active/`:
+
+1. **Use cases** — the named journeys this row serves, in the creator's or supporter's
+   words, including the unhappy ones.
+2. **Unit and contract tests** for the logic and the shapes.
+3. **A reachability assertion** — the specific thing a human clicks, and the test that
+   fails if the wiring is removed.
+4. **At least one E2E scenario** from §37.3, run in a real browser or on a real device.
+5. **Failure-path coverage** — what the creator and the supporter see when it breaks,
+   tested, not described.
+6. **A performance number** where the row sits on a budgeted path (§37.4), measured on
+   the reference environment.
+7. **Evidence artefacts** stored per §37.8, dated, with the commit they were produced
+   from.
+8. **Rollback proof** — the row was turned off, and the product behaved as the row's
+   kill-switch field says it should.
+
+A row that cannot state its use cases is not ready to build. A row that cannot state
+its failure behaviour is not ready to ship.
+
+### 37.3 End-to-end suites, by surface
+
+Each scenario below is a named test. "Real" means a real browser (Chromium, and inside
+OBS where the surface is an overlay), a real device for mobile, a real Postgres, and
+provider sandboxes where a provider is involved.
+
+#### 37.3.1 Payments and alerts — the path that must never break
+
+| # | Scenario | Passes when |
+|---|---|---|
+| PAY-E1 | Anonymous supporter opens the tip page, pays ₹100 by UPI in the Razorpay sandbox | Payment recorded · receipt reachable at its token URL · alert visible on the overlay · Companion shows the tip |
+| PAY-E2 | The same webhook is delivered three times | Exactly one payment, one alert, one receipt |
+| PAY-E3 | Webhook arrives with an invalid HMAC | Rejected, logged, no payment, no alert |
+| PAY-E4 | The worker is down when the payment commits | Payment safe, alert delivered after the worker returns, no provider retry caused by us |
+| PAY-E5 | A refund is processed | Every derived view — goal, leaderboard, badges, supporter history — reflects it on the next read, with no counter to correct |
+| PAY-E6 | 200 tips to one channel in 60 seconds | Every one recorded · none dropped · alerts coalesce per the approved rule · no alert lost to a display limit |
+| PAY-E7 | Supporter pays, closes the tab immediately | Receipt still reachable, alert still fires |
+| PAY-E8 | `viewer_identity_id` is written on capture (F01) | Supporter history is non-empty for a real payment made through the UI — the exact failure in §2 |
+
+#### 37.3.2 Overlay and Master Canvas
+
+| # | Scenario | Passes when |
+|---|---|---|
+| OVL-E1 | Overlay loads in OBS as a browser source and stays connected for 8 hours | Flat memory, flat node count, no frame over 16ms during alerts |
+| OVL-E2 | Overlay idles for 10 minutes with no events | **Zero database queries** for that session (RT-01) |
+| OVL-E3 | A tip lands on Channel A while Channel B is also live on the same instance | Only Channel A's sessions wake; Channel B issues no query (RT-02) |
+| OVL-E4 | Network drops for 90 seconds mid-stream | Reconnect, cursor replay, no duplicate alert, no lost alert, consistent within 2 seconds |
+| OVL-E5 | Reconnect after a 1-hour gap | Burst coalesced into a summary plus a bounded catch-up, not an hour of alerts fired at once |
+| OVL-E6 | TTS provider returns 500 for every request | Visual alert appears on time; a chime or silence follows; nothing delayed (RT-03) |
+| OVL-E7 | TTS returns after the alert's display window closed | Audio dropped, never played over the following alert |
+| OVL-E8 | A single module throws on render | Canvas keeps rendering, module shows its error state, second failure keeps it down for the session, **watermark still visible** (WMK-01) |
+| OVL-E9 | Free-tier overlay | Exactly one watermark, in the reserved corner, above every module; the editor refuses to place a module over it |
+| OVL-E10 | Paid-tier overlay | Zero BharatStudio branding anywhere in the rendered output |
+| OVL-E11 | Subscription lapses to paused mid-stream | No visual change on stream; on the next clean reload, the Free fallback renders (WMK-06) |
+| OVL-E12 | Twelve widgets as separate sources versus one Canvas | The published benchmark reproduces, on the reference machine (PRF-16) |
+
+#### 37.3.3 Tip page and Live Support Hub
+
+| # | Scenario | Passes when |
+|---|---|---|
+| HUB-E1 | Cold load on a throttled 3G profile | First contentful paint under 3s, payment form usable before any optional module loads |
+| HUB-E2 | JavaScript disabled | QR and payment link still work |
+| HUB-E3 | Player, reactions, wall and stickers all enabled | None of them loads before first paint (§12.7) |
+| HUB-E4 | Supporter sends a message containing a phone number and a UPI ID | PII detected, not spoken, not displayed per policy, payment unaffected |
+| HUB-E5 | Supporter with a screen reader completes a tip | Every control labelled, focus order correct, no keyboard trap |
+
+#### 37.3.4 Dashboard
+
+| # | Scenario | Passes when |
+|---|---|---|
+| DSH-E1 | Creator with 50,000 payments opens the dashboard | Summary renders within budget; no query returns more than its page; nothing unbounded is fetched (§12.7) |
+| DSH-E2 | Search across that history | Cursor-paginated, debounced, indexed — `EXPLAIN ANALYZE` proof attached (RT-12) |
+| DSH-E3 | Export of the full history | Runs as a background job, completes, downloads, and never renders rows into the page (PRF-18) |
+| DSH-E4 | Free-tier creator does all of the above | Identical result — no cap, no date limit, no charge (§12.6) |
+| DSH-E5 | Connector revoked upstream | The creator is told, with a reconnect action that works (CON-03) |
+
+#### 37.3.5 Companion
+
+| # | Scenario | Passes when |
+|---|---|---|
+| CMP-E1 | Sign in → pair → guided Prepare Stream → first test alert | Completes on a real mid-range Android and a real iPhone; the test alert appears on the overlay |
+| CMP-E2 | Every Live Deck control | Each one performs a server-side action — the §2 failure was controls that render and do nothing |
+| CMP-E3 | Clutch Mode on a Free account | Works; TTS muted, QR hidden, financial events retained and shown afterwards |
+| CMP-E4 | Airplane mode, three actions, then reconnect | Each action reconciles with an explicit result; irreversible and financial actions were refused rather than queued |
+| CMP-E5 | Notification permission denied | App fully usable, state re-derived on foreground, settings deep link works |
+| CMP-E6 | Device language set to Hindi | Every string localised, no key rendered, rupee grouped 2,2,3, layout intact at +40% expansion |
+| CMP-E7 | Session expires while the Live Deck is open | Re-auth sheet returns to the same screen; no silent logout |
+| CMP-E8 | Search the store build for a price or purchase CTA | None found, on either platform (CMP-38) |
+
+#### 37.3.6 Interop and packages
+
+| # | Scenario | Passes when |
+|---|---|---|
+| INT-E1 | Import a package containing a `<script>`, an external font URL and a remote image | All three rejected by the validator with a specific reason (INT-19) |
+| INT-E2 | Import a valid signed package | Renders identically to its preview; runtime version pin honoured |
+| INT-E3 | Tamper with a signed package's bytes | Rejected at import and again at render |
+| INT-E4 | Import a 4K PNG and a 40MB WAV | Transcoded and pre-scaled server-side; the browser never resizes |
+| INT-E5 | Migration wizard on a real OBS scene collection | Inventory correct, unmapped items named, nothing published without approval, original scene untouched, one-action revert |
+| INT-E6 | Streamlabs bridge during a 200-tip burst | BharatStudio alerts all delivered on time; bridge output coalesced below the documented limit; a bridge failure changes nothing upstream (INT-11) |
+| INT-E7 | Bridge destination returns 500 for ten minutes | Dead-lettered, destination disabled with a creator-visible notice, no retry storm |
+
+#### 37.3.7 Bot
+
+| # | Scenario | Passes when |
+|---|---|---|
+| BOT-E1 | `!rules`, `!niyam`, `!niyem` and `!नियम` | All four reach the same command |
+| BOT-E2 | 500 chat messages in 10 seconds including 50 command invocations | One reply per cooldown window, rate limits respected, no backlog dumped later (BOT-12) |
+| BOT-E3 | Import a command set containing a script | Imported commands land; the script is reported as "cannot import safely", never executed (BOT-09) |
+| BOT-E4 | A blocked term in transliterated Hinglish | Caught by the same corpus that catches it in TTS (BOT-06) |
+| BOT-E5 | AI classifies a message as harassment | Recommendation surfaced, no automatic ban, full audit record written (BOT-13, BOT-14) |
+
+#### 37.3.8 Lifecycle, entitlement and the control plane
+
+| # | Scenario | Passes when |
+|---|---|---|
+| LIF-E1 | Subscription lapses through all five states | Nothing deleted · overlay never becomes a payment wall · notices in dashboard and Companion, never on stream |
+| LIF-E2 | Renewal after Expired | Configuration restores; only provider credentials need reconnecting |
+| LIF-E3 | Downgrade with over-quota assets | Assets read-only, still viewable, still exportable (§12.6.1 rule 4) |
+| LIF-E4 | Admin retiers a capability | Takes effect per the resolution order; impact preview matched reality; revert works in one action |
+| LIF-E5 | `global_kill` fired | Capability off immediately, log immutable, expires at 24h without ratification, affected creators notified, not billed (§20.6.1) |
+| LIF-E6 | Attempt to create a registry row gating a durable record | Rejected by the registry (CTL-14) |
+
+### 37.4 Performance numbers — the table that gets measured
+
+Reference environment: Cloud Run at the production configuration, a production-sized
+database, a mid-range Android for mobile, and a mid-range Windows PC running OBS for
+overlay work. Every number is p95 and p99 from a histogram (RT-06), not an average.
+
+| Path | p95 | p99 | Hard limit |
+|---|---|---|---|
+| Webhook acknowledgement after durable commit | 150ms | 300ms | Never waits on dispatch (RT-04) |
+| Commit → dispatcher pickup | 500ms | 1.5s | Recovered by the next tick if missed |
+| Verified payment → alert painted on overlay | **2.0s** | **3.5s** | Never blocked by TTS (RT-03) |
+| TTS phase-two audio arrival after visual | 1.5s | 2.5s | Dropped, not played late |
+| API read | 150ms | **200ms** | — |
+| Tip-order path | 350ms | **500ms** | — |
+| Any query on a live path | 50ms | 100ms | No sequential scan on `payments` (RT-12) |
+| Overlay reconnect to consistent state | 1.5s | 2.0s | No duplicate, no loss |
+| Bot reply after a command | 1.0s | 1.5s | Within the platform rate limit |
+| Companion cold start to interactive | — | **2.0s** | Mid-range Android |
+| Companion action round trip, perceived | **300ms** | — | Optimistic with rollback |
+| Support Hub first contentful paint | 1.5s on 4G | 3.0s on 3G | JS under 150KB gzipped before the optional player |
+
+| Resource | Limit |
+|---|---|
+| Idle overlay database queries | **Zero per session per minute** (RT-01) |
+| Overlay CPU | < 5% of one core idle · < 15% during an alert · no frame over 16ms |
+| Overlay memory | < 150MB steady · **±5% over 8 hours**, no upward trend |
+| Overlay DOM nodes | Flat over 8 hours; a ticker recycles rows |
+| Database CPU at target load | < 40%, leaving headroom for a burst |
+| Database connections | Within the documented budget, the overlay listener's direct connection counted |
+| Companion crash-free sessions | > 99.5% per release, gating the staged rollout |
+| Layout shift on the tip page | CLS < 0.1 |
+
+### 37.5 Load, soak and chaos profiles
+
+| Profile | Shape | Must hold |
+|---|---|---|
+| **Target concurrency** | 2,000 concurrent live overlay sessions across ≥200 channels, 30 minutes | Every number in §37.4; database CPU under 40%; zero idle queries |
+| **Raid burst** | 200 tips to one channel in 60 seconds, other channels idle | No drop, no cross-channel wake, alerts coalesce per rule, other channels unaffected |
+| **Steady mixed** | 50 tips/second across all channels, 10 minutes | Queue depth returns to zero; no dead-letter growth |
+| **8-hour OBS soak** | One overlay in OBS, periodic alerts, 8 hours | Flat memory and node count; no reconnect storm; watermark still rendered at hour 8 |
+| **24-hour backend soak** | Continuous low traffic | No connection leak, no unbounded table, no metric drift |
+| **Chaos: TTS down** | Provider returns 500 for 10 minutes | Visual alerts unaffected; audio degrades to chime then silence |
+| **Chaos: dispatcher down** | Dispatcher stopped for 5 minutes | Payments still committed and acknowledged; backlog drains on restart with no duplicates |
+| **Chaos: `LISTEN/NOTIFY` down** | Direct listener killed | Cursor replay keeps the overlay correct; latency degrades visibly, correctness does not |
+| **Chaos: database failover** | Primary fails over | No accepted payment lost; alerts resume; the creator is told what degraded |
+| **Chaos: Cloud Tasks throttled** | Dispatch rate limited | Alerts arrive late, never lost, never duplicated |
+| **Chaos: duplicate webhook storm** | The same event 100 times | One payment, one alert, one receipt |
+
+### 37.6 Security, privacy and tenant isolation
+
+| Suite | Must prove |
+|---|---|
+| **Tenant isolation** | No query, view, cache, export, asset URL, metric label or log line can return one channel's data under another channel's context. **This suite gates the Multi-Channel Pack** (§28.3.1) and every cross-channel feature |
+| **Role boundaries** | Operator and moderator cannot read financial amounts; viewer sees delivery metadata only; enforced by projections and RLS, not by hiding UI |
+| **Payment-secret handling** | No provider secret in a log, metric, trace, error message or crash report; KMS envelope paths have no human read route |
+| **PII in telemetry** | No trace, event, order, payment, account, donor, queue or user ID in a Prometheus label; crash reports scrubbed of amounts, identity and message content |
+| **Notification payloads** | No tip amount, donor identity or message content in any push payload (CMP-32) |
+| **Asset serving** | Signed short-lived URLs only; no public bucket path; no cross-channel asset reachable |
+| **Package validator** | The INT-E1/E3 cases, plus a fuzz corpus of malformed and adversarial packages |
+| **Overlay token** | Fragment-only, never logged, revocable, short-lived (SEC-01) |
+| **Durable-record access** | A Free account can reach, search and export everything a Studio account can (§12.6) — tested, not assumed |
+
+### 37.7 Accessibility and localisation
+
+| Suite | Must prove |
+|---|---|
+| **Contrast and focus** | 4.5:1 on body text, visible focus on every interactive element, on web and mobile |
+| **Screen reader** | Tip page and Companion completable end to end, every icon-only control labelled, in the selected language |
+| **Dynamic Type** | Largest accessibility sizes with no truncated control label and no target below 44pt/48dp |
+| **Reduced motion** | Honoured everywhere; no state communicated only by animation |
+| **Colour independence** | All six health signals distinguishable without colour |
+| **Pseudo-locale** | No hardcoded user-visible string anywhere in Companion (CMP-39) |
+| **Expansion** | Every screen intact at +40% text length |
+| **Indic rendering** | Devanagari and each shipped script render with correct conjuncts and matras, no clipping, on both platforms |
+| **Number and currency** | Indian 2,2,3 grouping everywhere a rupee appears (CMP-41) |
+
+### 37.8 Evidence artefacts — what is produced and where it lives
+
+Every suite above produces an artefact. An artefact without a date and a commit is not
+evidence.
+
+| Artefact | Produced by | Stored |
+|---|---|---|
+| Test run with pass/fail per scenario | CI | Build record, linked from the register row |
+| Reachability report | The F22 checks | Build record; a regression fails the merge |
+| `EXPLAIN ANALYZE` output per live query | Checked in beside the query | The repository, re-verified when the query changes |
+| Histogram export at p50/p95/p99 per budgeted path | Load run | Attached to the release record |
+| Soak trace: memory, node count, connection count over 8 hours | Soak run | Attached to the release record |
+| Chaos run log: what was broken, what degraded, what held | Chaos run | Attached to the release record |
+| Benchmark: one Canvas versus twelve sources | Benchmark run | Published, and re-run in CI (PRF-16) |
+| Rollback proof | Manual, once per row | The register row |
+| Provider, CA, counsel and store evidence | The external party | `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` — **and nothing else may be recorded there** |
+
+### 37.9 What blocks a merge, and what blocks a release
+
+**Merge-blocking:** unit · contract · integration · reachability (F22) · lint and type
+checks · the CI performance budgets that can be measured in CI · the pseudo-locale and
+hardcoded-string checks · the no-purchase-surface check (CMP-38) · the registry
+rejection checks (CTL-14, CTL-15).
+
+**Release-blocking:** every E2E suite in §37.3 for the surfaces in the release · the
+load, soak and chaos profiles in §37.5 · the security and isolation suites in §37.6 ·
+the accessibility and localisation suites in §37.7 · the §37.4 numbers measured on the
+reference environment · and every applicable external evidence row.
+
+**A conditional exception to any release gate needs an owner, an expiry and a
+rollback** — the same rule the master release authority already applies.
+
+### 37.10 What is never evidence
+
+- A passing local suite, of any size.
+- A test that seeds its own data, for any claim about reachability.
+- The local SQL harness (20 synthetic tips, concurrency 5, p95 31ms). It runs no HTTP,
+  no Razorpay, no Cloud Tasks, no real SSE, no Cloud Run, no OBS and no sized database.
+- A JSDOM test, for any claim about a browser, OBS, or a device.
+- An average, for any p95 or p99 claim.
+- A review of this document, or any section of it.
+- A staging run we performed ourselves, for any row that requires a provider, counsel,
+  a CA or a store to say something.
+
+### 37.11 Which suites apply to which register area
+
+| Register area | Required beyond unit and contract |
+|---|---|
+| PAY, VID, ALQ | PAY-E1..E8 · raid burst · duplicate-webhook chaos · dispatcher-down chaos · isolation suite |
+| ENG, PRF, RT, WMK | OVL-E1..E12 · target concurrency · 8-hour soak · benchmark |
+| HUB | HUB-E1..E5 · 3G profile · accessibility suite |
+| DSH, ADM, CTL | DSH-E1..E5 · LIF-E4..E6 · isolation and role-boundary suites |
+| CMP | CMP-E1..E8 on both platforms · localisation suite · crash-free gate |
+| TTS | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus tests on both routes |
+| INT | INT-E1..E7 · package fuzz corpus |
+| BOT | BOT-E1..E5 · rate-limit compliance · shared-corpus test with TTS |
+| LIF, PCK | LIF-E1..E3 · DSH-E4 · durable-record access suite |
+| STO, MED | INT-E4 · asset-serving suite · one rehearsed takedown drill (§18.3) |
+| SOC, RTE, Enterprise | Not scheduled — phase R or blocked. No suite required until a gate closes |
