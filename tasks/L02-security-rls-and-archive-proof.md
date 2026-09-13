@@ -80,3 +80,15 @@ the change.
 This closes the local role-attribute mismatch only. Production role
 provisioning, secret/IAM evidence, independent security review and rollback
 rehearsal remain required before L02 can become `Verified`.
+
+## Batch 10 reconciliation — 2026-09-13
+
+Verified against `bharatstudio-alerts` commit `377227a` (`feat(0120): supporter reputation, per-source by necessity, plus wiring`), read directly. This is new work relative to this task's prior scope, recorded here because it is a retention/RLS decision of the same kind this task tracks; the full feature record is the new `L25-supporter-reputation.md`.
+
+- Migration `0120_v1_l02b_reputation_signals_and_score.sql` adds `reputation_signal_events`, forbidding `refund` as a storable signal type entirely (a raw insert attempt raises `errcode 22023`, confirmed by reading `app_private.record_reputation_signal`) and forbidding `chargeback` outside `bharatstudio_tip` by table CHECK (`signal_type <> 'chargeback' or source = 'bharatstudio_tip'`, confirmed at line 80).
+- No score is stored: confirmed no `reputation_scores` table and no score/verdict column exists anywhere in this migration; `app_private.reputation_score()` recomputes a weighted 180-day-window sum live on every call. The test suite proves this operationally by flipping a refund to `reversed` and back and observing the score move with zero reputation-specific writes.
+- Cross-creator use, creator-facing narrowing: the creator-facing function returns exactly three keys (no signal/source/channel column), and `additionalProperties: false` on the route rejects an over-sharing fake store — confirmed by reading `apps/api/src/routes/reputation.ts` and `apps/api/test/reputation-routes.test.ts` (146 lines).
+- **Retention decision, recorded prominently as instructed:** reputation signals and the live-derived score SURVIVE viewer account deletion, in the same retention class as `creator_supporter_relations`. This is confirmed in `app_private.request_viewer_account_deletion` (extended in this migration, line ~259) which lists `reputation_signal_events` in the erasure record's retained set, with the comment explicitly flagging `legalDispositionOpen` still true. This is a decision made by default, not a considered legal position — retaining it keeps deletion complete for abuse-prevention purposes; dropping it would let a refund-abusing viewer launder reputation by delete-and-recreate. No legal or DPDP conclusion is asserted by this record, matching `governance/AGENTS.md:28`; this stands alongside the DPDP question already open in `L14-viewer-identity-and-supporter-history.md`'s erasure record from migration 0085, and needs counsel review together with it.
+- Local re-run 2026-09-13: `apps/api` 465/465 (including `reputation-routes.test.ts`), SQL suite 49/49 across 120 migrations (including `l02b-reputation-signals.sql`, which proves the function-refusal and raw-insert-CHECK-violation paths named above, and a query against `information_schema` asserting zero columns matching `%score%`).
+
+No legal or DPDP-compliance conclusion is written here. The retention question is recorded as open and unresolved.

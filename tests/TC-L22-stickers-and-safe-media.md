@@ -1,6 +1,6 @@
 # TC-L22 — Stickers and safe media acceptance
 
-**Status:** `Curated-catalogue acceptance has local evidence through migration 0110; creator-pack and L20 moderation acceptance remains open`
+**Status:** `Curated-catalogue AND creator-pack acceptance have local evidence through migration 0119, including tier quotas and the tiered moderation ladder; Studio human-review route and stage-2 malware scanning remain open`
 **Task:** [`../tasks/L22-stickers-and-safe-media.md`](../tasks/L22-stickers-and-safe-media.md)
 **Authority:** `bharatstudio-alerts/docs/BharatStudio-MASTER-PLAN.md` Part 6 (L22)
 **Repository:** `/Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts`
@@ -47,3 +47,7 @@ independent trust-and-safety evidence is asserted.
 verification passed **398/398** and **289/289** respectively; the disposable
 SQL suite remains **44/44** after 110 migrations. Creator-pack and L20 rows
 remain open.
+
+## Batch 10 addendum — 2026-09-13
+
+`apps/api/test/l22b-asset-scan-pipeline.test.ts`, `l22b-sticker-creator-pack-routes.test.ts`, `apps/web/.../l22b-creator-pack-panel.test.tsx`, and `packages/db/tests/l22b_creator_sticker_packs.sql` all pass locally as part of API 465/465, web 312/312, SQL 49/49 (120 migrations), re-run 2026-09-13. See `../tasks/L22-stickers-and-safe-media.md` batch 10 section for the pack-quota, moderation-ladder and open-Studio-route detail.

@@ -1,6 +1,6 @@
 # L19 — Payment provider abstraction and multi-rail
 
-**Status:** `Partial — CreatorPaymentProvider interface extracted with a Razorpay implementation, wired only to a new read-only capabilities endpoint, not to the live tip-order flow; no provider_capability_snapshots table exists; refunds correctly report unsupported; nothing here is proven in a deployed environment`
+**Status:** `Partial, advanced — CreatorPaymentProvider now routes the live tip-order flow (both creation call sites), proven behaviour-identical to the pre-abstraction path; provider_capability_snapshots table now exists (migration 0118); Razorpay OAuth added alongside the manual acc_XXX path, which is retained; createQr/fetchPayment/refund still correctly throw and supportsRefunds stays false under the no-custody rule; Paytm/Cashfree/PhonePe remain unintegrated; nothing here is proven in a deployed environment`
 **Level:** L3
 **Owner:** [OWNER — payments/API, unassigned]
 **Depends on:** L04 (existing Razorpay implementation to extract behind the interface)
@@ -82,3 +82,15 @@ Verified by reading the code. This corrects the map's "TODO — not started" and
 - Paytm/Cashfree/PhonePe integrations remain unintegrated. No dated written confirmation exists on file for any of the three blocking-condition sets in this task's Definition gate (Paytm's eight conditions, Cashfree's Embedded Merchant Onboarding pricing, PhonePe's PG Partner Program terms). No "Connect Paytm/Cashfree/PhonePe" UI affordance exists, correct per this task's own non-negotiable rule.
 
 Evidence: `apps/api/src/domain/payment-provider-creator.ts`, `apps/api/src/domain/payment-provider-razorpay.ts`, `apps/api/src/routes/payment-accounts.ts:19-29`, `apps/api/test/l19-payment-provider.test.ts` (5 cases); absence confirmed by repo-wide grep for `provider_capability_snapshots` (no hits) and for `razorpay`/provider-interface references in `apps/api/src/routes/public.ts` (no hits). Nothing here is proven in a deployed environment.
+
+## Batch 10 reconciliation — 2026-09-13
+
+Verified against `bharatstudio-alerts` commit `2787949` (`feat(0118): route the live tip flow through CreatorPaymentProvider`), read directly, correcting the map above where it had gone stale.
+
+- `apps/api/src/routes/public.ts` and `apps/api/src/routes/payments.ts` (both tip-creation call sites) now call `provider.createPayment`, confirmed by reading the routes; this closes the previous "wired only to a read-only capabilities endpoint" gap.
+- `CreatorPaymentIntent` (`apps/api/src/domain/payment-provider-creator.ts`) is widened with `donorDisplayName`, `message`, `alertConsent`, `providerReceipt`, `expiresAt` — confirmed present. `createPayment` delegates to the unmodified `PaymentOrderService`; a request/response shape-equivalence test exists (`apps/api/test/l19c-payment-provider-live-wiring.test.ts`).
+- Capability truth confirmed by reading `apps/api/src/domain/payment-provider-razorpay.ts`: `createQr` and `fetchPayment` still throw `PaymentProviderNotImplementedError`, `refund` still throws, `supportsRefunds: false` — unchanged from the prior slice and correct under the no-custody rule (master plan 1.4/3.15), not a gap.
+- `packages/db/migrations/0118_v1_l19_provider_capability_snapshots.sql` exists — the previously recorded "no such table" finding is now stale and superseded; `payment-provider-capability-snapshot-store.ts` persists reported capabilities rather than only recomputing them live.
+- Razorpay OAuth: `apps/api/src/domain/payment-provider-razorpay-oauth.ts` confirmed present, alongside the manual `acc_XXX` path in `payment-provider-razorpay.ts`, which is explicitly retained (its own comment: "the existing manual acc_XXX path; both supported, OAuth preferred") and still takes real payments — not removed.
+- Paytm/Cashfree/PhonePe: still zero integration code found; still no dated written confirmation on file for any of the three provider condition sets. No "Connect Paytm/Cashfree/PhonePe" affordance exists — correct per this task's own rule, not a gap.
+- Local re-run 2026-09-13: `apps/api` 465/465, SQL suite 49/49 across 120 migrations. Nothing here is proven in a deployed environment; webhook HMAC verification and dedup in `services/payment-webhook-go` were untouched by this slice (confirmed unchanged) and are not re-verified here beyond the existing Go test pass.

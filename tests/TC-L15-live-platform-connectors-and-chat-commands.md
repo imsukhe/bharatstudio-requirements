@@ -1,6 +1,10 @@
 # TC-L15 — Live-platform connectors and chat commands acceptance
 
-**Status:** `Execution partial — source_type widening, dedupe/unique-index, entitlement-gate, short-link and bot-ack-off cases have local evidence; revoke-flow and Google OAuth/quota confirmation remain open`
+**Status:** `Execution partial — source_type widening, dedupe/unique-index, entitlement-gate, short-link and bot-ack-off cases have local evidence; streamList poller switch has local evidence too, with wire framing and quota cost recorded as unverified; revoke-flow and Google OAuth/quota confirmation remain open`
+
+## Batch 10 addendum — 2026-09-13
+
+`go test ./...` for `services/youtube-poller-go` passes locally (all packages `ok`), including `internal/poller/l15-streamlist-poller_test.go` (reconnect-replay dedup) and `internal/youtube/l15-streamlist-client_test.go`. No live-project quota measurement exists; see `../tasks/L15-live-platform-connectors-and-chat-commands.md` batch 10 section.
 **Task:** [`../tasks/L15-live-platform-connectors-and-chat-commands.md`](../tasks/L15-live-platform-connectors-and-chat-commands.md)
 **Authority:** `bharatstudio-alerts/docs/BharatStudio-MASTER-PLAN.md` Part 6 (L15) and Part 7 §7.8
 **Repository:** `/Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts` (`services/youtube-poller-go` to be built)

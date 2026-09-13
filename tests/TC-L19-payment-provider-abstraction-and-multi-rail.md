@@ -1,6 +1,6 @@
 # TC-L19 — Payment provider abstraction and multi-rail acceptance
 
-**Status:** `Batch 8 — L19-01 and L19-05/06 have local evidence; L19-02 unmet (no provider_capability_snapshots table exists); L19-03/04 unmet (OAuth path and UPI-app preference not built)`
+**Status:** `Batch 10 — L19-01 (interface/live-wired createPayment), L19-02 (provider_capability_snapshots, migration 0118), L19-03 (Razorpay OAuth alongside retained manual acc_XXX) and L19-05/06 (refund/createQr/fetchPayment correctly unsupported) all have local evidence; L19-04 (dynamic order-bound QR, UPI-app preference memory) still unmet; Paytm/Cashfree/PhonePe remain unintegrated pending written confirmation`
 **Task:** [`../tasks/L19-payment-provider-abstraction-and-multi-rail.md`](../tasks/L19-payment-provider-abstraction-and-multi-rail.md)
 **Authority:** `bharatstudio-alerts/docs/BharatStudio-MASTER-PLAN.md` Part 6 (L19), Part 7 §7.1
 **Repository:** `/Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts`
@@ -41,3 +41,7 @@ Closes only when every row has a real pass/fail result with inline evidence (exa
 ## Cleanup and rollback
 
 All fixtures run in sandbox/test-mode against the disposable PostgreSQL harness; no live payment or refund is executed to close this record. The abstraction refactor must not alter production Razorpay behavior — the L04 regression baseline is the proof.
+
+## Batch 10 addendum — 2026-09-13
+
+`apps/api/test/l19c-payment-provider-live-wiring.test.ts` (289 lines, new in this batch) proves both tip-creation call sites route through `provider.createPayment` with byte-identical request/response shape to the pre-abstraction path. `apps/api` 465/465 and SQL 49/49 (120 migrations) locally re-run 2026-09-13. See `../tasks/L19-payment-provider-abstraction-and-multi-rail.md` batch 10 section for what remains unbuilt (dynamic QR, UPI-app preference, Paytm/Cashfree/PhonePe).

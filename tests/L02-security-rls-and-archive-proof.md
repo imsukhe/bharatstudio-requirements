@@ -112,3 +112,7 @@ userinfo-bearing, path-bearing and production-HTTP negatives plus canonical
 normalisation. `pnpm contracts:validate` and `pnpm deployment:test` also passed.
 This is a local configuration-boundary proof, not domain/certificate/WAF or
 deployed CORS evidence.
+
+## Batch 10 addendum — 2026-09-13
+
+`packages/db/tests/l02b-reputation-signals.sql` (part of the 49/49 SQL suite) proves: `refund` signal type rejected at the function layer; a raw-insert `chargeback` for a non-`bharatstudio_tip` source rejected by table CHECK; zero `information_schema` columns matching `%score%`; and a flip-and-reverse-refund cycle changing the live score with no reputation-table write. `apps/api/test/reputation-routes.test.ts` (146 lines) proves the creator-facing three-key response shape and its `additionalProperties: false` rejection. See `../tasks/L02-security-rls-and-archive-proof.md` batch 10 section for the retention decision this evidence supports.

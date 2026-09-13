@@ -1,6 +1,6 @@
 # L16 — Interaction menu, goals and widgets
 
-**Status:** `Locally implemented and self-audited through migration 0108 — paid support-vote binding and all widget reads are now composed in the API runtime and have reproducible API/web/SQL evidence; independent review and deployed browser/OBS evidence remain open`
+**Status:** `Locally implemented and self-audited through migration 0119 — paid support-vote binding, external-contribution aggregation into goals/challenges/hype, and all widget reads (now SSE-invalidation-signalled, REST-snapshot-sourced) are composed in the API runtime and have reproducible API/web/SQL evidence; independent review and deployed browser/OBS evidence remain open`
 **Level:** L2
 **Owner:** [OWNER — product/API/web, unassigned]
 **Depends on:** L14 (supporter identity on leaderboards); L20 (visual layer for widgets)
@@ -166,3 +166,14 @@ The correction is additive and retains the stated rollback: disabling the
 L16 feature configuration or removing the additive browser sources leaves
 existing payments, alerts, queues, and overlay history unchanged. It does
 not satisfy the separate staging/browser/OBS or independent-review gates.
+
+## Batch 10 reconciliation — 2026-09-13
+
+Verified against `bharatstudio-alerts` commits `5a29868` (0117 external-contribution aggregation) and `7517a93` (overlay SSE-invalidation refactor), read directly.
+
+- Migration `0117_v1_l16c_external_contribution_aggregation.sql` adds `external_contributions` in a shape deliberately incompatible with `payments` so it cannot be joined into reconciliation by accident (verified: no shared key/FK to `payments`). Goal/challenge/hype progress functions (`apps/api/src/db/contribution-sql-store.ts`, `apps/api/src/routes/challenges.ts`, `goals.ts`, `interactions.ts`) compute `greatest(coalesce(payment_net,0) + coalesce(external_net,0), 0)` at read time — confirmed in the migration SQL (lines 577, 638) — never a synthetic `payments` row. Progress is never stored; a reversal reduces it on the next read with no un-award step, matching the existing refund-handling discipline.
+- `apps/api/src/domain/contribution-source-types.ts` confirms include/exclude only, default include, and explicitly no percentage/multiplier field or column anywhere — verified by grep, zero hits for `percentage`/`multiplier` in the contribution domain/store files.
+- Only INR Super Chats become contributions; no FX rate exists in this code. Confirmed: `contributionSourceTypes` is `['payment', 'youtube_superchat']` only.
+- Paid vote tallies and the leaderboard are confirmed NOT unioned with external contributions — no `external_contribution`/`superchat` reference found in the vote-tally or leaderboard read paths. `viewer_platform_identities` (migration `0084_v1_l14_viewer_identity.sql`) does exist, contrary to a claim in an earlier draft of this feature's own migration header, which the migration text itself corrects; it is populated only on claim, so attribution stays sparse by design, not by omission.
+- `7517a93`: nine overlay widgets (challenge, goal, hype, leaderboard, vote) now share `apps/web/app/overlay/widgets/shared/overlay-transport.ts` and `WidgetPoller.tsx`. Confirmed by reading the transport file: the SSE stream is used only to trigger a debounced re-read of the existing REST snapshot endpoint; it never carries state itself. The pre-existing interval poll continues running until the stream connects, and resumes if it drops — confirmed in `WidgetPoller.tsx`.
+- Local re-run 2026-09-13: `apps/api` 465/465 (`npm test` via `tsx --test`), `apps/web` 312/312, SQL suite 49/49 across 120 migrations, all three Go services `go test ./...` clean. These are local-only figures; no staging/OBS/browser-source or independent-review evidence is added by this reconciliation.

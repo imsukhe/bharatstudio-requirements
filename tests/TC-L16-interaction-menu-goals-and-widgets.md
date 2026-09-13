@@ -1,6 +1,10 @@
 # TC-L16 — Interaction menu, goals and widgets acceptance
 
-**Status:** `Local acceptance complete through migration 0108 — all L16 rows have executable local and application-composition evidence; staging/browser/OBS and independent review remain open`
+**Status:** `Local acceptance complete through migration 0119 — all L16 rows plus external-contribution aggregation and the shared SSE-invalidation widget transport have executable local and application-composition evidence; staging/browser/OBS and independent review remain open`
+
+## Batch 10 addendum — 2026-09-13
+
+External-contribution union verified in `apps/api/test/l16c-contribution-source-routes.test.ts` and `packages/db/tests/l16c-external-contribution-aggregation.sql` (part of the 49/49 SQL suite). Overlay SSE-transport behavior verified in `apps/web/.../overlay-transport-snapshot.test.tsx` and `overlay-transport-widget-poller.test.tsx`. Local counts re-run 2026-09-13: API 465/465, web 312/312, SQL 49/49 across 120 migrations. See `../tasks/L16-interaction-menu-goals-and-widgets.md` batch 10 section for the read-time union formula and the SSE-as-invalidation-signal design.
 **Task:** [`../tasks/L16-interaction-menu-goals-and-widgets.md`](../tasks/L16-interaction-menu-goals-and-widgets.md)
 **Authority:** `bharatstudio-alerts/docs/BharatStudio-MASTER-PLAN.md` Part 6 (L16) and Part 7 §7.6
 **Repository:** `/Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts`

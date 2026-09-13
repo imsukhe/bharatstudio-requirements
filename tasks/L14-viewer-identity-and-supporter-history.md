@@ -148,3 +148,7 @@ After the frozen dependency install, the complete local recheck passed API
 **398/398**, web **289/289** with typecheck and production build, and
 disposable SQL **44/44** after 110 migrations. This refreshes evidence only;
 the OAuth, legal, deployment, and independent-review gates remain open.
+
+## Batch 10 addendum — 2026-09-13
+
+Migration `0120_v1_l02b_reputation_signals_and_score.sql` (new supporter-reputation work, tracked at `L25-supporter-reputation.md`) extends this task's own migration-0085 erasure record with a further retained-on-deletion class (`reputation_signal_events`, and the score/verdict derived live from it), explicitly flagged `legalDispositionOpen: true`. This does not change any status or evidence already recorded above for viewer identity itself; it is cross-referenced here because it deepens the same open DPDP/deletion question this task already deferred to counsel. See `L02-security-rls-and-archive-proof.md` batch 10 section and `L25-supporter-reputation.md` for detail. No legal conclusion is asserted.

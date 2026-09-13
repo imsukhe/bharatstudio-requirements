@@ -1,6 +1,6 @@
 # L15 — Live-platform connectors and chat commands
 
-**Status:** `YouTube v1 slice built and locally test-proven (poller, ingestion, TipIntent short-link flow, ingest-failure admin surface); bot chat-acknowledgement code exists but ships flag-off and unverified — Google has not approved the chat-write scope; Twitch/Kick remain out of scope per task boundary; nothing here is proven in a deployed environment`
+**Status:** `YouTube v1 slice built and locally test-proven (poller, ingestion, TipIntent short-link flow, ingest-failure admin surface); the poller now issues streamList instead of liveChatMessages.list, itself built and locally test-proven but with wire framing and quota cost both unverified against a real Google project; safe three-failure fallback to list confirmed; bot chat-acknowledgement code exists but ships flag-off and unverified — Google has not approved the chat-write scope; Twitch/Kick remain out of scope per task boundary; nothing here is proven in a deployed environment`
 **Level:** L3
 **Owner:** [OWNER — API / Go services / integrations, unassigned]
 **Depends on:** L01 (constraint widening on `alert_events.source_type`). Reference implementations exist in `stream-ios`/`stream-android`.
@@ -84,3 +84,15 @@ Reconciled against `bharatstudio-alerts` as read on 2026-09-07; local build/test
 **Confirmed still out of scope per this task's own boundary, not a gap:** Twitch EventSub connector, Kick connector, `!challenge` command. These are unbuilt and that is correct per the task's stated v1/Phase-2 split.
 
 **Open, not decided here:** Google OAuth app-verification status and the YouTube Data API quota-increase outcome were not found recorded anywhere in this repository as dated written confirmation. Both remain open external dependencies; this reconciliation does not assert either is resolved or unresolved beyond "no dated evidence on file."
+
+## Batch 10 reconciliation — 2026-09-13
+
+Verified against `bharatstudio-alerts` commit `cba0600` (`feat(poller): switch chat ingestion from list to streamList`), read directly, not taken from the commit message.
+
+- `services/youtube-poller-go/internal/poller/poller.go` replaces the polled `pollOne` call-and-return loop with a held streamList connection drained per cycle; `quota.CostLiveChatMessagesStreamList` (`internal/quota/budget.go:50`) is set equal to `CostLiveChatMessagesList` and the source comment there says plainly this is a placeholder, not a published Google cost — RECORD AS AN UNVERIFIED GUESS, not a measured figure.
+- Wire framing for streamList is likewise unverified: no live quota-metered Google project exists in this environment, so chunk-boundary inference is untested against the real API. Do not record either the framing or the cost as proven.
+- Fallback is real and test-covered: `StreamFailureThreshold` defaults to 3 (`poller.go:234-235`), `handleStreamFailure` (`poller.go:700-726`) routes the channel back to the unchanged `pollOne` path after 3 consecutive connect/receive failures, for a cooldown, then retries.
+- Reconnect-replay dedup is proven, not assumed: `l15-streamlist-poller_test.go` forces a drop and re-queues the same message id; migration 0091's unique index on `(channel_id, source_type, source_id)` (already recorded above) makes the second insert a no-op.
+- `go test ./...` passes clean for `services/youtube-poller-go` (all packages `ok`, including `internal/poller`, `internal/quota`, `internal/youtube`), re-run 2026-09-13 in this environment.
+
+Status line above amended accordingly. No claim is made that the switch reduces real quota cost or survives contact with a live YouTube stream — that measurement is explicitly still open, per the commit's own framing.
