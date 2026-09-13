@@ -955,7 +955,7 @@ not a percentage of anything.
 
 The one deliberate exception is the **public tip-fee comparison calculator** (§12.5),
 which is a comparison tool, not a price. The two rules are not in conflict and the
-boundary is stated once, in §12.5.4.
+boundary is stated once, in §12.5.1.
 The creator buys a **bundle of BharatStudio units at a flat price**:
 
 ```text
@@ -1002,7 +1002,6 @@ the top-up model must never blur it.
 | **TTS characters** | packs of characters | The obvious first one — quota already metered (`0081`), so the ledger half exists |
 | **AI credits** | micro / standard / premium (§11) | Largest long-run margin |
 | **Asset storage** | GB | Needs the storage quota that is currently absent |
-| **Event retention** | +30 / +90 / +365 days | Retention windows already exist per tier |
 | **Extra connectors** | +1 platform | Entitlement counts already enforced (`0086:118`) |
 | **Extra moderator seats** | +1 seat | Enforced by `0104`; needs the management UI (F18) |
 | **Extra sticker/media pack slots** | +N | Tier quotas 10/25/50 already implemented |
@@ -1010,6 +1009,11 @@ the top-up model must never blur it.
 | **Sponsor campaign slots** | +N concurrent | Once the sponsor manager ships |
 | **Season Pass issuance** | per pass sold, or bundled | See 10.4 |
 | **Vertical/multi-canvas outputs** | +1 output | For creators streaming to two aspect ratios |
+
+**Never sold as a top-up (§12.6):** event retention, history depth, record search,
+export, receipt access, audit access, or anything else that is a durable creator
+record. An earlier draft of this menu listed "Event retention +30/+90/+365 days"; it is
+deleted, and retention is now uniform for every tier.
 
 Rules for every top-up: purchased balance is **additive to the tier allowance, never
 a substitute** · clear disclosure of any expiry, and prefer no expiry on paid balances
@@ -1211,7 +1215,7 @@ files.
 | Free | Deterministic safety rules, limited title/copy suggestions, no vision | Small monthly trial allowance |
 | Pro | AI copy, translation, light moderation, basic recap | Monthly credits + recharge packs |
 | Creator | Real-time moderation, Channel DNA, thumbnail concepts, clip recommendations | Larger monthly pool |
-| Studio | Shared team pool, producer/moderator roles, advanced vision, sponsor workflow, priority jobs | Pooled credits, cost controls, audit exports |
+| Studio | Shared team pool, producer/moderator roles, advanced vision, sponsor workflow, priority jobs | Pooled credits, cost controls, scheduled audit exports (a one-off export is free on every tier, §12.6.3) |
 
 Three credit classes: **micro** (classification, translation, titles) · **standard**
 (long summaries, content packs, thumbnail concepts) · **premium** (vision analysis,
@@ -1260,6 +1264,67 @@ payouts, or alter live configuration.
 5. Companion live-producer summaries
 6. Credit ledger, tier entitlements, recharge packs, spend caps
 7. Thumbnail concept canvas from real frames and creator-owned assets
+
+### 11.10 Voice routing — spend premium TTS only where it is worth it
+
+Today every eligible alert goes to Sarvam (TTS-01) until the quota runs out, then falls
+back to browser voice (TTS-04). That means a ₹20 "gg" and a ₹2,000 message with a
+Tamil name cost the creator the same characters, and the quota is gone by the middle of
+a good stream on the message that mattered least.
+
+**Decided 2026-09-14: a creator-owned routing rule set, default off.**
+
+#### 11.10.1 What decides the route
+
+Deterministic, inspectable rules the creator sets in the dashboard. No model sits in
+the live path.
+
+| Rule | Sends to premium when | Why it is the right signal |
+|---|---|---|
+| **Amount** | The tip is at or above a creator-set bracket | The strongest signal, and it already exists — the amount ladder (TTS-03) governs TTS eligibility, so this extends a concept creators understand |
+| **Length** | The message is under a creator-set character count | A 400-character message is being skimmed, not savoured. Short messages are where voice quality is actually heard |
+| **Language / script** | The message contains Devanagari or another Indic script, or code-mixed Hinglish | This is the one thing browser voice genuinely cannot do. An English sentence on a browser voice is fine; a Hindi sentence is not |
+| **Named supporter** | The supporter is a repeat or VIP supporter (opted-in relationship data) | Recognising a regular is worth more than a stranger's fifth tip of the night |
+| **Event class** | Goal completion, milestone, sponsor moment | Moments the creator has decided matter |
+
+Rules combine as **any-match sends premium**, with an explicit creator-set override
+list. Script detection is a Unicode range check, not a classifier — cheap, offline,
+deterministic and explainable.
+
+**Deliberately not built: an AI classifier deciding whether a message "deserves" a good
+voice.** It would cost credits to save credits, add latency to a live path, and produce
+behaviour no support agent could explain when a creator asks why one tip sounded
+different. Revisit only with measured evidence that the rules route badly.
+
+#### 11.10.2 Defaults and control
+
+- **Default off.** A new or existing creator's behaviour never changes without them
+  choosing it. Turning it on is a two-tap preset ("Save credits: premium above ₹100 and
+  for Indic messages"), then fully editable — the §15.2 customisation model.
+- **The setting lives in the dashboard**, with a preview: "under last week's traffic
+  this would have used about 38% of your characters".
+- **Companion shows the active mode** on the Live Deck and can switch it mid-stream,
+  including a one-tap "premium everything for the next 10 minutes" for a big moment.
+- **A quota-saving nudge, never an automatic change**: at ~70% consumption (TTS-07) the
+  dashboard may *suggest* enabling routing. It never enables it.
+
+#### 11.10.3 Rules that keep it honest
+
+- **Routing never changes whether an alert fires, is displayed, is acknowledged, or is
+  recorded.** It changes one thing: which voice speaks. Correctness is untouched
+  (§30.1).
+- **Safety runs before routing, identically for both voices.** The §12.2 content suite
+  and the Indic transliteration checks are not a premium feature and are not skipped on
+  the browser path.
+- **The chosen route and the reason are recorded** on the alert, visible in history and
+  in the quota view. "Why did this one sound different" must always have an answer.
+- **Provider failure still falls back** to browser voice and then to a chime (TTS-04),
+  independent of routing.
+- **Routing is a cost control, never a paywall.** It is available on every tier that has
+  premium voice at all, is never itself sold, and is never used to make a lower tier
+  sound deliberately worse than its quota already implies.
+- **Never routes to premium to burn quota faster.** Any change we make to the default
+  preset that increases premium usage is a pricing change and follows §20.4.
 
 ---
 
@@ -1362,7 +1427,7 @@ chars. That is the entire filter. Required before public launch:
 - 0% commission is a trust statement, not the headline differentiator
 - Gateway-fee rule: state our 0% clearly, state the provider sets its own fees, never
   advertise "0% forever" as a property of the payment rail. Calculator handling is
-  specified in §12.5.4
+  specified in §12.5.1
 - No competitor names in rendered HTML
 - One brand, one domain (`bharatstudio.in`), four product areas differentiated by a
   per-route accent token — Alerts gold, Stream broadcast red-magenta, Mirror cool
@@ -1371,7 +1436,7 @@ chars. That is the entire filter. Required before public launch:
   off one system reads as a family, four design languages reads as four weak brands
 - Do not buy separate domains; 301 any defensive domains into sections
 
-#### 12.5.4 The fee-display boundary — one rule, stated once
+#### 12.5.1 The fee-display boundary — one rule, stated once
 
 | Surface | Provider fees | Why |
 |---|---|---|
@@ -1392,6 +1457,68 @@ Rules that make the calculator safe to publish:
   and a "rates being re-verified" note kept — rather than showing a stale number.
 - **Never** implies a rail's fee will not change, and never presents another product's
   pricing as current unless it too carries a source and a date.
+
+### 12.6 Durable creator records — never a tier, never a top-up
+
+**Decided 2026-09-14. This is a hard boundary and it outranks every tier table, pack,
+top-up and pricing decision in this document.** Where any other section disagrees, this
+section wins and the other section is a defect.
+
+#### 12.6.1 The five rules
+
+1. **Never tier-gate storing, viewing, searching, fetching or exporting a durable
+   creator record.** Durable records are: payments · receipts · refunds · the audit
+   trail · supporter relationships · event history · configurations · layouts ·
+   moderation history. Every one of these, in full, at every tier including Free, with
+   no row cap, no date-range cap, no search restriction and no charge.
+2. **Never charge to restore access to data we already accepted.** Not after a
+   downgrade, not after a lapse, not after a payment failure, not ever. Data the
+   creator gave us or earned through us is theirs at every price including ₹0.
+3. **Tiering may limit only new active capacity** — active connectors, active widgets,
+   AI usage, new media uploads, custom assets, team seats, automation volume. Capacity
+   is what costs us money to run. History is not capacity.
+4. **Over-quota assets after a downgrade become read-only or inactive, and stay
+   viewable and exportable.** Deletion follows the published retention and deletion
+   policy alone. A tier lapse is never a deletion trigger.
+5. **"Event retention" is never sold.** Retention is a trust, privacy and legal
+   position, not an upsell. Selling more of it says our default is deliberately short
+   so we can charge to fix it, which is both a bad product and a bad answer under DPDP.
+
+#### 12.6.2 Retention is uniform across every tier
+
+**Decided 2026-09-14: one published retention policy, identical for Free and Studio.**
+Per-tier retention windows are removed. A Free creator's payment history, audit trail
+and moderation history are kept exactly as long as a Studio creator's.
+
+The window itself is set by the privacy/legal gate (§32) alongside statutory retention
+for payment records — it is a legal number, not a pricing number, and it is published
+with an effective date and honoured for everyone.
+
+Consequences, so nobody re-derives them:
+
+- The **Event retention top-up is deleted** from §10.2.
+- Any per-tier history or retention limit anywhere in the register is a defect
+  (CON-17 corrected accordingly).
+- The **Storage Pack sells space for new uploads only.** It never buys back access to
+  anything historical, and running out of storage never hides, truncates or deletes a
+  record.
+- Chat-log volume is managed by what we choose to **ingest and index**, uniformly, for
+  everybody — never by charging one creator to keep what another keeps free.
+
+#### 12.6.3 The one distinction: the data, versus doing work with it
+
+Owning the data is free. Us doing continuous work on the creator's behalf is a service.
+
+| Always free, every tier | Tierable |
+|---|---|
+| Download or fetch **all** of it, any time, in an open format, unrestricted | **Scheduled or automated delivery** into Google Sheets, Tally, a webhook or another tool — that is an active connector with a running cost |
+| Search, filter and page the full history in product | Advanced *derived* analytics products built on top of the history |
+| A one-off export at any scale | Automation volume and frequency |
+
+The test: if the creator asks for their own records, that is free at any tier and any
+size. If we run something on a schedule for them, that is a service and may be priced.
+**A creator on Free is never told their history is unavailable — only, at most, that we
+will not push it somewhere on a timer for them.**
 
 ---
 
@@ -1488,6 +1615,15 @@ growth lane) · copy overrides · which modules the viewer sees.
 - Downgrade never deletes configuration. Over-limit items become read-only or paused,
   exactly as queues and assets already do, and reactivate on upgrade.
 - A creator's configuration survives our defaults changing.
+- **No switch may ever gate a durable creator record (§12.6).** Storing, viewing,
+  searching, fetching and exporting payments, receipts, refunds, audit trail, supporter
+  relationships, event history, configurations, layouts and moderation history are
+  outside the four-switch model entirely — there is no entitlement row to turn them
+  off, and the capability registry rejects an attempt to create one. Only *new active
+  capacity* is gateable.
+- Over-quota assets after a downgrade go read-only or inactive and stay viewable and
+  exportable. Deletion follows the published retention policy alone; a tier lapse is
+  never a deletion trigger.
 - Preset bundles ("Gaming night", "Charity goal", "Podcast", "Tournament") are one-tap
   starting points, then fully editable — presets must never be a separate,
   less-configurable path.
@@ -2652,6 +2788,12 @@ Viewing receipts · exporting their own data · recovering their account · disc
 an integration · basic security controls (sessions, revoke, password, 2FA). Charging
 for any of these makes leaving hostile, and §13 makes portability a feature.
 
+Extended 2026-09-14 by §12.6, which governs: **every durable creator record** —
+payments, receipts, refunds, audit trail, supporter relationships, event history,
+configurations, layouts and moderation history — remains stored, viewable, searchable,
+fetchable and exportable in every state below, including Expired, at no charge. A lapse
+pauses what costs money to run. It never withdraws access to what we already accepted.
+
 ### 26.2 The five states
 
 | State | Duration | Behaviour |
@@ -2659,11 +2801,13 @@ for any of these makes leaving hostile, and §13 makes portability a feature.
 | **Active** | — | Everything works |
 | **Grace** | 14 days | Everything still works. Clear notices in Companion and dashboard, never on stream |
 | **Paused** | — | Paid connectors stop processing new third-party events. Imported setups and configuration become **read-only** |
-| **Retained** | 90 days | Encrypted connector settings, mappings, templates and history remain, available for renewal or export |
-| **Expired** | after notice | Provider credentials revoked, paid-only connector secrets and configuration deleted |
+| **Retained** | 90 days | The window in which **encrypted third-party connector secrets** are still held so a renewal reconnects without re-authorising. Configuration, mappings, templates and every durable record are **not** on this clock — they persist under the uniform retention policy (§12.6.2) and stay viewable and exportable throughout |
+| **Expired** | after notice | **Only the provider credentials and connector secrets are revoked and destroyed** — a security necessity, since we must not hold a third-party secret for an account that has stopped paying us to use it. Everything else stays: configuration, layouts, mappings, templates, and every durable record, still viewable and exportable. Reconnecting restores the setup |
 
-Advance notices precede every transition, and the final deletion is announced more than
-once.
+Advance notices precede every transition, and the destruction of provider secrets at
+Expired is announced more than once. **Corrected 2026-09-14:** an earlier version of
+this table deleted paid-only *configuration* at Expired. That contradicted §12.6 —
+configuration is a durable record — and only the third-party secrets are destroyed.
 
 ### 26.3 What the creator sees after grace
 
@@ -2787,19 +2931,90 @@ upgrades.
 
 | Pack | What it adds | For |
 |---|---|---|
-| **AI Credits** | Consumable units, three classes (§11) | Everyone; the only pure consumable |
+| **AI Credits** | Consumable units, three classes (§11) | **Paid tiers only**; the only pure consumable |
 | **Socials Pack** | +3 connected accounts · auto-send per event type · post scheduling · multilingual variants · social calendar | A Creator-tier streamer who promotes seriously but does not need Studio's team features |
 | **Events Pack** | Full tournament brackets · lobby templates · recurring community nights · advanced giveaway formats | Creators who run community nights but stream alone |
 | **Team Seats** | +2 moderator or operator seats, +1 concurrent control session | A growing creator with helpers, not yet a studio |
-| **Storage Pack** | +500MB assets, +50 sound uploads | Heavy Sound Moments users |
+| **Storage Pack** | +500MB for **new** uploads, +50 sound uploads. Never buys back access to anything historical (§12.6.2) | Heavy Sound Moments users |
 | **Sponsor Pack** | Sponsor manager · scheduled placements · exposure log · proof-of-delivery report | A creator who just landed their first sponsor |
 | **Multi-Channel Pack** | +1 channel or brand under one account | Creators running a second persona or a clips channel |
 | **Finance Pack** | Monthly statement · GST-ready export · TDS reference notes · payout-vs-bank reconciliation view | See §29.2 — this is the one I would build first |
 
-**Deliberately not a pack:** anything in §27.1 correctness, receipts, exports, account
-recovery, security controls, or Companion itself.
+**Deliberately not a pack:** anything in §30.1 correctness, **any durable creator
+record under §12.6** (payments, receipts, refunds, audit trail, supporter
+relationships, event history, configurations, layouts, moderation history, their search
+and their export), retention or history depth, account recovery, security controls, or
+Companion itself. Corrected 2026-09-14 — this list previously cited §27.1, which is
+Social Relay, not the correctness list.
 
-### 28.3 Why packs beat more tiers
+### 28.3 Pack pricing — proposed, GST-inclusive at 18%
+
+**Status: proposed 2026-09-14, not approved.** No pack ships in v1 (§1.9 — packs are a
+P3 slice), so this is the price sheet for the first pack release, not a launch price.
+
+| Pack | Price | Eligibility | Ships in the first release? |
+|---|---|---|---|
+| **AI Credits** | ₹49 / ₹149 / ₹399 top-ups | Paid tiers | **Yes** |
+| **Storage Pack** | ₹49/mo for +500MB of new-upload space | Pro+ | **Yes** |
+| **Socials Pack** | ₹129/mo | Creator+ | **Yes**, and only once Social Relay is real |
+| **Multi-Channel Pack** | ₹199/mo per added channel or brand | Creator+ | **Yes** |
+| **Events Pack** | ₹129/mo | Creator+ | Hidden until the Lobby/tournament features exist |
+| **Team Seats** | ₹129/mo | Creator+ | Hidden until seat management ships (F18) |
+| **Sponsor Pack** | ₹149/mo | Creator+ | Hidden until the sponsor manager exists |
+| **Finance Pack** | ₹79/mo | Creator+ | Hidden until provider/legal/CA evidence is complete |
+
+**Only four packs are visible at first: AI Credits, Storage, Socials, Multi-Channel.**
+A pack whose underlying feature is not real is a promise we cannot keep, and the
+Finance Pack in particular touches tax representations that need the CA row in
+`05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` closed first. Each hidden pack is a
+capability-registry row (§20) so it becomes visible without a release.
+
+#### 28.3.1 Where I changed your numbers, and why
+
+Two changes to the proposed menu, both to make its own stated logic actually hold.
+
+**Socials, Events and Team Seats: ₹99 → ₹129.** The rule "Creator plus two or more
+packs should push a customer toward Studio at ₹599" fails at ₹99 — Creator ₹399 plus
+two ₹99 packs is **₹597**, which sits *below* Studio while delivering less. That is
+exactly the trap the rule exists to avoid, and a customer who finds it is right to feel
+misled when they later discover Studio was cheaper and larger. At ₹129 the cheapest two
+feature packs (Finance ₹79 + Socials ₹129) reach **₹607**, and every other pair is
+higher, so the ladder works as intended.
+
+The single-pack rule is unaffected: Creator plus one pack lands between ₹448 and ₹598,
+all below Studio.
+
+**Multi-Channel stays at ₹199, and the ₹1 gap is deliberate.** Creator ₹399 + ₹199 =
+**₹598** against Studio at **₹599**. That reads like an accident and it is not: a
+customer comparing them pays one rupee less for one extra channel and none of Studio's
+seats, approvals, tournaments or pooled AI. It is the sharpest possible steer toward
+Studio and it costs us nothing. **Do not "fix" it later** without re-reading this
+paragraph.
+
+#### 28.3.2 The pricing rules behind the sheet
+
+- **Creator + one focused pack stays below Studio.** A creator with one real need is
+  not pushed into a tier they do not need.
+- **Creator + two feature packs exceeds Studio.** Two needs means Studio, and the
+  arithmetic must say so rather than the sales copy.
+- **Storage and AI Credits are capacity, not feature packs**, and are excluded from
+  that second rule. Buying space or credits is not a signal that someone needs a
+  bigger tier.
+- **Multi-channel is deliberately expensive.** Multiple brands are operationally
+  costly, and Studio should be the obvious answer.
+- **AI is prepaid and consumption-based.** We do not promise a fixed number of model
+  tokens, or a fixed number of anything, until real provider cost, retry behaviour and
+  the §10.1 margin floor are measured. The three top-up sizes are approved; **what a
+  rupee buys is not**, and stays open (§33.2) until the cost model is measured.
+- **A pack never grants correctness, never grants access to a durable record, and is
+  never the only route to a capability** (§12.6, §30.1).
+- **Storage never restricts historical records** — only future creator media uploads.
+  Running out of space blocks the next upload and nothing else.
+- Every price here is **GST-inclusive at 18%**, matching how the tiers are quoted.
+- A pack, like a tier, may be **withdrawn only through the §25.6.1 notification
+  sequence**, and a creator is never billed for a capability we removed.
+
+### 28.4 Why packs beat more tiers
 
 A fifth tier forces a creator to buy nine things to get one. Packs let a Creator-tier
 streamer who runs tournaments buy exactly that, and they give us a much better signal:
@@ -2887,6 +3102,25 @@ tracking · queue durability and no-drop · retry and replay · security · priv
 · accessibility · downgrade preservation · legal disclosures · receipts · anonymous
 tipping with no login.
 
+**And every durable creator record (§12.6), which is not a tier row at all.** Stated
+here because a matrix invites someone to add a column to it:
+
+| Always, every tier, no cap, no charge | Free | Pro | Creator | Studio |
+|---|---|---|---|---|
+| Payment, receipt and refund records — full history | yes | yes | yes | yes |
+| Audit trail — full history | yes | yes | yes | yes |
+| Supporter relationships and event history | yes | yes | yes | yes |
+| Moderation history | yes | yes | yes | yes |
+| Configurations and layouts, including over-quota ones | yes | yes | yes | yes |
+| Search, filter and page all of the above | yes | yes | yes | yes |
+| One-off export of all of the above, any size, open format | yes | yes | yes | yes |
+| Retention window | **identical for everyone** | | | |
+
+What remains tierable is **new active capacity only**: active connectors, active
+widgets, AI usage, new media uploads, custom assets, team seats and automation volume.
+The rows further down this matrix are all of that kind, and any row that is not is a
+defect against §12.6.
+
 ### 30.2 The existing ladder (already enforced in code)
 
 | Dimension | Free | Pro | Creator | Studio |
@@ -2942,6 +3176,7 @@ L03's retier note is superseded.
 | "Where support goes" explainer | yes | yes | yes | yes |
 | **Sound and media** | | | | |
 | Browser TTS | yes | yes | yes | yes |
+| Voice routing controls (§11.10) — a cost control, never sold | yes | yes | yes | yes |
 | Creator sound uploads | — | 5 | 25 | 100 |
 | Themed sound packs | — | 1 | 5 | all |
 | Mega alert scene effects | — | — | — | yes |
@@ -2962,7 +3197,8 @@ L03's retier note is superseded.
 | Giveaways (scheduled, free entry) | — | — | yes | yes |
 | Tournaments — single elim, up to 8 | — | — | yes | yes |
 | Tournaments — double elim, round robin, seeding, sponsor slots | — | — | — | yes |
-| **AI credits** | trial | monthly | larger monthly | pooled team |
+| **AI credits** (allowance) | trial | monthly | larger monthly | pooled team |
+| AI credit **top-ups** (§28.3) | — | yes | yes | yes |
 | AI moderation (live) | — | — | yes | yes |
 | Thumbnail / Channel DNA | — | — | yes | yes |
 | **Integrations and import** | | | | |
@@ -2976,7 +3212,7 @@ L03's retier note is superseded.
 | Multiple channels, brands, collaborators, advanced routing | — | — | — | yes |
 | Sponsor reports, multi-creator controls | — | — | — | yes |
 | Custom domains, API / outbound webhooks | — | — | — | add-on |
-| **Never charged for** (receipts, exports, account recovery, disconnecting an integration, security controls) | yes | yes | yes | yes |
+| **Never charged for** (§12.6 durable records in full, receipts, one-off exports, account recovery, disconnecting an integration, security controls) | yes | yes | yes | yes |
 | **Social Relay** | | | | |
 | Profile links, share cards, manual copy/open | yes | yes | yes | yes |
 | Connected social/live accounts | — | 1 | 2 | 6 |
@@ -2992,7 +3228,7 @@ L03's retier note is superseded.
 | Snapchat hand-off composer | — | yes | yes | yes |
 | **Ops** | | | | |
 | Sponsor manager + exposure log | — | — | — | yes |
-| Finance exports (Sheets, Tally) | — | — | yes | yes |
+| Finance exports — **scheduled push** into Sheets or Tally (a one-off export of the same data is free on every tier, §12.6.3) | — | — | yes | yes |
 | Post-stream analytics | basic | yes | yes | yes |
 | Priority support | — | — | — | yes |
 
@@ -3101,7 +3337,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-08 | Refunds/disputes as append-only compensating evidence | U | — |
 | PAY-09 | `__channel_default__` reserved binding; exact provider binding wins | U | — |
 | PAY-10 | Donor-safe status projection (UUID, amount, INR, state, updated) | U | — |
-| PAY-11 | Payments ledger + CSV export (explicitly not a CA tax report) | U | — |
+| PAY-11 | Payments ledger + CSV export (explicitly not a CA tax report) — **untiered and uncapped**, §12.6 | U | — |
 | PAY-12 | Provider capability snapshots; features gate on capability, not name | P | P1 |
 | PAY-13 | Razorpay partner OAuth | X | P0 |
 | PAY-14 | Payment account activation | X | P0 |
@@ -3160,6 +3396,12 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | TTS-08 | Upgrade prompt on exhaustion | A | P1 |
 | TTS-09 | Mute / cancel in-flight from dashboard (companion API exists) | P | P1 |
 | TTS-10 | TTS character top-ups | A | P1 |
+| TTS-11 | Voice routing rule set: amount, length, script, supporter, event class (§11.10) | A | P1 |
+| TTS-12 | Unicode-range script detection in the live path — no model, no network call | A | P1 |
+| TTS-13 | Dashboard control with a "what this would have cost last week" preview | A | P1 |
+| TTS-14 | Companion mode display and mid-stream switch, plus timed "premium everything" | A | P2 |
+| TTS-15 | Route and reason recorded per alert and shown in history and the quota view | A | P1 |
+| TTS-16 | Safety suite runs identically before both routes — never skipped on browser voice | A | **P0 with TTS-06** |
 
 ### 31.5 Viewer identity, history, trust
 
@@ -3381,7 +3623,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-14 | Like goals via `videos.list` (cadence measured, not assumed) | A | P1 |
 | CON-15 | Controlled broadcast lifecycle: create/bind → verify ingest `active` → testing → live | A | P1 |
 | CON-16 | Assisted gifting as reminder/deep link only | A | P2 |
-| CON-17 | Chat display, retention, filtering (tiered) | A | P1 |
+| CON-17 | Chat display and filtering — tierable. **Retention is not** (§12.6.2): what we ingest and index is a uniform product decision, identical on every tier | A | P1 |
 | CON-18 | Twitch EventSub | B | — |
 | CON-19 | Kick | B | — |
 | CON-20 | Optional YouTube `/live` support page | A | P3 |
@@ -3591,6 +3833,8 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CTL-07 | Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents | A | P1 |
 | CTL-08 | One-action revert to previous version | A | P1 |
 | CTL-09 | Layer 1 correctness dimensions rejected from this panel | A | P0 |
+| CTL-14 | **Registry rejects any capability whose subject is a durable creator record (§12.6)** — no row may be created that gates storing, viewing, searching, fetching or exporting one. Enforced in the registry, not by review | A | **P0** |
+| CTL-15 | Retention is a single platform-wide value, not a per-tier limit; the schema offers no per-tier retention field to set | A | **P0** |
 | CTL-10 | `GET /v1/public/capability-matrix` published snapshot | A | P0 |
 | CTL-11 | Marketing build reads the snapshot; webhook revalidation | A | P0 |
 | CTL-12 | Marketing sections behind flags (`kind = marketing_section`) | A | P1 |
@@ -3687,10 +3931,10 @@ outbound webhooks, finance/audit exports, SLA support.
 | LIF-01 | Five-state lifecycle (active / grace 14d / paused / retained 90d / expired) | A | P1 |
 | LIF-02 | Grace-period notices in dashboard and Companion, never on stream | A | P1 |
 | LIF-03 | Paused: connectors stop, configuration read-only, nothing deleted | A | P1 |
-| LIF-04 | Retained 90d: settings, mappings, templates, history kept and exportable | A | P1 |
+| LIF-04 | Retained 90d applies to **encrypted connector secrets only**; configuration, mappings, templates and durable records persist under the uniform retention policy (§12.6.2) and stay exportable | A | P1 |
 | LIF-05 | Expired: credential revocation and paid-only secret deletion, after repeated notice | A | P1 |
 | LIF-06 | Overlay quiet safe state — no payment wall, no on-stream branding change | A | **P1** |
-| LIF-07 | Never-charged-for list enforced (receipts, exports, recovery, disconnect, security) | A | P1 |
+| LIF-07 | Never-charged-for list enforced (receipts, exports, recovery, disconnect, security) — and the full §12.6 durable-record set in every lifecycle state including Expired | A | P1 |
 | LIF-08 | Renewal restores configuration without reconnecting, unless the token expired | A | P1 |
 | LIF-09 | Desktop bridge caches a signed entitlement for 24h | A | P2 |
 | LIF-10 | Free and native behaviour independent of subscription and Platform status | P | P0 |
@@ -3722,15 +3966,17 @@ outbound webhooks, finance/audit exports, SLA support.
 | ID | Item | State | Pri |
 |---|---|---|---|
 | PCK-01 | Pack as a capability-registry row, additive, lifecycle-aware | A | P2 |
-| PCK-02 | AI Credits pack | A | P1 |
-| PCK-03 | Socials Pack | A | P2 |
-| PCK-04 | Events Pack | A | P2 |
-| PCK-05 | Team Seats pack | A | P2 |
-| PCK-06 | Storage Pack | A | P2 |
-| PCK-07 | Sponsor Pack | A | P2 |
-| PCK-08 | Multi-Channel Pack | A | P3 |
-| PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation | A | **P1** |
+| PCK-02 | AI Credits pack — ₹49/₹149/₹399, paid tiers only. **First-release pack** | A | P1 |
+| PCK-03 | Socials Pack — ₹129/mo, Creator+. **First-release pack**, visible only once Social Relay is real | A | P2 |
+| PCK-04 | Events Pack — ₹129/mo, Creator+. Hidden until lobby/tournament features exist | A | P2 |
+| PCK-05 | Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) | A | P2 |
+| PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **First-release pack** | A | P2 |
+| PCK-07 | Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists | A | P2 |
+| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. **First-release pack**; the ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.1) | A | P3 |
+| PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation. Hidden until the CA/tax evidence row closes; sells the *prepared statement*, never access to the underlying records | A | **P1** |
 | PCK-10 | Pack attach-rate reporting to inform future tier composition | A | P3 |
+| PCK-11 | Hidden packs exist as registry rows so they become visible without a release | A | P2 |
+| PCK-12 | No pack, top-up or tier may sell retention, history depth, record search or export — enforced by CTL-14 | A | **P0** |
 | JOB-01 | Content calendar + public schedule page with notify-me | A | P2 |
 | JOB-02 | Consistency view: streak, hours, rest days framed kindly | A | P3 |
 | JOB-03 | Sponsor deliverable tracker with proof | A | P2 |
@@ -3809,6 +4055,13 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
 | **Social Relay** | One event becomes an approved, platform-specific action. Approve-then-send is the default; auto-send is Creator+ and opt-in. Never auto-post tips, followers or alerts anywhere. |
 | **Packs** | Tiers sell a capability class, packs sell capacity and scope. A pack never grants correctness and is never the only route to a capability. |
+| **Durable creator records** | **Never tier-gated, never sold, never withdrawn.** Storing, viewing, searching, fetching and exporting payments, receipts, refunds, audit trail, supporter relationships, event history, configurations, layouts and moderation history is free at every tier including Free, with no row, date or search cap. Restoring access to data we already accepted is never charged for. Tiering limits **new active capacity only** — active connectors, active widgets, AI usage, new media uploads, custom assets, team seats, automation volume. Over-quota assets go read-only and stay viewable and exportable; deletion follows the published retention policy alone, never a tier lapse. §12.6 outranks every tier table and pricing decision in this document. |
+| **Retention** | **One uniform published policy for every tier**, Free to Studio. Per-tier retention windows are removed and the "Event retention" top-up is deleted. Retention is a trust, privacy and legal position, not an upsell. The window itself is a legal number and stays open (§33.2). |
+| **Export vs. automation** | Owning the data is free; us doing scheduled work with it is a service. A one-off export of everything, any size, open format, is free at every tier. **Scheduled delivery** into Sheets, Tally or a webhook is an active connector and stays Creator+. |
+| **Voice routing** | **Creator-owned deterministic rules, default off.** Amount, message length, Indic script (Unicode range check, no model), supporter relationship and event class decide browser voice versus Sarvam. No AI classifier in the live path — it would cost credits to save credits and be unexplainable. Safety runs identically before both routes; the chosen route and its reason are recorded per alert. Routing is a cost control, never sold and never a paywall. |
+| **Pack prices** | **Proposed 2026-09-14, GST-inclusive:** AI Credits ₹49/₹149/₹399 · Storage ₹49 · Socials ₹129 · Events ₹129 · Team Seats ₹129 · Sponsor ₹149 · Finance ₹79 · Multi-Channel ₹199. The three ₹99 packs were raised to ₹129 so that Creator plus two feature packs actually exceeds Studio — at ₹99 it did not (₹597 against ₹599). Multi-Channel stays ₹199 and the resulting ₹598-vs-₹599 comparison is a deliberate steer, not an accident. |
+| **Pack launch set** | **Four visible at first: AI Credits, Storage, Socials, Multi-Channel.** Events, Team Seats, Sponsor and Finance stay hidden registry rows until their underlying features are real and, for Finance, until the CA/tax evidence row closes. No pack ships in v1 at all — packs are a P3 slice (§1.9). |
+| **AI credit top-ups** | **Paid tiers only.** Free keeps its trial allowance; prepaid balances sit on accounts with an existing payment relationship. |
 | **Companion packaging** | **Bundled now, unbundlable later — and modelled that way from the start.** Buying any Alerts tier *automatically grants a separate Companion membership record* rather than Companion being implied by the Alerts tier. Free gets Companion too, with controls limited per tier. |
 
 ### 33.2 Still open
@@ -3819,26 +4072,34 @@ outbound webhooks, finance/audit exports, SLA support.
    render, relax the HTML prohibition (the plan's author advises against this even
    sandboxed), or defer past launch. Deliberately left pending; nothing in Phases 0–7
    depends on it.
+2. **The retention window itself** — one number, uniform for every tier (§12.6.2),
+   reconciling DPDP with statutory retention for payment records. A legal number, not a
+   pricing one, and it blocks nothing else in Phase 0.
 3. Legal sign-off on pricing and feature claims, DPDP deletion, and the plaintext reset
    URL in the email outbox.
 4. Whether any chance-based giveaway format ever ships (currently: no).
 
 **Pricing and packaging**
 
-0. **Pack prices** — each of the eight packs in §28.2, and whether any should be
-   Studio-only rather than purchasable from Creator.
-
-6. AI credit prices per feature and per credit class.
+5. **What a rupee of AI credit actually buys**, per credit class. The ₹49 / ₹149 / ₹399
+   top-up *sizes* are proposed (§28.3); the *quantity* behind them is not, and must not
+   be published until real provider cost, retry rates and the §10.1 margin floor are
+   measured. Nothing else waits on this.
+6. Whether any pack should later become Studio-only rather than purchasable from
+   Creator. Answered "no" for the first release; revisit on attach-rate data.
 
 **Product behaviour**
 
+7. Whether the voice-routing default preset (§11.10.2) should ever ship enabled for new
+   accounts. Currently off for everyone; changing it is a pricing change and follows
+   §20.4.
 
 **Governance**
 
-7. **In-app account deletion vs. the blocked deletion policy** (CMP-78). Both stores
+8. **In-app account deletion vs. the blocked deletion policy** (CMP-78). Both stores
    require a route; legal has not approved one. Needs a decision before submission, not
    during review.
-8. Whether iOS link-outs to a purchase surface are safely permitted in India for this
+9. Whether iOS link-outs to a purchase surface are safely permitted in India for this
    category — currently answered conservatively as no (§5.6.1) and revisited only on
    evidence.
 
@@ -3972,7 +4233,7 @@ corrected — not the other way round.
 | Tier matrix advertised weighted giveaways against a free-entry-only decision | Row changed to "Giveaways (scheduled, free entry)" |
 | `global_kill` governed by two conflicting rules | §20.6.1 defines the emergency path: reason, 24h expiry, 4h ratification, immutable log, 72h review |
 | Account deletion presented as decided | Moved to §32 blocked; no flow and no promise until legal approves. Store requirement tracked as CMP-78 |
-| "No provider pricing is ever shown" contradicted the calculator requirement | §12.5.4 states the boundary once, with fee scope, sourcing, owner, 90-day staleness rule |
+| "No provider pricing is ever shown" contradicted the calculator requirement | §12.5.1 states the boundary once, with fee scope, sourcing, owner, 90-day staleness rule |
 | Customer-facing "AI tokens" contradicted the units model | Renamed to AI credits; "token" is internal-only vocabulary |
 | Global cross-creator content-addressed dedup | Tenant-scoped by default; global only for owned or licensed assets (§19.1, STO-04) |
 | Media upload gated only by attestation and a no-op scanner | §18.3 upload gate; capability stays off until every row is built and one takedown drill is rehearsed |
@@ -3980,4 +4241,11 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| Durable creator records were tier-gated and retention was sold as a top-up | §12.6 makes records untiered and unsellable at every tier; retention is uniform; the top-up row is deleted; CTL-14/CTL-15 enforce it in the registry rather than by review |
+| §26.2 deleted paid-only configuration at Expired | Only third-party secrets are destroyed; configuration, layouts, mappings and every durable record persist and stay exportable |
+| The "Retained 90 days" state read as a history clock | It is the connector-secret window only; durable records are not on that clock |
+| CON-17 tiered chat retention | Display and filtering stay tierable; retention does not |
+| §28.2 cited "§27.1 correctness" (Social Relay) | Corrected to §30.1, and extended with the §12.6 record set |
+| Premium TTS was spent uniformly until the quota ran out | §11.10 voice routing: deterministic creator rules, default off, no classifier in the live path, route and reason recorded (TTS-11 to TTS-16) |
+| Packs had no prices | §28.3 price sheet; three ₹99 packs raised to ₹129 so Creator + two feature packs actually exceeds Studio (₹597 did not); four-pack first release, four hidden until their features are real |
 | Companion had no shipping plan: no purchase position, no languages, no push infrastructure, no auth requirements, no IA, no first run, no device matrix, no release process, no store compliance, no ops | §5.6 and 56 new register rows (CMP-38 to CMP-93) |
