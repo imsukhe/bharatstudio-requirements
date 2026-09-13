@@ -2186,7 +2186,172 @@ Storage and configuration are cheap to retain for 90 days.
 
 ---
 
-## 27. Tier matrix
+## 27. Social Relay
+
+**One creator event becomes an approved, platform-specific action — never the same
+message blasted everywhere.** That distinction is the entire product. Blasting gets
+creators muted, rate-limited and banned, and the blame lands on the tool that did it.
+
+### 27.1 What relays, and what never does
+
+**Relayable events:** go-live and scheduled-live reminder · title or category changed ·
+collaboration or squad announcement · new clip/reel/short ready for review · milestone
+or goal completed · lobby or session opening · post-stream recap · supporter thank-you
+**only where that supporter explicitly opted in**.
+
+**Never auto-relayed:** every tip · every follower · every alert · anything to every
+network at once. High-frequency events stay on the overlay and in Companion, which is
+where they belong.
+
+Every relay is **approve-then-send by default**. A creator may enable auto-send per
+event type per destination, and that is a deliberate choice, not the default.
+
+### 27.2 Platform map — what we can promise, and what we cannot
+
+| Platform | What we build | What we must never promise |
+|---|---|---|
+| **YouTube** | Schedule/manage live, title, description, privacy, thumbnails, tags · live chat in Companion · rate-limited chat announcements · polls · pinned rules/lobby/tip link at controlled moments · Super Chat, membership, gifting and moderation events · post-stream wrap with timestamps | **Community posts and DMs** — no supported API route |
+| **Instagram** | Publish approved Reels and feed posts · clip-to-Reel drafts · Stories for eligible Business accounts · comment and mention inbox · "Live now" link card | **Personal accounts** (Professional only) · **unsolicited DMs** · group-DM alerts |
+| **Twitch** | EventSub: follows, subs, gifts, raids, cheers, chat, redemptions · Channel Point redemptions mapped to safe BharatStudio interactions · polls, predictions, moderation queue, clips, multi-chat · OBS bridge triggers | Transferring platform money · paid chance mechanics |
+| **Kick** | OAuth 2.1 connection · read stream/channel state · send chat · listen to chat, follows, subs · rewards and overlay integration · moderation where scoped | Anything outside currently granted scopes |
+| **Discord** | One-way channel alerts via webhook · rich embeds with thumbnail, countdown, link button · bot commands `/live` `/queue` `/goal` `/tip-page` `/schedule` · role-gated lobby registration · supporter opt-in roles | **Bulk unsolicited DMs** |
+| **WhatsApp** | Opt-in "notify me when live" · approved live and event reminder templates · verified payment status and receipts · user-initiated support inbox · click-to-chat community links | **Automatic group posting** · unsolicited messaging · relaying a supporter's tip message |
+| **Snapchat** | Turn a stream moment into a vertical Snap/Story/Spotlight-ready asset with caption, sticker, link and topic prefilled — **creator taps the final share** | Background posting to ordinary accounts |
+| **Telegram** | Optional bot channel alerts, polls, commands, community queue | Replacing our own identity and moderation layer |
+
+### 27.3 The rate-limit discipline
+
+Every destination gets a **per-channel queue with a cooldown**, never a send-per-event
+rule.
+
+- **YouTube** rejects excessive chat sends — announcements are queued and cooled down,
+  and a pinned message is a scheduled moment, not a reflex.
+- **Discord** returns dynamic rate-limit headers; we **obey the returned headers**
+  rather than hard-coding a number. The general bot ceiling is 50 requests/second and
+  we stay far below it.
+- **WhatsApp** allows free-form replies only inside the 24-hour window after the user
+  writes. Outside it, only approved templates, only with opt-in, and those cost money —
+  so template sends are metered and shown to the creator as a cost.
+- **Instagram** conversations must be user-initiated. Use click-to-message,
+  comment-keyword opt-in, or a "remind me" flow — never a tip-triggered DM.
+
+A destination that returns a limit error backs off and surfaces a **Degraded** state,
+the same health model as payment routing (§25.2).
+
+### 27.4 Uploads and verification
+
+We can prepare and upload a Short or VOD, but **uploads from an unverified API project
+may be forced private until Google audits it**. That is disclosed in-product before a
+creator relies on it, and it joins the unfiled external gate list alongside OAuth
+verification and quota.
+
+### 27.5 Lapse behaviour
+
+On lapse: retain read-only connection configuration · stop new automatic sends after
+grace · keep manual share links working · and **never send a "your subscription
+expired" message to the creator's audience**. The audience is not party to the billing
+relationship.
+
+---
+
+## 28. Add-on packs
+
+Tiers sell a **capability class**. Packs sell **capacity and scope**. Keeping that line
+clean is what stops the pricing page becoming unreadable and stops packs cannibalising
+upgrades.
+
+### 28.1 The rules
+
+1. A pack **never** grants a correctness capability (§27.1 of the tier matrix).
+2. A pack is **never the only way** to get something — it deepens a capability the
+   creator's tier already has, or adds capacity to it.
+3. Every pack is a capability-registry row (§20), so staff can retier, reprice or kill
+   it without a deploy.
+4. Packs stack additively with tier allowances and never replace them.
+5. A lapsed pack follows the §26 lifecycle: paused, retained 90 days, nothing deleted.
+
+### 28.2 The packs
+
+| Pack | What it adds | For |
+|---|---|---|
+| **AI Credits** | Consumable units, three classes (§11) | Everyone; the only pure consumable |
+| **Socials Pack** | +3 connected accounts · auto-send per event type · post scheduling · multilingual variants · social calendar | A Creator-tier streamer who promotes seriously but does not need Studio's team features |
+| **Events Pack** | Full tournament brackets · lobby templates · recurring community nights · advanced giveaway formats | Creators who run community nights but stream alone |
+| **Team Seats** | +2 moderator or operator seats, +1 concurrent control session | A growing creator with helpers, not yet a studio |
+| **Storage Pack** | +500MB assets, +50 sound uploads | Heavy Sound Moments users |
+| **Sponsor Pack** | Sponsor manager · scheduled placements · exposure log · proof-of-delivery report | A creator who just landed their first sponsor |
+| **Multi-Channel Pack** | +1 channel or brand under one account | Creators running a second persona or a clips channel |
+| **Finance Pack** | Monthly statement · GST-ready export · TDS reference notes · payout-vs-bank reconciliation view | See §29.2 — this is the one I would build first |
+
+**Deliberately not a pack:** anything in §27.1 correctness, receipts, exports, account
+recovery, security controls, or Companion itself.
+
+### 28.3 Why packs beat more tiers
+
+A fifth tier forces a creator to buy nine things to get one. Packs let a Creator-tier
+streamer who runs tournaments buy exactly that, and they give us a much better signal:
+**pack attach rates tell us what the next tier should contain**, using real money rather
+than a survey.
+
+---
+
+## 29. Day-to-day creator jobs we could solve
+
+Beyond the stream itself. Ordered by how often the pain recurs.
+
+### 29.1 Scheduling and consistency
+
+A **content calendar** holding stream schedule, planned socials, sponsor commitments and
+lobby nights in one place — with a public schedule page carrying "notify me" that feeds
+the WhatsApp and Discord opt-ins we already have. Plus a consistency view: streak,
+hours, rest days. Creators burn out on an invisible treadmill and a rest day shown as a
+deliberate choice rather than a broken streak is a genuinely kind piece of design.
+
+### 29.2 Finance and compliance — the biggest unserved need in India
+
+Nobody serves this well, it recurs monthly, and we already hold the ledger.
+
+Monthly earnings statement · **GST-ready export** · TDS reference notes · payout-versus-
+bank reconciliation · per-sponsor income breakdown · year-end summary for a CA.
+
+**The hard boundary: we export data, we never give tax advice.** Every artefact is
+labelled as a record for the creator's accountant, never as a filing or a
+recommendation. This needs the same legal review as the rest of the money surface, and
+it is the single feature most likely to make a serious Indian creator switch — because
+it is the job they currently do in a spreadsheet at midnight.
+
+### 29.3 Sponsors
+
+A deliverable tracker: what was promised, when it is due, what proof exists. Paired with
+the exposure log the Sponsor Card already produces, that turns "did I do the sponsor
+read" into an auditable record a creator can invoice against.
+
+### 29.4 Content operations
+
+Clip request queue from the audience · a clip-to-social pipeline that ends in a draft,
+never an auto-post · title and thumbnail performance tracking against our own stream
+records · an editor handoff pack (§11.4) · a shareable gear and setup profile, which
+answers the most-asked chat question automatically.
+
+### 29.5 Relationships
+
+A lightweight collab record — who, when, which format, how it performed — so a creator
+can see which collaborations actually grew them. Community FAQ auto-answers in chat for
+the questions asked every single stream.
+
+### 29.6 What I would not build
+
+- **Editor payouts or revenue splitting with staff.** It is money movement, needs
+  escrow or Route, and drags us into being a payroll product.
+- **A full CRM.** Creators will not maintain it.
+- **Cross-posting to every network on a schedule.** That is the spam pattern §27 exists
+  to prevent, wearing a calendar as a disguise.
+- **Analytics competing with YouTube Studio.** Report on what *we* uniquely see —
+  support, goals, sponsor exposure, lobby attendance — not on generic view counts.
+
+---
+
+## 30. Tier matrix
 
 **This is the seed for the capability registry (§20), not a hard-coded ladder.** Once
 the control plane exists, staff move any row at any time. What matters is that the
@@ -2202,14 +2367,14 @@ The principle, one line per tier:
 | **Studio ₹599** | Team and events — seats, approval, tournaments, pooled AI, priority |
 | **Enterprise** | Governance-blocked (§24) |
 
-### 27.1 Correctness — identical on every tier, forever
+### 30.1 Correctness — identical on every tier, forever
 
 Payment verification · immutable records · webhook dedup · reconciliation · refund
 tracking · queue durability and no-drop · retry and replay · security · privacy · audit
 · accessibility · downgrade preservation · legal disclosures · receipts · anonymous
 tipping with no login.
 
-### 27.2 The existing ladder (already enforced in code)
+### 30.2 The existing ladder (already enforced in code)
 
 | Dimension | Free | Pro | Creator | Studio |
 |---|---|---|---|---|
@@ -2240,7 +2405,7 @@ tipping with no login.
 **Queue count decided 2026-09-13: 1 / 2 / 3 / 5**, as shown. The 1/3/5/10 figure in
 L03's retier note is superseded.
 
-### 27.3 Proposed placement for everything new
+### 30.3 Proposed placement for everything new
 
 | Capability | Free | Pro | Creator | Studio |
 |---|---|---|---|---|
@@ -2299,13 +2464,26 @@ L03's retier note is superseded.
 | Sponsor reports, multi-creator controls | — | — | — | yes |
 | Custom domains, API / outbound webhooks | — | — | — | add-on |
 | **Never charged for** (receipts, exports, account recovery, disconnecting an integration, security controls) | yes | yes | yes | yes |
+| **Social Relay** | | | | |
+| Profile links, share cards, manual copy/open | yes | yes | yes | yes |
+| Connected social/live accounts | — | 1 | 2 | 6 |
+| Discord webhook alerts | — | yes | yes | yes |
+| YouTube / Twitch / Kick chat tools | — | — | yes | yes |
+| Instagram publishing (Professional accounts) | — | — | yes | yes |
+| WhatsApp opt-in reminders (approved templates) | — | — | yes | yes |
+| Automations per event type | — | 1 | 1 | unlimited |
+| Auto-send (vs approve-then-send) | — | — | yes | yes |
+| Post scheduling + social calendar | — | — | — | yes |
+| Multilingual variants | — | — | — | yes |
+| Team approval before a social post | — | — | — | yes |
+| Snapchat hand-off composer | — | yes | yes | yes |
 | **Ops** | | | | |
 | Sponsor manager + exposure log | — | — | — | yes |
 | Finance exports (Sheets, Tally) | — | — | yes | yes |
 | Post-stream analytics | basic | yes | yes | yes |
 | Priority support | — | — | — | yes |
 
-### 27.4 Companion controls by tier
+### 30.4 Companion controls by tier
 
 Companion is available on **every** tier including Free — it is the cockpit that makes a
 first stream succeed — but what it can *do* is tiered.
@@ -2328,7 +2506,7 @@ first stream succeed — but what it can *do* is tiered.
 | Multi-operator, producer roles | — | — | — | yes |
 | Push notification types | 2 | all | all | all |
 
-#### 27.4.1 Why the grant is separate even while bundled
+#### 30.4.1 Why the grant is separate even while bundled
 
 Buying an Alerts tier issues a **distinct Companion membership record**, not an implied
 permission. That costs nothing today and it is what makes unbundling later a pricing
@@ -2343,7 +2521,7 @@ The one genuine blocker to actually selling it standalone remains **implicit cha
 provisioning** (CMP-12): a Companion-only signup has no channel, and nothing creates
 one. Until that exists, standalone is a config flag with no viable signup path.
 
-### 27.5 Rules that keep the matrix honest
+### 30.5 Rules that keep the matrix honest
 
 - **Nothing correctness-related ever moves up a tier.** §25.1 is immutable.
 - **Free must be genuinely usable**, not a demo. A Free creator takes real money, gets
@@ -2358,15 +2536,15 @@ one. Until that exists, standalone is a config flag with no viable signup path.
 
 ---
 
-## 28. Master task register — nothing deferred
+## 31. Master task register — nothing deferred
 
 Status key: **U** usable · **X** unreachable · **P** partial · **A** absent · **B** blocked.
 Priority: **P0** launch-blocking · **P1** launch-shaping · **P2** post-launch · **P3** later.
 
-### 28.1 Foundation repairs
+### 31.1 Foundation repairs
 See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (P0, cheap).
 
-### 28.2 Payments and money
+### 31.2 Payments and money
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2401,7 +2579,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-28 | Paytm / Cashfree / PhonePe | B | — |
 | PAY-29 | Recurring memberships | B | — |
 
-### 28.3 Alerts, queues, overlay
+### 31.3 Alerts, queues, overlay
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2425,7 +2603,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ALQ-18 | Master Canvas single browser source with modules (§6) | A | P0 |
 | ALQ-19 | Vertical / second-output canvas | A | P2 |
 
-### 28.4 TTS
+### 31.4 TTS
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2440,7 +2618,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | TTS-09 | Mute / cancel in-flight from dashboard (companion API exists) | P | P1 |
 | TTS-10 | TTS character top-ups | A | P1 |
 
-### 28.5 Viewer identity, history, trust
+### 31.5 Viewer identity, history, trust
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2467,7 +2645,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-19 | YouTube identity attribution carried onto payments | A | P0 |
 | VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§14.2) | A | P1 |
 
-### 28.6 Engagement — interactions, widgets, goals, challenges
+### 31.6 Engagement — interactions, widgets, goals, challenges
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2504,7 +2682,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CHL-07 | `!challenge` chat command | A | P2 |
 | CHL-08 | Refundable multi-contributor challenges | B | — |
 
-### 28.7 Stickers, media, Alert Studio
+### 31.7 Stickers, media, Alert Studio
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2530,7 +2708,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | MED-20 | Curated meme/media queue module | A | P2 |
 | MED-21 | Lottie + custom branding upload, Studio-tier, live gate, bytea storage | U | — |
 
-### 28.8 Companion
+### 31.8 Companion
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2572,7 +2750,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-34 | Push tokens stored as fingerprint + ciphertext, raw never returned | U | — |
 | CMP-35 | Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them | A | P2 |
 
-### 28.9 Connectors and chat
+### 31.9 Connectors and chat
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2599,7 +2777,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-20 | Optional YouTube `/live` support page | A | P3 |
 | CON-21 | YouTube identity/trust model and namespaces (§14.2) | A | P1 |
 
-### 28.10 Entitlements, billing, admin, ops
+### 31.10 Entitlements, billing, admin, ops
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2642,7 +2820,7 @@ works, they must be instrumented from the first cohort, and they **cannot be
 reconstructed later**. Shipping without them means never knowing whether BharatStudio
 raised a creator's income.
 
-### 28.11 Marketing, legal, support
+### 31.11 Marketing, legal, support
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2656,7 +2834,7 @@ raised a creator's income.
 | MKT-08 | Support surface and staffing | A | P0 |
 | MKT-09 | Public copy matches versioned decisions with dated history | U | — |
 
-### 28.12 AI
+### 31.12 AI
 
 All **A** (absent) except the L23 seam. AI-01 safety rules + moderation queue ·
 AI-02 TTS-safe rewrite and PII protection · AI-03 title/description/translation ·
@@ -2667,7 +2845,7 @@ recommendations · AI-11 moderator copilot · AI-12 Clutch Mode intensity detect
 AI-13 sponsor-safe scanning. Priority P1 for AI-01/02/06, P2 for the rest.
 L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free.
 
-### 28.13 Live Support Hub
+### 31.13 Live Support Hub
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2695,7 +2873,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | HUB-22 | Post-stream supporter recap and receipt export | A | P2 |
 | HUB-23 | Milestone unlocks framed as a creator promise, never a contract | A | P1 |
 
-### 28.14 Customisation and gating
+### 31.14 Customisation and gating
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2706,7 +2884,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CUS-05 | Preset bundles that are fully editable afterwards | A | P2 |
 | CUS-06 | Per-source alert styling (Super Chat distinct from UPI tip) | A | P1 |
 
-### 28.15 Lobby Engine
+### 31.15 Lobby Engine
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2734,7 +2912,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | LOB-22 | Screened Guest Queue (audio-only, time-boxed) | A | P3 |
 | LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | **Never** | — |
 
-### 28.16 Giveaways and tournaments
+### 31.16 Giveaways and tournaments
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2753,7 +2931,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | TRN-05 | Standings overlay module | A | P2 |
 | TRN-06 | Sponsor slot with exposure log | A | P2 |
 
-### 28.17 Custom audio and creator media
+### 31.17 Custom audio and creator media
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2769,7 +2947,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | AUD-10 | Asset storage quota enforcement (MED-13 dependency) | A | P1 |
 | AUD-11 | Shared or discoverable music library | **Never** | — |
 
-### 28.18 Performance
+### 31.18 Performance
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2790,7 +2968,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | PRF-15 | Companion: optimistic UI, virtualised lists, no re-render storms | P | P1 |
 | PRF-16 | Published one-source-vs-many benchmark, re-run in CI | A | P1 |
 
-### 28.19 Control plane and admin
+### 31.19 Control plane and admin
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2808,7 +2986,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CTL-12 | Marketing sections behind flags (`kind = marketing_section`) | A | P1 |
 | CTL-13 | Admin MFA + durable admin registry (ADM-07 dependency) | A | P0 |
 
-### 28.20 New widgets
+### 31.20 New widgets
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2820,7 +2998,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | WID-06 | Match Countdown, Tournament Standings, Squad Roster | A | P2 |
 | WID-07 | Hours Streamed, Milestone Ticker, Top Clip, Recap Card | A | P2 |
 
-### 28.21 Co-Stream Room
+### 31.21 Co-Stream Room
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2840,7 +3018,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | COS-14 | Clip handoff consent | A | P2 |
 | COS-15 | Silent payment splitting | **Never** | — |
 
-### 28.22 Sound Moments and Rules Engine
+### 31.22 Sound Moments and Rules Engine
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2861,7 +3039,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | MIG-02 | Test/sandbox mode that never reaches viewers | A | P1 |
 | MIG-03 | Global emergency-disable button | A | P0 |
 
-### 28.23 Enterprise
+### 31.23 Enterprise
 
 All **B** (blocked) pending §24.5. EN-00 commercial/legal model · EN-01 org, roles,
 allocations · EN-02 immutable snapshot schema · EN-03 settlement adapters · EN-04
@@ -2870,7 +3048,7 @@ reconciliation · EN-07 scheduler handlers · EN-08 dashboard views · EN-09 pil
 Plus SSO, RBAC, shared brand kits, licensed packs, campaigns, cross-channel analytics,
 outbound webhooks, finance/audit exports, SLA support.
 
-### 28.24 Payment routing
+### 31.24 Payment routing
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2892,7 +3070,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | RTE-16 | KMS/HSM envelope encryption for any delegated secret, no human read path | A | P2 |
 | RTE-17 | Credential-compromise incident procedure, rehearsed | A | P2 |
 
-### 28.25 Subscription lifecycle
+### 31.25 Subscription lifecycle
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2907,7 +3085,55 @@ outbound webhooks, finance/audit exports, SLA support.
 | LIF-09 | Desktop bridge caches a signed entitlement for 24h | A | P2 |
 | LIF-10 | Free and native behaviour independent of subscription and Platform status | P | P0 |
 
-### 28.26 Storage and media platform
+### 31.26 Social Relay
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| SOC-01 | Event model: 8 relayable event types, approve-then-send default | A | P2 |
+| SOC-02 | Per-destination queue with cooldown; never send-per-event | A | P2 |
+| SOC-03 | Obey returned rate-limit headers (Discord) rather than hard-coded limits | A | P2 |
+| SOC-04 | Health states per destination, mirroring §25.2 | A | P2 |
+| SOC-05 | Discord webhook + rich embeds + bot commands | A | P2 |
+| SOC-06 | YouTube: broadcast metadata, chat announcements, polls, pinned moments | A | P2 |
+| SOC-07 | YouTube post-stream wrap with timestamps | A | P2 |
+| SOC-08 | Instagram: Reels/feed publish, clip-to-Reel draft, comment inbox | A | P3 |
+| SOC-09 | WhatsApp: opt-in, approved templates, 24h window respected, template cost shown | A | P3 |
+| SOC-10 | Twitch EventSub + Channel Point mapping | A | P3 |
+| SOC-11 | Kick OAuth 2.1 connector within granted scopes | A | P3 |
+| SOC-12 | Snapchat Creative Kit hand-off, creator taps final share | A | P3 |
+| SOC-13 | Telegram bot channel alerts | A | P3 |
+| SOC-14 | Upload-forced-private disclosure until Google audits the project | A | P2 |
+| SOC-15 | Lapse: manual share kept, auto-send stopped, no message to the audience | A | P2 |
+| SOC-16 | Auto-posting every tip/follower/alert anywhere | **Never** | — |
+| SOC-17 | YouTube Community posts, IG personal accounts, unsolicited DMs, WhatsApp groups, Snapchat background posting | **Never** | — |
+
+### 31.27 Packs and creator-ops
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| PCK-01 | Pack as a capability-registry row, additive, lifecycle-aware | A | P2 |
+| PCK-02 | AI Credits pack | A | P1 |
+| PCK-03 | Socials Pack | A | P2 |
+| PCK-04 | Events Pack | A | P2 |
+| PCK-05 | Team Seats pack | A | P2 |
+| PCK-06 | Storage Pack | A | P2 |
+| PCK-07 | Sponsor Pack | A | P2 |
+| PCK-08 | Multi-Channel Pack | A | P3 |
+| PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation | A | **P1** |
+| PCK-10 | Pack attach-rate reporting to inform future tier composition | A | P3 |
+| JOB-01 | Content calendar + public schedule page with notify-me | A | P2 |
+| JOB-02 | Consistency view: streak, hours, rest days framed kindly | A | P3 |
+| JOB-03 | Sponsor deliverable tracker with proof | A | P2 |
+| JOB-04 | Clip request queue | A | P3 |
+| JOB-05 | Clip-to-social pipeline ending in a draft, never auto-post | A | P3 |
+| JOB-06 | Title/thumbnail performance against our own stream records | A | P3 |
+| JOB-07 | Shareable gear/setup profile | A | P3 |
+| JOB-08 | Collab record | A | P3 |
+| JOB-09 | Community FAQ auto-answers in chat | A | P3 |
+| JOB-10 | Editor payouts / staff revenue splitting | **Never** | — |
+| JOB-11 | Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio | **Never** | — |
+
+### 31.28 Storage and media platform
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -2919,7 +3145,7 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 29. Blocked — with the exact unblocking condition
+## 32. Blocked — with the exact unblocking condition
 
 | Item | Unblocked by |
 |---|---|
@@ -2939,9 +3165,9 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 30. Decisions taken, and decisions still open
+## 33. Decisions taken, and decisions still open
 
-### 30.1 Decided 2026-09-13
+### 33.1 Decided 2026-09-13
 
 | Decision | Outcome |
 |---|---|
@@ -2967,9 +3193,11 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Tournaments** | Creator gets single elimination up to 8 players. Studio gets double elimination, round robin, seeding and sponsor slots. |
 | **Lobby default** | **Open FIFO queue** for new creators. Member priority and creator pick are deliberate opt-ins, so the product does not read as pay-to-play by default. |
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
+| **Social Relay** | One event becomes an approved, platform-specific action. Approve-then-send is the default; auto-send is Creator+ and opt-in. Never auto-post tips, followers or alerts anywhere. |
+| **Packs** | Tiers sell a capability class, packs sell capacity and scope. A pack never grants correctness and is never the only route to a capability. |
 | **Companion packaging** | **Bundled now, unbundlable later — and modelled that way from the start.** Buying any Alerts tier *automatically grants a separate Companion membership record* rather than Companion being implied by the Alerts tier. Free gets Companion too, with controls limited per tier. |
 
-### 30.2 Still open
+### 33.2 Still open
 
 **Needs data or legal input, not a snap judgement**
 
@@ -2983,6 +3211,9 @@ outbound webhooks, finance/audit exports, SLA support.
 
 **Pricing and packaging**
 
+0. **Pack prices** — each of the eight packs in §28.2, and whether any should be
+   Studio-only rather than purchasable from Creator.
+
 6. AI credit prices per feature and per credit class.
 
 **Product behaviour**
@@ -2993,7 +3224,7 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 31. Build order
+## 34. Build order
 
 Scope is Alerts, dashboard, overlay, Support Hub and mobile Companion. Nothing else.
 
@@ -3030,7 +3261,12 @@ Questions · member perks · top-ups and the credit ledger · Discord role sync.
 **Phase 6 — safety and AI.** Indic safety · AI moderation queue · TTS-safe rewrite ·
 copilot · recap and clips.
 
-**Phase 7 — events and collaboration.** Co-Stream Room · giveaways · tournaments ·
+**Phase 6.5 — creator ops.** Finance Pack (the highest-value unserved job) · content
+calendar and public schedule page · sponsor deliverable tracker · the pack framework
+itself.
+
+**Phase 7 — events, collaboration and social.** Social Relay starting with Discord,
+then YouTube, then Instagram and WhatsApp opt-in · Co-Stream Room · giveaways · tournaments ·
 sponsor manager and exposure logs · finance exports · post-stream analytics ·
 portability.
 
@@ -3048,7 +3284,7 @@ Two things are not phases:
 
 ---
 
-## 32. Maintaining this document
+## 35. Maintaining this document
 
 This file is the product authority. Master plan Part 7 is superseded and should not be
 consulted for status.
