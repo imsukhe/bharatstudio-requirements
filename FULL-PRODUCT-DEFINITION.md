@@ -563,7 +563,7 @@ local configuration only.
 BharatStudio takes **0% of tips**. That promise is the positioning and must not be
 diluted. Revenue comes from three clean lines that never touch a creator's tip:
 
-1. **Subscription tiers** — Free / Pro ₹199 / Creator ₹399 / Studio ₹499
+1. **Subscription tiers** — Free / Pro ₹199 / Creator ₹399 / Studio ₹599
 2. **Top-ups** — the creator buys capacity from us; we are the merchant of record
 3. **AI credits** — metered feature value (§11)
 
@@ -646,17 +646,21 @@ This is the single best answer to the memberships blocker. It gives creators rec
 *revenue behaviour* without recurring *payment infrastructure*. Model it as periods
 with explicit start/end, never a boolean.
 
-### 10.5 Private custom room / match password delivery
+### 10.5 Private custom room access — superseded by the Lobby Engine
 
-Large in India — BGMI, Free Fire, Valorant, GTA RP creators run daily custom matches.
+**Decided 2026-09-13: dropped as a paid mechanic.** The original idea was a qualifying
+tip (say ₹50) returning the room ID and password on the receipt screen — a real pain
+point, since BGMI, Free Fire, Valorant and GTA RP creators currently type passwords
+into Instagram DMs and Discord.
 
-A viewer who sends a qualifying tip (e.g. ₹50) receives the **room ID and password on
-their post-payment receipt screen**. It replaces the creator typing passwords into
-Instagram DMs and Discord.
+It is superseded by the Lobby Engine (§16), which solves the same problem better and
+without selling a seat: private single-use seat tokens, codes revealed only after a
+ready check, no code ever on stream, reserve promotion on no-show, and an auditable
+selection policy shown before anyone joins.
 
-Needs: creator sets the qualifying amount and the secret per session · secret is
-revealed only after verified capture · rotation and revoke · rate limiting and
-an abuse guard · secret never in a URL, never in an alert, never in a log.
+**A seat is never bought.** Creators who want to reward supporters use the
+*verified member priority* or *attendance priority* eligibility modes. That keeps one
+eligibility model, one audit trail, and no fairness argument in chat.
 
 ### 10.6 Priority Question / AMA queue ("Super Questions")
 
@@ -997,9 +1001,13 @@ The **`is_platform_admin`** concept and the admin console remain in scope: they 
 BharatStudio staff operations for Alerts, unrelated to the Platform service.
 
 One naming item survives the cut: **"Companion" collides with Bitfocus Companion**, an
-established Stream Deck / OBS controller. Since Companion now ships only as a mobile
-app under our own brand, this is a store-listing and SEO concern rather than a
-blocker — but it should be settled before the first App Store or Play submission.
+established Stream Deck / OBS controller.
+
+**Decided 2026-09-13: keep the name.** The collision is accepted as a known store-search
+and SEO risk. It is a real risk — the collision sits directly in our category, which is
+the worst case for discovery — and the mitigation is brand-led rather than nominal:
+always ship as "BharatStudio Companion", never bare "Companion", in store titles,
+subtitles and keywords. Revisit only if store search data shows it costing installs.
 
 ---
 
@@ -1174,6 +1182,10 @@ and a free entry route must remain.
 Draw: deterministic and auditable. Server-side seeded draw with the seed and entrant
 count recorded, a redacted audit log, and a result the creator cannot silently
 override — an override is possible but is logged and labelled as an override.
+
+**Decided 2026-09-13: free-entry and skill-based formats only.** No chance-based
+giveaway ships until counsel signs off, and supporter-weighted odds are not built. This
+removes the lottery question entirely rather than managing it.
 
 Boundaries: **BharatStudio never holds, escrows, ships or guarantees a prize.** The
 creator is the promoter and is responsible for eligibility, taxes and delivery; our
@@ -1850,7 +1862,7 @@ The principle, one line per tier:
 | **Free** | Everything correctness-critical, plus a real working alert. Never crippled, always watermarked |
 | **Pro ₹199** | Personality — voice, sounds, look, more alerts on screen |
 | **Creator ₹399** | Community mechanics — goals, votes, lobbies, co-streams, connectors |
-| **Studio ₹499/₹599** | Team and events — seats, approval, tournaments, pooled AI, priority |
+| **Studio ₹599** | Team and events — seats, approval, tournaments, pooled AI, priority |
 | **Enterprise** | Governance-blocked (§24) |
 
 ### 25.1 Correctness — identical on every tier, forever
@@ -1888,8 +1900,8 @@ tipping with no login.
 | Watermark | yes | — | — | — |
 | Lottie / branding upload | — | — | — | yes |
 
-**Queue count is disputed** — 1/2/3/5 in one source, 1/3/5/10 in another (open
-decision 2). The table above uses the conservative reading.
+**Queue count decided 2026-09-13: 1 / 2 / 3 / 5**, as shown. The 1/3/5/10 figure in
+L03's retier note is superseded.
 
 ### 25.3 Proposed placement for everything new
 
@@ -1929,7 +1941,7 @@ decision 2). The table above uses the conservative reading.
 | Lobby Engine (queue, ready check, seats) | — | — | yes | yes |
 | Lobby templates and filters | — | — | — | yes |
 | Cross-creator lobbies | — | — | — | yes |
-| Co-Stream Room (2 creators) | — | — | yes | yes |
+| Co-Stream Room (2 creators) | — | — | **yes** | yes |
 | Squad grid (3–4 creators) | — | — | — | yes |
 | Giveaways (free entry) | — | yes | yes | yes |
 | Giveaways (weighted, scheduled) | — | — | yes | yes |
@@ -1997,6 +2009,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-25 | Referral credit = service-time (30-day reward, 14-day hold, 5/30-day cap, 12 banked, same-subnet fraud signal) | U | — |
 | PAY-26 | Top-up purchase, ledger and balances (§10.2) | A | P1 |
 | PAY-27 | Season Passes (§10.4) | A | P1 |
+| PAY-30 | Paid room-code unlocking | **Dropped** | — |
 | PAY-28 | Paytm / Cashfree / PhonePe | B | — |
 | PAY-29 | Recurring memberships | B | — |
 
@@ -2495,38 +2508,55 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ---
 
-## 28. Open decisions the owner must make
+## 28. Decisions taken, and decisions still open
 
-1. **Studio price: ₹499 or ₹599?** `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` says
-   ₹599 GST-inclusive superseding ₹499/₹799; task files carry both. One must win.
-2. **Queue count ladder** — sources disagree: 1/2/3/5 versus Free 1 / Pro 3 /
-   Creator 5 / Studio 10. Reconcile before any pricing page change.
-3. Companion rename before a standalone store listing.
-4. Companion bundled-vs-standalone pricing (must remain configurable either way).
-5. Mirror and Stream pricing numbers.
-6. Sticker pack limits 10/25/50 — implementation choice, needs sign-off.
-7. Bare `!tip` with no amount — behaviour undefined.
-8. Template catalogue: author 359 packages, cut the catalogue, or relax the HTML
-   prohibition (the plan's author recommends against relaxing, even sandboxed).
-9. Reputation retention vs DPDP — decided by default, recorded as open.
-10. Top-up pricing and margins per §10.2.
-11. AI credit prices per feature and per class.
-12. Paid-tier Companion control-session concurrency (Free is exactly one; paid undecided).
-13. **Credit bundle sizing** — the rupee price and unit count per bundle, and the
-    internal margin floor (25% is the stated minimum, not a decision).
-14. **Giveaway legal position in India** — which formats are safe without a licence,
-    and whether any chance-based format ships at all.
-15. Whether tournaments are a Studio-only capability or available lower.
-16. Custom-audio tier ladder — which tiers get sounds, how many, and clip length caps.
-17. Lobby: default eligibility mode shipped to new creators.
-18. Whether the tip-for-room-code flow (§10.5) coexists with the Lobby Engine or is
-    replaced by it — they overlap and currently both exist on paper.
-19. **Queue-count ladder** must be settled before the capability matrix is seeded —
-    1/2/3/5 or 1/3/5/10.
-20. Whether the Co-Stream Room is Creator-tier or Studio-only.
-21. Whether creator sound-upload counts (5 / 25 / 100) and the Free tier's exclusion
-    from uploads are right.
-22. Who may operate the control plane, and whether moving a paid capability into Free
+### 28.0 Decided 2026-09-13
+
+| Decision | Outcome |
+|---|---|
+| **Studio price** | **₹599** GST-inclusive. `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` wins; ₹499 and ₹799 are superseded everywhere. The margin work behind the 20K/40K/60K TTS ladder assumed ₹599. |
+| **Queue-count ladder** | **1 / 2 / 3 / 5.** The conservative reading, matching what is enforced. Raising a limit later is painless; lowering one breaks creators. |
+| **Control plane sequencing** | **Phase 0, before feature work.** Seed the registry with the capabilities that exist today rather than retrofitting it onto sixty hard-coded gates. Marketing stops being able to over-claim immediately. |
+| **Giveaways** | **Free-entry and skill-based only.** No chance-based format ships until counsel signs off. The creator is always the promoter; we never hold a prize. |
+| **Room codes** | **The Lobby Engine governs seats. Paid room-code unlocking is dropped.** One eligibility model, no fairness problem. Creators reward supporters through priority modes, never by selling a seat. |
+| **Co-Stream Room tier** | **Creator ₹399.** Squad grid (3–4 creators) stays Studio-only as the premium step. |
+| **Companion name** | **Kept.** The Bitfocus Companion collision is accepted as a known store-search and SEO risk rather than paid for with a rename. Revisit only if store search proves it costly. |
+| **Template catalogue** | **Still pending** — deliberately left open, not decided by default. |
+
+### 28.1 Still open
+
+**Needs data or legal input, not a snap judgement**
+
+1. **Template catalogue** — author the 359 missing packages, cut to the 241 that
+   render, relax the HTML prohibition (the plan's author advises against this even
+   sandboxed), or defer past launch. Deliberately left pending; nothing in Phases 0–7
+   depends on it.
+2. Reputation retention vs DPDP — currently decided by default, which is not a decision.
+3. Legal sign-off on pricing and feature claims, DPDP deletion, and the plaintext reset
+   URL in the email outbox.
+4. Whether any chance-based giveaway format ever ships (currently: no).
+
+**Pricing and packaging**
+
+5. Top-up bundle pricing — the rupee price and unit count per bundle, and whether 25%
+   is the right internal margin floor.
+6. AI credit prices per feature and per credit class.
+7. Companion bundled-vs-standalone pricing. Must remain configurable either way, and
+   note that standalone is impossible until implicit channel provisioning exists.
+8. Whether tournaments stay Studio-only.
+9. Custom-audio tier ladder — the 5 / 25 / 100 upload counts, clip length caps, and
+   whether Free is right to be excluded from uploads entirely.
+
+**Product behaviour**
+
+10. Sticker pack limits 10 / 25 / 50 — an implementation choice that was never signed off.
+11. Bare `!tip` with no amount — behaviour still undefined.
+12. Paid-tier Companion control-session concurrency (Free is exactly one).
+13. Lobby: the default eligibility mode new creators get.
+
+**Governance**
+
+14. Who may operate the control plane, and whether moving a paid capability into Free
     needs owner approval rather than two-staff approval.
 
 ---
@@ -2571,6 +2601,8 @@ copilot · recap and clips.
 **Phase 7 — events and collaboration.** Co-Stream Room · giveaways · tournaments ·
 sponsor manager and exposure logs · finance exports · post-stream analytics ·
 portability.
+
+**Decided:** the control plane is Phase 0, not a later retrofit.
 
 **Blocked track, unscheduled.** Enterprise (§24) proceeds only when its reopening gate
 closes. Nothing in Phases 0–7 depends on it.
