@@ -2229,7 +2229,7 @@ tipping with no login.
 | Asset storage | — | 100MB | 250MB | 1GB |
 | Companion slots | 8 | 16 | 32 | 64 |
 | Companion page size | 4 | 8 | 16 | 16 |
-| Control sessions | 1 | 1 | 2 | 4 |
+| Control sessions (concurrent) | 1 | 1 | 2 | 4 |
 | Read-only sessions | 2 | 3 | 5 | 8 |
 | Event bindings | 3 | 5 | 10 | 20 |
 | Saved presets | 1 | 2 | 4 | 8 |
@@ -2282,7 +2282,8 @@ L03's retier note is superseded.
 | Squad grid (3–4 creators) | — | — | — | yes |
 | Giveaways (free entry) | — | yes | yes | yes |
 | Giveaways (weighted, scheduled) | — | — | yes | yes |
-| Tournaments and brackets | — | — | — | yes |
+| Tournaments — single elim, up to 8 | — | — | yes | yes |
+| Tournaments — double elim, round robin, seeding, sponsor slots | — | — | — | yes |
 | **AI credits** | trial | monthly | larger monthly | pooled team |
 | AI moderation (live) | — | — | yes | yes |
 | Thumbnail / Channel DNA | — | — | yes | yes |
@@ -2704,7 +2705,8 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | GIV-05 | Terms: creator is promoter, responsible for eligibility, tax and delivery | A | P1 |
 | GIV-06 | Overlay: entry count, timer, consented winner, no address on stream | A | P1 |
 | GIV-07 | Legal review before any chance-based format ships in India | A | P1 |
-| TRN-01 | Brackets (single, double, round robin, points) on the Lobby Engine | A | P2 |
+| TRN-01 | Single-elimination brackets up to 8 (Creator) | A | P2 |
+| TRN-01b | Double elimination, round robin, points, seeding, sponsor slots (Studio) | A | P2 |
 | TRN-02 | Seeding by attendance, creator pick, or published-seed random | A | P2 |
 | TRN-03 | Check-in windows, scheduling, reminders | A | P2 |
 | TRN-04 | Score reporting with dispute note | A | P2 |
@@ -2758,7 +2760,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CTL-04 | Admin UI: master switch, retier, edit limits, kill | A | P0 |
 | CTL-05 | Impact preview ("affects 214 channels, 3 live") | A | P1 |
 | CTL-06 | Staged effective-time changes | A | P1 |
-| CTL-07 | Two-person approval for global kill and paid→Free moves | A | P1 |
+| CTL-07 | Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents | A | P1 |
 | CTL-08 | One-action revert to previous version | A | P1 |
 | CTL-09 | Layer 1 correctness dimensions rejected from this panel | A | P0 |
 | CTL-10 | `GET /v1/public/capability-matrix` published snapshot | A | P0 |
@@ -2919,6 +2921,10 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Top-up margin** | **25% is a floor, tuned per credit class**, not a flat rate. |
 | **Account deletion** | **Archival, never destructive.** No hard deletes; identity fields move aside; a returning person is treated as new. The plaintext-vs-hashed question goes into the legal gate. |
 | **Bare `!tip`** | Replies with the creator's short link and no amount; the viewer picks on the page. |
+| **Sound uploads** | Free none · Pro 5 · Creator 25 · Studio 100. Excluding Free keeps copyright and scanning exposure on identifiable, billable accounts. |
+| **Control sessions** | Free 1 · Pro 1 · Creator 2 · Studio 4 concurrent, matching the recorded internal ceilings. |
+| **Control-plane authority** | Any platform admin proposes; a second approves. **Moving a paid capability into Free needs owner sign-off** — that is a revenue decision, not an ops one. `global_kill` stays available to a single admin for incidents. |
+| **Tournaments** | Creator gets single elimination up to 8 players. Studio gets double elimination, round robin, seeding and sponsor slots. |
 
 ### 30.2 Still open
 
@@ -2937,20 +2943,14 @@ outbound webhooks, finance/audit exports, SLA support.
 6. AI credit prices per feature and per credit class.
 7. Companion bundled-vs-standalone pricing. Must remain configurable either way, and
    note that standalone is impossible until implicit channel provisioning exists.
-8. Whether tournaments stay Studio-only.
-9. Custom-audio tier ladder — the 5 / 25 / 100 upload counts, clip length caps, and
-   whether Free is right to be excluded from uploads entirely.
 
 **Product behaviour**
 
 10. Sticker pack limits 10 / 25 / 50 — an implementation choice that was never signed off.
-12. Paid-tier Companion control-session concurrency (Free is exactly one).
 13. Lobby: the default eligibility mode new creators get.
 
 **Governance**
 
-14. Who may operate the control plane, and whether moving a paid capability into Free
-    needs owner approval rather than two-staff approval.
 
 ---
 
