@@ -1,11 +1,25 @@
 # BharatStudio — Full Product Definition
 
-**Version 1.0 · 2026-09-13 · supersedes master plan Part 7 as the authority on state**
+**Version 1.1 · 2026-09-14**
+
+| | |
+|---|---|
+| **Status** | `Proposed — product authority for direction and content. NOT a release authority.` |
+| **Owner** | Project owner |
+| **Authorises** | What the product is, what each capability means, which tier and phase it belongs to, and what must never be built |
+| **Does not authorise** | Any public claim, any release, any payment-routing work, or any spend of build time on a post-v1 slice |
+| **Superseded by, on any conflict** | `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` · `active/launch/01_MASTER_RELEASE_AUTHORITY.md` · `active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` |
+| **Supersedes** | Master plan Part 7, **on product content and capability status only** — not on release scope |
 
 This is the whole product in one file: what exists, what is broken, what is missing,
 what we are building, and what we deliberately will not build. Nothing is deferred out
-of this document. Items that cannot be built today appear in §16 with the exact
+of this document. Items that cannot be built today appear in §32 with the exact
 condition that unblocks them, not as silent omissions.
+
+**"Nothing is deferred" is a statement about the document, not about v1.** Everything
+described here is written down so it is not lost. Almost none of it is in v1. §1.9 is
+the phase boundary and it is binding; a capability's presence in this file is never
+permission to build it now.
 
 ---
 
@@ -70,6 +84,44 @@ Three properties define the product and none of them are negotiable:
    moderation decisions reconcile to one truth.
 3. **Failure is legible and partial.** If YouTube chat dies, tips and overlay keep
    working, and the creator is told exactly which part failed.
+
+### 1.9 Release phasing — binding, and stricter than this document
+
+The launch authority is narrower than this document and it wins. Recorded here so
+nobody reads a section of this file as a licence to start.
+
+**v1 — the only thing anybody may build toward a release.** Frozen to
+`00_LAUNCH_SCOPE_AUTHORITY.md`: Alerts tip page · creator dashboard · overlay and
+Master Canvas · durable queues, moderation and history · Companion (iOS/Android and
+the web console) · **creator-direct Razorpay only**. Nothing else is a launch feature
+and nothing else may be described as one.
+
+**Explicitly not v1**, restated from the launch authority so it cannot be lost:
+YouTube data/live ingestion, Super Chat, memberships and catch-up summaries · every
+Enterprise capability · client-owned entitlement decisions · public desktop APIs ·
+client-facing gRPC · **in-app checkout in Companion** (see §5.6.1).
+
+**Phase labels used throughout this document.** Every capability in §31 carries one.
+
+| Label | Meaning |
+|---|---|
+| **v1** | In the frozen launch scope above |
+| **P2** | Post-v1, product-ready, needs only build time |
+| **P3** | Post-v1, needs a product or pricing decision first |
+| **R** | **Research only.** No implementation, no schema, no UI, no marketing. Needs written external evidence — provider permission, counsel, or a provider sandbox — before it can become P2/P3 |
+| **N** | Never |
+
+**Post-v1 slices, in labelled order.** YouTube depth (P2) · AI credits and top-ups (P2)
+· Lobby Engine and tournaments (P3) · Social Relay (P3) · packs and creator jobs (P3) ·
+payment Compatibility Routing (**R**) · Enterprise (**R**, and additionally blocked on
+§32).
+
+**The evidence rule, which this document does not get to relax.** A local test, a
+passing suite, a document review, or a section of this file is never launch evidence.
+Only the dated external evidence named in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`
+— provider, tax, privacy, legal, app-store, staging, security, migration, outage and
+operational — moves a row out of `Open`. All four critical external filings were
+**unfiled as of 2026-09-07**.
 
 ### What would make a serious creator switch
 
@@ -359,6 +411,336 @@ The "I'm exhausted" workflow. One button.
 
 Top supporter names are never auto-published without visibility consent.
 
+### 5.6 Shipping the app — the part a product spec usually forgets
+
+Everything above describes what Companion does. This section describes what it takes to
+put it on two stores and keep it there. It was absent from version 1.0 of this
+document, and every row below is a real blocker for a mobile release, not a polish
+item.
+
+Two constraints from `00_LAUNCH_SCOPE_AUTHORITY.md` are already binding and are not
+reopened here: **React Native for both platforms**, and **floors of iOS 15.1 and
+Android API 26**.
+
+#### 5.6.1 Buying happens on the website. Never in the app.
+
+**Decided 2026-09-14. There is no purchase of any kind inside Companion, on either
+platform.** No subscription, no tier upgrade, no top-up, no AI credits, no pack, no
+add-on. This matches the launch authority's exclusion of in-app checkout and it is a
+product decision, not only a compliance one.
+
+Why it is the right call and not merely the safe one:
+
+- A store's commission on digital goods would take 15–30% of a ₹199 subscription and of
+  every ₹99 credit top-up. The §10 credit model computes a **25%-floor margin** before
+  issuing units. Store commission does not fit inside that; it would force either a
+  higher price on mobile than on web, or a smaller unit bundle on mobile for the same
+  rupees. Both are worse products and both are confusing.
+- Two purchase paths means two receipt systems, two refund policies, two entitlement
+  sources of truth and two support scripts. The entitlement model in §15 is
+  server-owned by design; a store-owned purchase punches a hole in it.
+- Nothing a creator buys is consumed only on mobile. The tier drives the overlay, the
+  tip page and the dashboard. The natural place to buy it is where it is configured.
+
+What that means concretely in the app:
+
+| Situation | Behaviour |
+|---|---|
+| A locked control | Shows as locked with the unlocking tier named (§15.3), exactly like the web. No price, no purchase button |
+| Credits exhausted mid-stream | A plain statement of the state and what still works. Never a purchase prompt |
+| Free creator viewing a Creator-tier control | Sees it, sees the tier that unlocks it, and cannot buy it here |
+| Subscription lapsed (§26) | Grace and paused notices appear in Companion as specified — as **notices**, never as a payment wall, and never on stream |
+| Any screen anywhere | No price, no currency amount for a BharatStudio product, no "upgrade" call to action, no link out to a purchase page from an iOS build |
+
+The link-out question is deliberately settled the conservative way: **iOS builds contain
+no link, button or instruction directing a creator to a purchase surface.** Anti-steering
+rules have changed repeatedly by jurisdiction and a rejected build during launch week
+costs far more than the conversion this would earn. A creator who wants to upgrade uses
+the dashboard, and they are already in it — that is where they set up everything else.
+Android builds follow the same rule for a single reason: one codebase, one behaviour,
+no platform-conditional monetisation logic to get wrong.
+
+Revisit only if store review evidence shows link-outs are safely permitted in India for
+this category, and then as a deliberate change with its own decision row.
+
+#### 5.6.2 Languages — the app speaks the creator's language
+
+This is a product for Indian creators and an English-only cockpit is a poor one. Three
+different things are involved and version 1.0 of this document conflated them.
+
+| Layer | What it is | State |
+|---|---|---|
+| **App UI language** | Every label, button, error, notification and empty state in Companion | **Missing entirely — this section adds it** |
+| **TTS voice language** | What the alert reads aloud to viewers | Partly present; Indic voices are a §11 credit class |
+| **Safety language coverage** | Abuse and doxxing detection across Hinglish and Indic scripts | Specified in §5.3, unbuilt |
+
+**Launch set, v1:** English and **Hindi**, both complete. Hindi is not a partial
+translation with English fallbacks scattered through it — a half-translated interface
+reads as broken, and creators will judge the whole product by it.
+
+**Wave two, P2, in this order:** Marathi · Bengali · Telugu · Tamil · Kannada.
+**Wave three, P3:** Gujarati · Malayalam · Punjabi · Odia · Assamese.
+Order follows creator-base share, and each wave is a capability-registry row so a
+language can be published or pulled without a release.
+
+**Deliberately not now: Urdu and any RTL language.** The layout system is not
+direction-aware and retrofitting RTL onto every screen is a large piece of work.
+Half-done RTL is worse than no RTL, so it is a labelled P3 with its own layout track,
+not a translation task.
+
+Engineering rules that make this survivable rather than a permanent tax:
+
+- **No user-visible string literal in a component, ever.** A CI check fails the build on
+  one. This is cheap on day one and near-impossible to retrofit at screen forty.
+- **ICU MessageFormat**, so plurals and gender work. Hindi plural rules are not English
+  plural rules, and no amount of string concatenation fixes that.
+- **Never concatenate translated fragments.** `"You have " + n + " alerts"` cannot be
+  translated correctly into an SOV language. One message, one placeholder set.
+- **`Intl` for every number, currency, date, duration and relative time.** Rupee
+  grouping is 2,2,3 (`₹1,23,456`), not 3,3,3. Getting this wrong on a money screen is
+  the single most visible possible localisation bug in this product.
+- **Locale is a device default with an in-app override**, persisted per install and sent
+  on every API call. A creator on an English phone who wants a Hindi cockpit gets one.
+- **Server-generated strings are localised server-side** from the request locale — push
+  notification bodies, validation errors, health messages, degraded-mode text. A
+  translated app in front of an English API is not a translated product.
+- **Push notification bodies are localised at send time** from the stored device locale,
+  not at registration time.
+- **Pseudo-locale build** in CI (`Ħēĺĺō [[[wörld]]]`) catches hardcoded strings and
+  layout that breaks on expansion before a translator ever sees it.
+- **Layout survives +40% text expansion.** Hindi and Tamil run longer than English.
+  Every button, tab label and status chip is tested at expansion, not just at English
+  width.
+- **Fonts.** Devanagari and the other Indic scripts must render with correct conjuncts
+  and matras on both platforms; bundle the faces rather than trusting the device set,
+  and check vertical metrics — clipped matras are the classic failure.
+- **Translation is reviewed by a native speaker who streams.** Machine translation of
+  "Clutch Mode", "queue", "overlay" and "Super Chat" produces text that is technically
+  correct and reads as absurd to the audience. Product vocabulary gets a glossary that
+  is fixed once and reused.
+- **A missing translation falls back to English and is reported**, never rendered as a
+  key. The fallback rate per locale is a monitored number.
+
+#### 5.6.3 Push notifications — the delivery path, not just the six types
+
+§30.4 tiers notification types and CMP-24 lists six. Neither says how a notification
+arrives. It arrives over **APNs** on iOS and **FCM** on Android, and that carries its
+own set of decisions.
+
+- **Token lifecycle.** Register on permission grant; re-register on every app launch,
+  on token rotation, and after a restore to a new device. Delete the token on sign-out
+  and on session revoke (CMP-26). Prune tokens APNs or FCM reports as invalid, on the
+  feedback response, rather than accumulating dead devices forever.
+- **Priority classes.** Only two things justify a high-priority, waking delivery: a
+  **stream-health failure while live**, and a **payment or delivery failure**. Tips,
+  goals, milestones and social events are normal priority and are allowed to be
+  batched by the OS. A product that wakes a creator's phone for every ₹20 tip gets its
+  notifications disabled inside a week, and then the alerts that matter never arrive.
+- **iOS reality.** Normal-priority notifications may be delayed or coalesced by the
+  system; background app refresh is not a schedule. The Live Deck's freshness must never
+  depend on a background delivery having happened — it reconciles on foreground, always.
+- **Android reality.** Notification channels per type, so a creator can silence tips and
+  keep health alerts, and so the OS gives us per-channel controls for free. Doze and
+  app-standby will delay normal-priority messages; the same foreground reconciliation
+  applies.
+- **Permission prompt timing.** Never on first launch. The prompt appears at the moment
+  it is meaningful — the creator has just finished Prepare Stream, or has just enabled a
+  notification type — with one sentence saying what will be sent. A denied permission is
+  a supported state the app works in, not an error screen, and is re-requestable from
+  settings with a deep link into the OS settings page.
+- **Payload rule, already binding (CMP-32).** A notification payload never carries tip
+  amounts, donor identity, message content or payment detail. It carries a type and an
+  identifier; the app fetches the content after unlock. This survives a locked-screen
+  preview being visible to whoever is standing next to the creator.
+- **Delivery is best-effort and is stated as such.** Nothing about correctness may depend
+  on a push arriving. Push is an accelerator over a state the app can always re-derive.
+- **Quiet hours** per creator, with the two high-priority classes able to override, and
+  an explicit "everything, always" option for creators who want it.
+
+#### 5.6.4 Authentication and device security
+
+- **Sign in with Apple is mandatory on iOS** if Google Sign-In ships in the app, which
+  it does — that is the v1 authentication method. This is an App Store review
+  requirement, and discovering it during submission week is a self-inflicted delay. It
+  is a real backend change too: a second identity provider, an account-linking rule for
+  a creator who has used both, and Apple's private-relay email addresses handled as
+  first-class addresses rather than rejected by a validator.
+- **Biometric app lock**, optional and default off. Face ID / Touch ID / Android
+  BiometricPrompt gates re-entry to a foregrounded app. This is a cockpit showing
+  revenue on a device that gets handed around; the control belongs to the creator.
+- **Session expiry is visible and graceful.** An expired session shows a re-auth sheet
+  that returns the creator to exactly where they were, never a silent logout mid-stream.
+  The control-session lease (CMP-01) and the auth session are separate things and their
+  failure messages must say which one ended.
+- **Secure storage is already specified** — `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, no
+  plaintext fallback (CMP-33) — and it holds for the auth token and the paired-device
+  secret alike.
+- **Screenshot and screen-recording awareness.** The Live Deck shows revenue. A creator
+  screen-sharing their phone should not leak supporter identities; a single "hide
+  sensitive values" toggle, honoured across the app, is enough and is far simpler than
+  per-field masking.
+- **Sign-out clears everything** — token, cached state, push registration, biometric
+  enrolment — and revokes the control lease server-side rather than letting it expire.
+
+#### 5.6.5 Navigation, information architecture and deep links
+
+Version 1.0 described screens with no structure connecting them.
+
+**Five tabs, fixed, no more.** More than five in a bottom bar makes each one
+unreachable one-handed.
+
+| Tab | Contents |
+|---|---|
+| **Live** | The Live Deck (§5.2) — the default tab whenever a stream is live |
+| **Prepare** | Prepare Stream and Wrap Stream (§5.1, §5.5); becomes Wrap after a stream ends |
+| **Queue** | Current and next items, per-item replay and skip, moderation actions (§5.3) |
+| **Money** | Recent tips, payment and refund status, goals — everything with a rupee in it, in one place, behind the sensitive-values toggle |
+| **More** | Sessions and devices, notification preferences, language, help, account |
+
+- The **degraded-mode strip** (§5.2) is not a tab. It is persistent across every tab
+  whenever any signal is unhealthy, because the whole point is that it cannot be missed.
+- **Deep links resolve to a screen with state, not to the home tab.** Every notification
+  taps through to the thing it is about: an alert item, a payment, a goal, a lobby, a
+  health failure. A cold-start deep link waits for auth and then lands correctly rather
+  than dropping the destination.
+- **Universal Links and App Links** — a `bharatstudio.in` link opens the app when it is
+  installed and the website when it is not. That requires the association files hosted
+  and verified on the domain, which is an infrastructure task with a lead time and
+  belongs on the launch checklist, not the app backlog.
+- **Back behaviour is predictable**, Android hardware back included, and scroll position
+  and filters survive a tab switch.
+- **No modal traps.** Every sheet has a visible dismiss, and a sheet with unsaved
+  changes confirms before discarding.
+
+#### 5.6.6 First run — the claim in §30.4 has to be true
+
+§30.4 says Companion on Free is "the cockpit that makes a first stream succeed". Nothing
+in version 1.0 described a first run, so the claim was unsupported.
+
+1. **Sign in.** Google or Apple. Nothing else on the screen.
+2. **Pair or connect.** Device-code pairing (CMP-06) presented in plain language with a
+   scannable code, and a stated alternative if the camera is denied.
+3. **One guided run of Prepare Stream**, on the creator's real setup, with each failed
+   check explaining what to do rather than showing a red cross. This is the moment the
+   product proves itself.
+4. **Permissions, in order and in context** — notifications after the first successful
+   check, camera only at the moment a code is scanned. Never a wall of prompts at
+   launch.
+5. **A first test alert**, fired from the phone, visible on the overlay. The single most
+   convincing thing this app can do in its first two minutes.
+
+**Every empty state is written, not defaulted.** No stream yet · no tips yet · no queue
+items · no devices paired · notifications denied · offline · subscription paused. Each
+says what would fill it and what the creator can do next. Empty states are where a Free
+creator spends their first week.
+
+#### 5.6.7 Devices, layout and accessibility
+
+- **Floors: iOS 15.1, Android API 26**, from the launch authority. Below the floor, the
+  app refuses to install rather than half-working.
+- **The reference device is a mid-range Android on 4G** (§19.8), not a flagship on
+  Wi-Fi. Performance budgets are measured there or they are not measured.
+- **Phone portrait is the designed orientation.** Landscape must remain usable — a
+  creator with the phone on a stand beside the monitor is a normal setup — and must not
+  hide the degraded-mode strip or the panic control.
+- **Tablets get the phone layout scaled with a maximum content width**, not a bespoke
+  two-pane design. A bad tablet layout is worse than an honest scaled one, and the
+  audience is small.
+- **Dynamic Type and Android font scaling are honoured up to the largest accessibility
+  sizes**, with no truncation of a control label and no control falling below its
+  minimum touch size. Tested at the largest size, not assumed.
+- **Minimum touch target 44pt / 48dp**, with spacing, on every control on the Live Deck.
+  This is a one-handed panel operated in a hurry.
+- **Screen reader labels on every control**, including the icon-only ones, in the
+  selected language. The panic control is reachable and announced.
+- **Reduced-motion honoured**; no critical state communicated only by animation.
+- **Colour is never the only signal** for health state — a shape or a word accompanies
+  every colour, on every one of the six signals.
+- **Dark mode is the default** and light mode is complete. A creator in a dark room at
+  1 a.m. is the normal case.
+- **Safe areas** — notch, Dynamic Island, gesture bar. No control under the home
+  indicator, no health strip under the notch.
+
+#### 5.6.8 Release, versioning and updates
+
+- **Channels.** Internal → TestFlight / Play internal test → staged production rollout
+  starting at 10%, with a halt on a crash-rate regression.
+- **Version scheme.** Semantic app version plus a monotonic build number, and every
+  build recorded against the commit and the API contract version it was built for.
+- **The API is versioned and the app is not assumed current.** Some creators will run a
+  six-month-old build. Every endpoint the app calls is either backward compatible or
+  behind a version negotiation, and breaking an old build is a deliberate, dated act.
+- **Forced upgrade exists and is used sparingly.** The server can mark a build below a
+  floor as unsupported; the app then shows a blocking screen with a store link and a
+  plain reason. Reserved for security fixes and protocol breaks — never for feature
+  pushes.
+- **Soft upgrade prompt** for everything else: dismissible, and never during a live
+  stream.
+- **Over-the-air JavaScript updates: permitted, narrowly.** Allowed for a JS-only fix
+  within the same native binary; every OTA bundle is versioned, signed, staged the same
+  way a store release is, and instantly rollback-able. Never used to add a feature, to
+  change anything monetisation-related, or to alter behaviour a store reviewed. Native
+  changes always go through the store.
+- **A rollback plan for each release**: the previous binary stays available on internal
+  channels, and any migration the app performs on local state is reversible or additive.
+
+#### 5.6.9 Store compliance — the review-risk list, written before submission
+
+Each of these has rejected apps in this category before.
+
+| Risk | Position |
+|---|---|
+| **Digital purchases outside the store** | Not applicable — no purchase, no price, no link-out from iOS (§5.6.1) |
+| **Sign in with Apple** | Implemented alongside Google Sign-In (§5.6.4) |
+| **Account deletion in-app** | **This is the open one.** Both stores require an in-app route to delete an account for apps that create one, while §33.1 blocks the deletion policy on legal. These must be reconciled **before submission**, not during review. The likely landing point is an in-app request route with a stated, lawful retention policy — and that wording is legal's, not ours |
+| **Permission purpose strings** | Written per permission, specific, in every shipped language. Generic strings are a routine rejection |
+| **Data-safety and privacy-nutrition declarations** | Filled from the actual data map, matching the published policy exactly. A mismatch between the declaration and the policy is a rejection and, worse, a credibility problem |
+| **Payments and creator earnings content** | The app shows a creator their own earnings. It never processes a payment, never handles a card, never shows a supporter's payment instrument |
+| **User-generated content** | The app can display supporter messages, so the store's UGC expectations apply: report, block, moderate. §5.3 provides the mechanics; the store needs them documented |
+| **Background execution** | No background audio keepalive, no misdeclared background mode. Background use is push plus foreground reconciliation |
+| **Name collision** | "BharatStudio Companion" in full, always, in the store title, subtitle and screenshots (CMP-31) |
+| **Age rating and content descriptors** | Set from the moderation reality, honestly |
+| **Accounts and demo access** | A reviewer needs a working demo account with seeded data reaching a live-looking Live Deck. Preparing this is a task, not an afterthought |
+
+#### 5.6.10 Connectivity, offline and battery
+
+- **Offline is a first-class state, not an error.** The app shows the last known state
+  with its age, plainly, and never presents stale numbers as live ones.
+- **The offline queue-of-intent (CMP-27)** holds actions taken while disconnected, shows
+  them as pending, and reconciles with explicit success or failure per action on
+  reconnect. An action that cannot be safely replayed is refused offline rather than
+  queued — anything irreversible, and anything financial.
+- **Reconnection is exponential with jitter**, and a reconnect always reconciles state
+  rather than assuming the stream of events was continuous.
+- **Battery.** A three-hour stream with the app open must not be the reason the phone
+  dies. No polling loop, no permanent socket held across backgrounding, no animation
+  running while backgrounded.
+- **Data usage** stays modest on a metered connection — no image or media prefetch on
+  cellular beyond what is on screen.
+
+#### 5.6.11 Operations — what tells us the app is working
+
+- **Crash and error reporting** from day one, with release-tagged builds, symbol upload
+  in CI, and a crash-free-sessions target that gates a staged rollout. Reports are
+  scrubbed of tip amounts, supporter identity and message content before they leave the
+  device.
+- **Product analytics that respect the privacy position** in §12.3: event names and
+  coarse counts, no identifiers in labels, consent handled the same way as the web
+  surfaces, and an opt-out that actually stops collection.
+- **The measured budgets are the ones in §19.4** — under 2s to interactive cold start,
+  under 300ms perceived action round trip — recorded per release on the reference
+  device, not asserted.
+- **End-to-end tests on both platforms** covering the paths that matter: sign in, pair,
+  Prepare Stream, fire a test alert, enter Clutch Mode, act on a queue item, go offline
+  and reconcile. A screen-level unit test proves nothing here, for exactly the reason
+  §2 exists.
+- **CI builds both platforms on every merge** and produces an installable artifact.
+  Discovering that iOS has not compiled in three weeks, during submission week, is the
+  Windows Companion failure (§32) repeating on a platform that matters.
+- **A release checklist that includes the store artefacts** — screenshots in every
+  shipped language, localised descriptions, the demo account, the declarations — because
+  those, not the code, are what usually delays a submission.
+
 ---
 
 ## 6. Master Canvas and the module catalogue
@@ -567,18 +949,29 @@ diluted. Revenue comes from three clean lines that never touch a creator's tip:
 2. **Top-ups** — the creator buys capacity from us; we are the merchant of record
 3. **AI credits** — metered feature value (§11)
 
-**There is no commission anywhere, and no provider pricing is ever shown.** A top-up
-is not someone else's money passing through and it is not a percentage of anything.
+**There is no commission anywhere, and no provider pricing is ever shown in a
+BharatStudio price.** A top-up is not someone else's money passing through and it is
+not a percentage of anything.
+
+The one deliberate exception is the **public tip-fee comparison calculator** (§12.5),
+which is a comparison tool, not a price. The two rules are not in conflict and the
+boundary is stated once, in §12.5.4.
 The creator buys a **bundle of BharatStudio units at a flat price**:
 
 ```text
 ₹99  →  X characters of BharatStudio AI voice
-₹99  →  Y BharatStudio AI tokens
+₹99  →  Y BharatStudio AI credits
 ```
 
 That is the entire customer-facing model. The creator never sees a provider name, a
 provider price, a per-token rate, or a "BharatStudio fee". They see a rupee price and
 a quantity of our units.
+
+**Never say "tokens" to a customer.** A token is a provider-metered commodity; naming
+it makes an implicit promise about a rate we do not control and complicates consumer
+disclosure. The customer-facing units are **AI voice characters** and **AI credits**,
+both defined by us, both re-priceable without breaking a promise. "Token" may appear in
+internal cost models and nowhere else.
 
 **Internally** we compute the bundle so that a margin of **25% or more** is retained
 before the remainder is issued as units. **Decided 2026-09-13: 25% is a floor, not a
@@ -967,9 +1360,9 @@ chars. That is the entire filter. Required before public launch:
 - Avoid: "UPI donation alerts", "Cheap Streamlabs for India", "Razorpay alerts", "OBS
   alerts with Hindi TTS", "Super Chat alternative"
 - 0% commission is a trust statement, not the headline differentiator
-- Gateway-fee rule: state our 0% clearly, state the provider sets its own fees, show
-  provider fees on both sides of any calculator, never advertise "0% forever" as a
-  property of the payment rail
+- Gateway-fee rule: state our 0% clearly, state the provider sets its own fees, never
+  advertise "0% forever" as a property of the payment rail. Calculator handling is
+  specified in §12.5.4
 - No competitor names in rendered HTML
 - One brand, one domain (`bharatstudio.in`), four product areas differentiated by a
   per-route accent token — Alerts gold, Stream broadcast red-magenta, Mirror cool
@@ -977,6 +1370,28 @@ chars. That is the entire filter. Required before public launch:
   (typeface, spacing, card-bezel system, nav, footer, legal) is shared: four accents
   off one system reads as a family, four design languages reads as four weak brands
 - Do not buy separate domains; 301 any defensive domains into sections
+
+#### 12.5.4 The fee-display boundary — one rule, stated once
+
+| Surface | Provider fees | Why |
+|---|---|---|
+| Pricing page, checkout, top-up menu, credit purchase, receipts, in-product copy | **Never shown** | These are BharatStudio prices. A provider fee is not part of one, and showing it invites the reader to treat our price as a pass-through |
+| The public **tip-fee comparison calculator** | **Shown, on both sides, or the calculator does not ship** | A comparison that hides the rail's fee on one side is a misleading claim, which is worse than not comparing |
+
+Rules that make the calculator safe to publish:
+
+- **Which fees.** Only the provider's published standard rate for the exact instrument
+  compared (UPI, card, netbanking), plus GST on that fee where it applies. Never a
+  negotiated rate, never an estimate, never a competitor's rate we inferred.
+- **Currency of the data.** Every figure carries the provider's published rate, the
+  source URL and the date it was read, rendered on the page.
+- **Owner.** Marketing owns the page; the payments owner signs off the figures. It is a
+  content review, dated in the marketing snapshot (§20.4).
+- **Staleness.** Rates older than **90 days** fail the marketing snapshot build. The
+  calculator then renders in a degraded state — the comparison hidden, our 0% statement
+  and a "rates being re-verified" note kept — rather than showing a stale number.
+- **Never** implies a rail's fee will not change, and never presents another product's
+  pricing as current unless it too carries a source and a date.
 
 ---
 
@@ -1121,9 +1536,13 @@ The selection policy is **locked and displayed before anyone joins**, with a red
 audit log: join time, selection method, promotion, no-show expiry, moderator override
 and reason. Per-stream caps, per-user limits and cooldowns apply throughout.
 
-The paid tip-for-room-code idea from §10.5 survives only in its narrow form — a
-creator-set qualifying tip that returns a code on the receipt — and even there the
-lobby's own eligibility policy governs seats. The two must not be conflated.
+**Corrected 2026-09-14.** An earlier draft of this section let a qualifying tip return
+a room code on the receipt. That contradicted §10.5 and the decision register, and it
+recreated exactly the pay-to-access mechanic the Lobby Engine exists to remove. It is
+**deleted, not narrowed**. No payment, of any size, at any tier, ever returns a seat, a
+code, a password or a place in a queue. A creator who wants to reward supporters uses
+*verified member priority* or *attendance priority*, which are eligibility inputs and
+never a purchase. One eligibility model, one audit trail, no fairness argument in chat.
 
 ### 16.3 Explicitly not built
 
@@ -1257,6 +1676,27 @@ and our terms must say so explicitly.** Practically that means:
 This deliberately does not extend to a shared or discoverable music library — that
 would make us a distributor and the attestation would no longer be sufficient cover.
 
+### 18.3 The upload gate — attestation is not a safety control
+
+A structural validator plus a creator checkbox does not address malware, copyright
+complaints, impersonation, or what happens after a complaint arrives. **Creator media
+upload stays disabled in public product until every row below is defined, built and
+rehearsed.** It is a single capability-registry row (MED-15) and it stays off.
+
+| Control | Requirement before the flag opens |
+|---|---|
+| **Malware** | Stage 2 scanning actually running, not the current no-op (MED-14). Unscanned bytes are never served, not even to the uploader |
+| **Quarantine** | New uploads land in quarantine and are unreachable by any overlay, alert or public URL until scan and moderation state both clear. Failure state is quarantined, never "allow" |
+| **Provenance** | Per asset: uploader identity, timestamp, source IP, client, original filename, hash, attestation text and version accepted, and every state transition — immutable |
+| **Takedown workflow** | A named intake route, a target response time, one-action disable that takes effect at the CDN within minutes, a counter-notice path, and a retained evidence record of the complaint and the disposition |
+| **Repeat infringement** | A recorded policy: what happens on a second and third substantiated complaint against the same creator, up to upload suspension. Written before the first complaint, not after |
+| **Impersonation and voice** | Explicit prohibition of uploads imitating a real person's voice or a brand, in terms and in the attestation, with the same takedown route |
+| **Serving limits** | Signed short-lived URLs only; no public bucket path; no asset served cross-channel |
+| **Rehearsal** | One end-to-end drill — complaint in, asset disabled, evidence recorded, creator notified — before the flag opens for anyone |
+
+Until that gate closes, custom audio remains an internal capability behind the registry
+flag, usable by a named pilot cohort at most, and it is not marketed.
+
 ---
 
 ## 19. Architecture — stack, storage, flows and performance
@@ -1308,15 +1748,36 @@ Upload  → API validates type, size, duration, dimensions
         → asset scan pipeline (stage 1 structural; stage 2 malware, MED-14)
         → normalise: audio loudness + transcode to a single codec,
                      GIF → MP4/WebM, images pre-scaled to the sizes we serve
-        → store bytes in GCS at a content-addressed key (sha256)
+        → store bytes in GCS at a TENANT-SCOPED content-addressed key
+                     (channel_id + sha256), encrypted per tenant
         → Postgres row: id, channel, kind, sha256, bytes, duration,
                         moderation state, rights attestation, audit
         → serve via CDN with a short-lived signed URL
 ```
 
-Content addressing gives free deduplication — the same meme sound uploaded by 500
-creators is stored once. Postgres keeps metadata, moderation state and the rights
-attestation; it never keeps the bytes.
+**Corrected 2026-09-14: deduplication is tenant-scoped by default, not global.** The
+earlier design deduplicated the same bytes across all creators. That is cheaper and it
+is unsafe:
+
+- **Existence leak.** A global key lets one creator's upload reveal that another
+  creator already holds the identical asset — a probe with a known file returns a hit.
+- **Coupled takedowns.** One rights complaint against shared bytes removes the asset
+  from every creator storing it, including creators with a valid licence.
+- **Ambiguous attribution.** Rights attestations differ per creator, so a single stored
+  object has several conflicting rights claims attached to it and no way to say whose
+  applies.
+
+The rule:
+
+| Class | Addressing | Dedup |
+|---|---|---|
+| Creator upload (default) | `channel_id` + sha256, tenant-scoped encryption key | Within one channel only |
+| BharatStudio-owned assets (stock stings, default sounds, template media) | Global content address | Global — we own the rights and the takedown path |
+| Explicitly licensed shared library | Global, only under a written licence recorded against the asset | Global |
+
+Storage cost of per-tenant duplication is small next to a cross-tenant rights or
+disclosure incident, and this is not reversible after the fact. Postgres keeps metadata,
+moderation state and the rights attestation; it never keeps the bytes.
 
 Migration: keep existing Lottie `bytea` rows working, write all *new* media to GCS,
 backfill opportunistically. Do not block on the backfill.
@@ -1613,10 +2074,35 @@ Because this panel can now break production:
   a tier downgrade.
 - Every change previews an impact count: "affects 214 channels, 3 currently live".
 - Changes affecting live channels are staged by default with an effective time.
-- Two-person approval for `global_kill` and for moving a paid capability into Free.
+- Two-person approval for every capability change, and owner sign-off for moving a paid
+  capability into Free.
+- **`global_kill` is the one exception, and it is an emergency path with its own
+  rules** — see §20.6.1. It is not a second, looser way to make ordinary changes.
 - A capability can be reverted to its previous version in one action.
 - All of it is behind platform-admin auth with MFA (ADM-07) — this panel is now a much
   higher-value target than a DLQ viewer.
+
+#### 20.6.1 The emergency kill path
+
+Requiring two people to stop an actively harmful capability is how a five-minute
+incident becomes a fifty-minute one. Requiring nobody is how an admin silently removes
+a paid feature. The resolution is a **single-actor action with a hard expiry and a
+mandatory second look**, not a second standing rule.
+
+| Rule | Value |
+|---|---|
+| Who may fire it | Any platform admin, alone, with MFA already satisfied |
+| What it does | The capability is off for everyone immediately; **creator settings, data and history are retained untouched** |
+| Reason required | A free-text reason at the moment of firing. The action is refused without one |
+| Maximum duration | **24 hours.** At expiry it auto-reverts to its previous state unless a second admin has ratified it |
+| Ratification | A second platform admin must ratify within **4 hours**; an unratified kill still runs to its 24-hour expiry but is escalated to the owner at the 4-hour mark |
+| Extension | Only by the two-person path, with a stated new expiry. There is no indefinite kill |
+| Logging | Immutable, append-only: actor, timestamp, capability, reason, affected channel count, live-channel count, ratifier, expiry, revert. Not editable by any admin, including the one who fired it |
+| Notification | Affected creators are told the same hour, in Companion and by email, per §25.6.1 — and are never billed for a capability that is off |
+| Post-incident review | Mandatory within **72 hours**, written, attached to the log entry. A kill with no review blocks further kills by that actor until it is filed |
+
+`global_kill` may never be used to perform a tier change, a limit change, or a pricing
+change. Those are ordinary changes and take the ordinary path.
 
 ---
 
@@ -1726,9 +2212,26 @@ clearly. Any real revenue split needs an explicit agreement, a separate payout l
 refund rules and tax treatment — not a 50/50 toggle. That is the Enterprise problem
 (§24) and it is blocked for the same reasons.
 
-v1 ships a **contribution selector**: *Support Creator A · Support Creator B · Support
-the shared goal* — where the shared goal is a visual target and money settles to one
-declared beneficiary.
+**Amended 2026-09-14: "shared goal" money language does not ship until it is fully
+defined.** A supporter reading "support the shared goal" reasonably believes the money
+is shared. If it settles to one creator, that is a misleading payment presentation, and
+a beneficiary line in small type at the bottom of a receipt does not cure it.
+
+What ships first is the safe half: a **contribution selector** with two honest options —
+*Support Creator A* · *Support Creator B*. Combined progress may still be **displayed**
+as a joint target, because a progress bar is not a payment destination.
+
+A third "shared goal" option may be added only when all of the following exist:
+
+- the single declared beneficiary is named **before checkout, on the checkout screen
+  itself, and on the receipt** — not only in a tooltip or the terms;
+- the refund policy states who refunds and from where;
+- the tax responsibility of the receiving creator is stated and reviewed;
+- a creator-to-creator agreement is recorded in product by both parties before the
+  option can be enabled for a session;
+- the wording is reviewed by the same legal gate as the payment surfaces.
+
+Absent those, the word "shared" is not used next to money anywhere in the product.
 
 ### 22.6 Add-ons and safety
 
@@ -1979,9 +2482,19 @@ worth copying. The credential handling is not.
 | **Google Pay Business** | Fields locked; activation done manually by their support | **Assisted activation.** Acceptable: no credential, manual gate, low volume |
 | **PhonePe Business** | Creator creates a delegated **Supervisor** user on a spare number, logs in once to activate, then hands us the number — and must never log in again | **Gated.** See below |
 | **HDFC SmartHub Vyapaar** | Creator creates a **Cashier** user, sets a **4-digit mPIN**, and hands us the number and mPIN | **Gated.** See below |
-| **Amazon Pay** | Creator enters their Amazon **mobile/email and account password** | **Never build.** Non-negotiable |
+| **Amazon Pay** | Creator enters their Amazon **mobile/email and account password** | **Never build.** Non-negotiable, and not reopened by C1–C7 — see the note below the table |
 
-**Owner decision 2026-09-13: proceed on a consent basis, subject to legal sign-off.**
+**Amazon Pay is outside the consent decision entirely.** C1–C7 apply to *delegated
+sub-user* routes — a Supervisor or Cashier account the creator creates for this purpose
+and can revoke without losing their own access. Amazon Pay is a **consumer account
+password**. Different category, different failure mode, permanently excluded. Any later
+document that shows it as pending or buildable is stale and this line wins.
+
+**Owner decision 2026-09-13, amended 2026-09-14: the delegated-sub-user routes proceed
+on a consent basis, and remain phase label R (research only) until written provider
+permission, counsel sign-off, a security design review and a provider sandbox route all
+exist.** Consent is one of four gates, not the gate. No schema, no UI and no marketing
+for these routes before all four close.
 The creator gives explicit, specific, unbundled consent to share delegated-account data,
 and the T&C place responsibility for that sharing with them.
 
@@ -2446,7 +2959,7 @@ L03's retier note is superseded.
 | Co-Stream Room (2 creators) | — | — | **yes** | yes |
 | Squad grid (3–4 creators) | — | — | — | yes |
 | Giveaways (free entry) | — | yes | yes | yes |
-| Giveaways (weighted, scheduled) | — | — | yes | yes |
+| Giveaways (scheduled, free entry) | — | — | yes | yes |
 | Tournaments — single elim, up to 8 | — | — | yes | yes |
 | Tournaments — double elim, round robin, seeding, sponsor slots | — | — | — | yes |
 | **AI credits** | trial | monthly | larger monthly | pooled team |
@@ -2499,12 +3012,20 @@ first stream succeed — but what it can *do* is tiered.
 | Approve / reject moderation | — | — | yes | yes |
 | OBS control (scenes, sources, record) | — | — | yes | yes |
 | Scene presets, goal controls, markers | — | — | yes | yes |
-| Clutch Mode | — | yes | yes | yes |
+| Clutch Mode | **yes** | yes | yes | yes |
 | Prepare Stream / Wrap Stream | — | yes | yes | yes |
 | Lobby operator console | — | — | yes | yes |
 | Co-stream control room | — | — | yes | yes |
 | Multi-operator, producer roles | — | — | — | yes |
 | Push notification types | 2 | all | all | all |
+
+**Clutch Mode is on Free, corrected 2026-09-14.** An earlier draft of this table
+withheld it below Pro while CMP-17 listed it P0 with no tier caveat. Clutch Mode is a
+safety control — one tap that mutes TTS, hides the QR and suppresses loud media while
+retaining every financial event. §30.5 says nothing correctness-related or safety-
+related moves up a tier, and a Free creator being unable to silence their own stream
+would violate that. It is the single panic control, not the granular TTS controls above
+it, which stay tiered.
 
 #### 30.4.1 Why the grant is separate even while bundled
 
@@ -2538,8 +3059,30 @@ one. Until that exists, standalone is a config flag with no viable signup path.
 
 ## 31. Master task register — nothing deferred
 
-Status key: **U** usable · **X** unreachable · **P** partial · **A** absent · **B** blocked.
-Priority: **P0** launch-blocking · **P1** launch-shaping · **P2** post-launch · **P3** later.
+Status key: **U** usable · **X** unreachable · **P** partial · **A** absent · **B** blocked ·
+**N** never build.
+Priority: **P0** launch-blocking · **P1** launch-shaping · **P2** post-launch · **P3** later ·
+**R** research only (§1.9).
+
+### 31.0 What a row must carry before it can be built
+
+The two-column state/priority form below is a **summary index**, not a specification.
+No row may be picked up by a build lane until its entry in `active/` carries all ten
+fields. A row missing any of them is not ready, and "we will work it out while
+building" is how the unreachable-code problem in §2 happened.
+
+| Field | Meaning |
+|---|---|
+| **Scope phase** | v1 / P2 / P3 / R / N per §1.9. A row without a phase is not schedulable |
+| **Owner** | One named person, not a team |
+| **Tier and gate** | Which tier, which capability-registry row, which of the four switches (§15.1) apply |
+| **Personal-data class** | None / operational / personal / payment / sensitive — and the retention rule that follows from it |
+| **Provider or legal dependency** | The named external gate, or explicitly "none". Anything naming one inherits phase R until that gate closes |
+| **Failure behaviour** | What a creator and a supporter see when it fails. Never "it will not fail" |
+| **Kill switch** | The registry row that turns it off, and what a creator keeps when it is off |
+| **Acceptance test** | The **user path** a person traverses, not a unit test. Per §35.1, a test that seeds its own data proves nothing about reachability |
+| **Evidence location** | Where the dated evidence lives. Local test output is never evidence |
+| **Rollback** | How it is undone after it has been live, including any data written |
 
 ### 31.1 Foundation repairs
 See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (P0, cheap).
@@ -2700,7 +3243,13 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | MED-12 | `render_bytes` capped at 2,000,000 | U | — |
 | MED-13 | Asset storage quotas Free none / Pro 100MB / Creator 250MB / Studio 1GB | A | P1 |
 | MED-14 | Malware scan stage 2 | A | P1 |
-| MED-15 | Custom sound upload | A | P2 |
+| MED-15 | Custom sound upload — **stays off until the whole §18.3 gate closes** | A | P2 |
+| MED-22 | Quarantine on upload; unscanned bytes never served, failure state is quarantined | A | P2 |
+| MED-23 | Immutable provenance record per asset (uploader, time, IP, client, filename, hash, attestation version, every transition) | A | P2 |
+| MED-24 | Takedown workflow: intake route, response target, one-action CDN disable, counter-notice, retained evidence | A | P2 |
+| MED-25 | Repeat-infringement policy written before the first complaint, up to upload suspension | A | P2 |
+| MED-26 | Impersonation and voice-imitation prohibition in terms and attestation, same takedown route | A | P2 |
+| MED-27 | One rehearsed end-to-end takedown drill before the flag opens for anyone | A | P2 |
 | MED-16 | Built-in themes / theme packs | A | P2 |
 | MED-17 | Per-event styling beyond `displayStyle` brackets | P | P2 |
 | MED-18 | Drag/resize/layer tools (numeric config exists) | P | P2 |
@@ -2725,7 +3274,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-11 | Stream actions (go live / end) | B | — |
 | CMP-12 | Implicit channel provisioning for Companion-only signup | A | P1 |
 | CMP-36 | Issue a distinct Companion grant row on Alerts subscription (`0100` mechanism) | A | P1 |
-| CMP-37 | Companion available on Free with tier-limited controls (§27.4) | P | P1 |
+| CMP-37 | Companion available on Free with tier-limited controls (§30.4) | P | P1 |
 | CMP-13 | Stream health panel (all six signals, heartbeat ages) | P | P0 |
 | CMP-14 | Prepare Stream / go-live checklist (§5.1) | A | P0 |
 | CMP-15 | Run full test with per-hop report | P | P0 |
@@ -2749,6 +3298,67 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-33 | Mobile secure storage `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, no plaintext fallback | U | — |
 | CMP-34 | Push tokens stored as fingerprint + ciphertext, raw never returned | U | — |
 | CMP-35 | Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them | A | P2 |
+
+#### 31.8.1 Shipping the app (§5.6) — absent from version 1.0 of this register
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| CMP-38 | **No purchase surface of any kind in either build** — no price, no upgrade CTA, no iOS link-out; enforced by a CI string/route check, not by review | A | **P0** |
+| CMP-39 | Localisation framework: zero hardcoded user-visible strings (CI-enforced), ICU MessageFormat, no fragment concatenation | A | **P0** |
+| CMP-40 | Hindi as a complete UI language at launch, native-speaker reviewed against a fixed product glossary | A | **P0** |
+| CMP-41 | `Intl` for every number, currency, date and duration — Indian 2,2,3 rupee grouping | A | **P0** |
+| CMP-42 | Locale as device default with in-app override, persisted and sent on every API call | A | P1 |
+| CMP-43 | Server-side localisation of API errors, health text and push bodies from request/device locale | A | P1 |
+| CMP-44 | Pseudo-locale CI build and +40% text-expansion layout tests | A | P1 |
+| CMP-45 | Bundled Indic fonts with conjunct/matra rendering verified on both platforms | A | P1 |
+| CMP-46 | Wave-two languages behind registry rows: Marathi, Bengali, Telugu, Tamil, Kannada | A | P2 |
+| CMP-47 | Wave-three languages: Gujarati, Malayalam, Punjabi, Odia, Assamese | A | P3 |
+| CMP-48 | RTL/Urdu — separate layout track, not a translation task | A | P3 |
+| CMP-49 | APNs + FCM token lifecycle: register, rotate, restore, revoke on sign-out, prune on feedback | A | **P0** |
+| CMP-50 | Two priority classes only (live health failure, payment/delivery failure); everything else normal priority | A | P1 |
+| CMP-51 | Android notification channels per type | A | P1 |
+| CMP-52 | Contextual permission prompt (never at launch); denied-permission is a supported state with a settings deep link | A | P1 |
+| CMP-53 | Foreground reconciliation — no correctness depends on a push arriving | A | **P0** |
+| CMP-54 | Quiet hours with high-priority override | A | P2 |
+| CMP-55 | **Sign in with Apple** alongside Google Sign-In, with account linking and private-relay addresses handled | A | **P0** |
+| CMP-56 | Optional biometric app lock | A | P1 |
+| CMP-57 | Session-expiry re-auth sheet returning to the same screen; distinct messaging from control-lease expiry | A | P1 |
+| CMP-58 | "Hide sensitive values" toggle honoured app-wide | A | P1 |
+| CMP-59 | Sign-out clears token, cache, push registration, biometric enrolment and revokes the lease server-side | A | P1 |
+| CMP-60 | Five-tab IA (Live / Prepare / Queue / Money / More) with the degraded strip persistent across all tabs | A | **P0** |
+| CMP-61 | Deep links resolve to a stateful screen, cold start included | A | P1 |
+| CMP-62 | Universal Links + App Links with association files hosted and verified on `bharatstudio.in` | A | P1 |
+| CMP-63 | First-run flow: sign in → pair → guided Prepare Stream → contextual permissions → first test alert | A | **P0** |
+| CMP-64 | Every empty state authored (no stream, no tips, no queue, no devices, notifications denied, offline, paused) | A | P1 |
+| CMP-65 | Enforce iOS 15.1 / Android API 26 floors at install | A | P1 |
+| CMP-66 | Landscape usable; degraded strip and panic control never hidden | A | P1 |
+| CMP-67 | Tablet = scaled phone layout with max content width | A | P2 |
+| CMP-68 | Dynamic Type / font scaling to largest sizes with no truncation or sub-minimum targets | A | P1 |
+| CMP-69 | Screen-reader labels on every control in the selected language | A | P1 |
+| CMP-70 | Colour never the only health signal; reduced-motion honoured | A | P1 |
+| CMP-71 | Dark default, complete light mode, full safe-area handling | A | P1 |
+| CMP-72 | Release channels: internal → TestFlight/Play internal → staged rollout with crash-rate halt | A | **P0** |
+| CMP-73 | App-version + build-number scheme recorded against commit and API contract version | A | P1 |
+| CMP-74 | API back-compatibility for old builds; breaking an old build is a dated, deliberate act | A | **P0** |
+| CMP-75 | Server-driven forced-upgrade floor (security/protocol only) plus dismissible soft prompt, never mid-stream | A | P1 |
+| CMP-76 | OTA JS-bundle policy: signed, versioned, staged, rollback-able; never features, monetisation or reviewed behaviour | A | P1 |
+| CMP-77 | Per-release rollback plan; local-state migrations additive or reversible | A | P1 |
+| CMP-78 | **Reconcile in-app account deletion (store requirement) with the blocked deletion policy — before submission** | B | **P0** |
+| CMP-79 | Permission purpose strings, specific, in every shipped language | A | **P0** |
+| CMP-80 | Data-safety / privacy-nutrition declarations matching the published policy exactly | A | **P0** |
+| CMP-81 | UGC obligations documented for review: report, block, moderate | A | P1 |
+| CMP-82 | Reviewer demo account with seeded data reaching a live-looking Live Deck | A | **P0** |
+| CMP-83 | Age rating and content descriptors set from moderation reality | A | P1 |
+| CMP-84 | Offline as a first-class state showing last-known values with their age | A | P1 |
+| CMP-85 | Offline queue reconciliation per action; irreversible and financial actions refused offline, never queued | A | P1 |
+| CMP-86 | Exponential reconnect with jitter, always reconciling rather than assuming continuity | A | P1 |
+| CMP-87 | Battery and metered-data discipline over a three-hour stream | A | P2 |
+| CMP-88 | Crash reporting with release tagging, CI symbol upload, crash-free-sessions gate; payloads scrubbed of money, identity and message content | A | **P0** |
+| CMP-89 | Privacy-respecting product analytics with working opt-out | A | P1 |
+| CMP-90 | §19.4 budgets measured per release on the reference mid-range Android | A | P1 |
+| CMP-91 | End-to-end tests both platforms: sign in, pair, prepare, test alert, Clutch, queue action, offline reconcile | A | **P0** |
+| CMP-92 | CI builds both platforms every merge, producing installable artifacts | A | **P0** |
+| CMP-93 | Store release checklist: localised screenshots and descriptions, demo account, declarations | A | P1 |
 
 ### 31.9 Connectors and chat
 
@@ -3064,7 +3674,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | RTE-10 | Google Pay Business route (assisted activation) | **Gated on §25.6** | P3 |
 | RTE-11 | PhonePe Supervisor route | **Consent-gated on C1–C7** | P2 |
 | RTE-12 | HDFC Cashier route | **Consent-gated on C1–C7** | P2 |
-| RTE-13 | Amazon Pay consumer-credential route | **Owner decision pending** | — |
+| RTE-13 | Amazon Pay consumer-credential route | **N — never build (§25.5, §33.1)** | — |
 | RTE-14 | Generic QR fallback / "mark as paid" | **Never** | — |
 | RTE-15 | Consent flow: explicit, unbundled, revocable, re-confirmed on scope change | A | P2 |
 | RTE-16 | KMS/HSM envelope encryption for any delegated secret, no human read path | A | P2 |
@@ -3140,7 +3750,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | STO-01 | GCS + CDN with content-addressed keys and signed URLs | A | **P0 for audio** |
 | STO-02 | Postgres holds metadata, moderation state and attestation only | A | P0 |
 | STO-03 | Normalisation pipeline (audio loudness, GIF→MP4/WebM, image pre-scale) | A | P1 |
-| STO-04 | Deduplication by sha256 across creators | A | P2 |
+| STO-04 | Tenant-scoped dedup (`channel_id` + sha256); global dedup only for BharatStudio-owned or explicitly licensed assets (§19.1) | A | P2 |
 | STO-05 | Keep existing Lottie bytea working; new media to GCS; opportunistic backfill | A | P1 |
 
 ---
@@ -3161,6 +3771,10 @@ outbound webhooks, finance/audit exports, SLA support.
 | Archive schedules | Approved eligibility, integrity and retention/legal decision |
 | Platform KMS/HSM signing | Provisioned KMS/HSM |
 | Deployment | Resolved `REQUIRED_*` placeholders, IAM/OIDC, staging recovery, capacity, observability, rollback rehearsal |
+| Account deletion policy and any deletion flow or promise | Approved DPDP erasure position reconciling statutory payment-record retention, the archived-identity plaintext-vs-hashed question, and the store requirement for an in-app deletion route (CMP-78) |
+| Creator media upload in public product | Every row of the §18.3 gate built and one end-to-end takedown drill rehearsed |
+| "Shared goal" money language in Co-Stream | Named beneficiary before checkout and on the receipt, refund policy, tax review, recorded creator agreement, legal review of the wording (§22.5) |
+| Delegated payment routes (PhonePe Supervisor, HDFC Cashier, Paytm, Google Pay Business) | Four gates, all open: written provider permission · counsel sign-off · security design review · a provider sandbox route. Phase **R** until then |
 | Everything production | Google OAuth verification · YouTube quota · legal sign-off · Razorpay Route enquiry — **all four still unfiled** |
 
 ---
@@ -3182,14 +3796,14 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Paid integrations** | Connect, import, bridge, YouTube and compatibility routing are **Creator-tier and above**. Multi-channel, sponsor reports and multi-creator controls are Studio. Receipts, exports, account recovery, disconnecting an integration and security controls are **never** paid. |
 | **Lapse behaviour** | Five states: active → grace 14d → paused → retained 90d → expired. The overlay falls back to a quiet safe state; existing OBS URLs never become a payment wall or change branding on stream; nothing is deleted silently. |
 | **Delegated-credential routes** | **Proceed on a consent basis**, subject to legal sign-off. PhonePe Supervisor and HDFC Cashier are consent-gated on conditions C1–C7 in §25.5. Consent settles the privacy dimension; it does not settle the provider's own terms, payment regulation, or the security of holding the secret — those are carried knowingly. |
-| **Amazon Pay routing** | **Build under C1–C7**, behind an admin switch like every other route. Highest-risk of the set and the reason stays documented. |
+| **Amazon Pay routing** | **Never build. Corrected 2026-09-14.** The earlier "build under C1–C7" row contradicted §25.5, which prohibits it non-negotiably, and it was wrong. The Amazon Pay pattern requires the creator's **consumer account password** — not a delegated sub-user, not a merchant identifier. Consent does not cure holding a consumer credential: it does not bind Amazon, it does not satisfy the provider's own terms, and it converts a breach into an account takeover of the creator's shopping and payment identity. No admin switch, no beta label and no attestation makes it acceptable. The route is removed from the register (RTE-13) rather than left pending. |
 | **Route switches** | **Every** payment route, Razorpay Direct included, is an independently switchable capability-registry row. Adding or removing one follows the §25.6.1 notification sequence, and a creator is never billed for a capability we withdrew. |
 | **Top-up margin** | **25% is a floor, tuned per credit class**, not a flat rate. |
-| **Account deletion** | **Archival, never destructive.** No hard deletes; identity fields move aside; a returning person is treated as new. The plaintext-vs-hashed question goes into the legal gate. |
+| **Account deletion** | **BLOCKED on legal, not decided.** The engineering preference is archival, never destructive: no hard deletes, identity fields moved aside, a returning person treated as new. That is a preference, not an approved policy, and it may not be shipped or promised. DPDP erasure duties, statutory retention for payment records, and the plaintext-vs-hashed question for archived identity are all unresolved (§32). Until the privacy/legal row in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` is approved: **no account-deletion promise appears in product, terms or marketing**, and no deletion flow ships. What ships in the meantime is deactivation with a plainly worded statement of what is retained and why. |
 | **Bare `!tip`** | Replies with the creator's short link and no amount; the viewer picks on the page. |
 | **Sound uploads** | Free none · Pro 5 · Creator 25 · Studio 100. Excluding Free keeps copyright and scanning exposure on identifiable, billable accounts. |
 | **Control sessions** | Free 1 · Pro 1 · Creator 2 · Studio 4 concurrent, matching the recorded internal ceilings. |
-| **Control-plane authority** | Any platform admin proposes; a second approves. **Moving a paid capability into Free needs owner sign-off** — that is a revenue decision, not an ops one. `global_kill` stays available to a single admin for incidents. |
+| **Control-plane authority** | Any platform admin proposes; a second approves. **Moving a paid capability into Free needs owner sign-off** — that is a revenue decision, not an ops one. `global_kill` is a single-admin **emergency** action governed by §20.6.1: reason required, 24-hour hard expiry, second-admin ratification within 4 hours, immutable log, mandatory 72-hour post-incident review. It may never be used to make an ordinary change. |
 | **Tournaments** | Creator gets single elimination up to 8 players. Studio gets double elimination, round robin, seeding and sponsor slots. |
 | **Lobby default** | **Open FIFO queue** for new creators. Member priority and creator pick are deliberate opt-ins, so the product does not read as pay-to-play by default. |
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
@@ -3221,12 +3835,30 @@ outbound webhooks, finance/audit exports, SLA support.
 
 **Governance**
 
+7. **In-app account deletion vs. the blocked deletion policy** (CMP-78). Both stores
+   require a route; legal has not approved one. Needs a decision before submission, not
+   during review.
+8. Whether iOS link-outs to a purchase surface are safely permitted in India for this
+   category — currently answered conservatively as no (§5.6.1) and revisited only on
+   evidence.
+
 
 ---
 
 ## 34. Build order
 
 Scope is Alerts, dashboard, overlay, Support Hub and mobile Companion. Nothing else.
+
+**Phases 0–2 are v1. Phases 3 onward are not, and none of them may be started, staffed
+or announced while a v1 row is open.** The phase labels in §1.9 govern; this ordering
+is how the labelled work is sequenced, not a licence to run it in parallel with the
+launch.
+
+**The mobile shipping track (§5.6) runs alongside Phases 0–2, not after them.**
+Localisation, the five-tab IA, Sign in with Apple, push infrastructure, both-platform
+CI and the store artefacts have lead times measured in weeks and several are external.
+Starting them at the end is how a mobile launch slips by a month. CMP-39, CMP-49,
+CMP-55, CMP-60, CMP-92 and the store-declaration rows begin in Phase 0.
 
 **Phase 0 — make what exists real, and make it controllable.** F01–F22, PRF-01, plus
 the control plane (CTL-01 to CTL-04, CTL-09 to CTL-11) and short-lived overlay
@@ -3252,28 +3884,35 @@ transparent votes · mission card · milestone queue · Sound Moments and the In
 Rules Engine · custom audio with attestation, on GCS (STO-01 first) · stat widgets with
 the Companion tap source.
 
-**Phase 4 — YouTube depth.** Member reconciliation · like goals · controlled broadcast
+*Everything from here is post-v1 (§1.9).*
+
+**Phase 4 — YouTube depth (P2, excluded from v1 by the launch authority).** Member reconciliation · like goals · controlled broadcast
 lifecycle · chat moderation · the identity and trust model.
 
-**Phase 5 — monetisation depth.** Season Passes · room-password delivery · Priority
+**Phase 5 — monetisation depth (P2).** Season Passes · Priority
 Questions · member perks · top-ups and the credit ledger · Discord role sync.
 
-**Phase 6 — safety and AI.** Indic safety · AI moderation queue · TTS-safe rewrite ·
+**Phase 6 — safety and AI (P2).** Indic safety · AI moderation queue · TTS-safe rewrite ·
 copilot · recap and clips.
 
-**Phase 6.5 — creator ops.** Finance Pack (the highest-value unserved job) · content
+**Phase 6.5 — creator ops (P3).** Finance Pack (the highest-value unserved job) · content
 calendar and public schedule page · sponsor deliverable tracker · the pack framework
 itself.
 
-**Phase 7 — events, collaboration and social.** Social Relay starting with Discord,
+**Phase 7 — events, collaboration and social (P3).** Social Relay starting with Discord,
 then YouTube, then Instagram and WhatsApp opt-in · Co-Stream Room · giveaways · tournaments ·
 sponsor manager and exposure logs · finance exports · post-stream analytics ·
 portability.
 
 **Decided:** the control plane is Phase 0, not a later retrofit.
 
-**Blocked track, unscheduled.** Enterprise (§24) proceeds only when its reopening gate
-closes. Nothing in Phases 0–7 depends on it.
+**Research-only track, phase R, unscheduled and unstaffed.** Payment Compatibility
+Routing (§25) — no schema, no UI, no marketing until its four gates close. Enterprise
+(§24) proceeds only when its reopening gate closes. Nothing in Phases 0–7 depends on
+either.
+
+**Phase 5's "room-password delivery" line is void** — superseded by the Lobby Engine
+and by the §16.2 correction. No payment returns a code.
 
 Two things are not phases:
 
@@ -3286,10 +3925,17 @@ Two things are not phases:
 
 ## 35. Maintaining this document
 
-This file is the product authority. Master plan Part 7 is superseded and should not be
-consulted for status.
+**What this file is.** The authority on *product content* — what each capability is,
+what it means, which tier and phase it belongs to, and what must never be built. Master
+plan Part 7 is superseded on that, and should not be consulted for status.
 
-Rules for keeping it true, learned from how Part 7 went wrong:
+**What it is not.** A release authority. On scope, dates, gates and evidence,
+`active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` and
+`active/launch/01_MASTER_RELEASE_AUTHORITY.md` win, always, without needing to be
+re-argued. If this document and one of those disagree, this document is wrong and gets
+corrected — not the other way round.
+
+### 35.1 Rules for keeping it true, learned from how Part 7 went wrong:
 
 1. A status may only be changed by someone who **traced the user path**, not by
    someone who found the code.
@@ -3300,3 +3946,38 @@ Rules for keeping it true, learned from how Part 7 went wrong:
    Four rows in Part 7 asserted things that were never true; nobody caught it for
    eleven days because the register was never re-derived from code.
 5. Test counts are never cited as evidence of completeness.
+6. **No local artefact is ever promoted to launch evidence.** A passing suite, a staging
+   run we ran ourselves, a review of this document, or a section of this document, is
+   never the thing that closes an evidence row in
+   `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`. Those rows close on dated external
+   evidence with a named reviewer and a disposition — provider, counsel, store, or a
+   third party — and self-review is not a substitute.
+7. **One outcome per decision.** A decision lives in §33.1 and nowhere else. When a
+   decision changes, the superseded text is **deleted** from the body of the document
+   and the change is recorded as a dated correction in the §33.1 row. Version 1.0
+   carried three live outcomes for Amazon Pay, two for paid room codes and two for
+   weighted giveaways, because superseded text was left standing next to its
+   replacement. Leaving the old wording "for the record" is how that happened; the
+   record belongs in the decision row.
+8. **A capability's presence here is never permission to build it.** Phase label first
+   (§1.9), then the ten fields in §31.0, then a lane.
+
+### 35.2 Corrections applied 2026-09-14
+
+| What was wrong | Correction |
+|---|---|
+| Document presented itself as an authority superseding the launch scope | Restated as `Proposed`, product-content authority only; launch authority wins on conflict (header, §1.9, §35) |
+| Amazon Pay was simultaneously "never", "pending" and "build under C1–C7" | **Never build.** RTE-13 set to N; §33.1 row rewritten; §25.5 explains why consent does not reach a consumer credential |
+| Paid room-code access dropped in §10.5 and retained in §16.2 | §16.2 clause deleted, not narrowed. No payment returns a seat or a code |
+| Tier matrix advertised weighted giveaways against a free-entry-only decision | Row changed to "Giveaways (scheduled, free entry)" |
+| `global_kill` governed by two conflicting rules | §20.6.1 defines the emergency path: reason, 24h expiry, 4h ratification, immutable log, 72h review |
+| Account deletion presented as decided | Moved to §32 blocked; no flow and no promise until legal approves. Store requirement tracked as CMP-78 |
+| "No provider pricing is ever shown" contradicted the calculator requirement | §12.5.4 states the boundary once, with fee scope, sourcing, owner, 90-day staleness rule |
+| Customer-facing "AI tokens" contradicted the units model | Renamed to AI credits; "token" is internal-only vocabulary |
+| Global cross-creator content-addressed dedup | Tenant-scoped by default; global only for owned or licensed assets (§19.1, STO-04) |
+| Media upload gated only by attestation and a no-op scanner | §18.3 upload gate; capability stays off until every row is built and one takedown drill is rehearsed |
+| "Support the shared goal" with money settling to one creator | Option withheld until beneficiary disclosure, refunds, tax, agreement and legal wording exist (§22.5) |
+| CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
+| Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
+| Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| Companion had no shipping plan: no purchase position, no languages, no push infrastructure, no auth requirements, no IA, no first run, no device matrix, no release process, no store compliance, no ops | §5.6 and 56 new register rows (CMP-38 to CMP-93) |
