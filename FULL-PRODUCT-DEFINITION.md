@@ -1023,7 +1023,7 @@ All four must be true for anything to appear. This is the existing two-layer
 entitlement/activation gate extended with the creator's own on/off and configuration —
 the same shape L24 already proved, applied universally.
 
-### 20.2 What "customisable to the max" means concretely
+### 15.2 What "customisable to the max" means concretely
 
 Per widget or module: show/hide · position, size, z-order, anchor to one of the 9 safe
 zones · theme, colours, fonts, corner radius, opacity · animation in/out, duration,
@@ -1039,7 +1039,7 @@ routing and mode.
 Per page: layout preset by event type · which lanes appear (free lane, community lane,
 growth lane) · copy overrides · which modules the viewer sees.
 
-### 20.3 Gating rules
+### 15.3 Gating rules
 
 - A locked capability is **shown, labelled, and explains which tier unlocks it** —
   never silently hidden and never a dead control. This is the existing disabled-slot
@@ -1229,14 +1229,132 @@ would make us a distributor and the attestation would no longer be sufficient co
 
 ---
 
-## 19. Performance architecture — no lag, anywhere
+## 19. Architecture — stack, storage, flows and performance
+
+### 19.1 The stack, and what is already decided
+
+| Layer | Choice | Status |
+|---|---|---|
+| Creator dashboard, Support Hub, marketing | Next.js (App Router), React, TypeScript | In place |
+| API | Fastify + TypeScript, versioned OpenAPI 3.1, REST + JSON | In place |
+| Payment ingress | Go service, HMAC raw-body verification | In place |
+| Alert dispatch | Go worker, Cloud Tasks, durable outbox | In place |
+| Connector polling | Go poller (`cmd/youtube-poller`) | In place |
+| Database | PostgreSQL 16, RLS, SECURITY DEFINER as the sole write path | In place |
+| Realtime to overlay | SSE with cursor + explicit ack | In place |
+| Wake-up signalling | Postgres LISTEN/NOTIFY, **best-effort only** | In place |
+| Scheduling | Cloud Scheduler → private OIDC endpoints | Defined, disabled |
+| Hosting | Cloud Run, per-service identity | Defined |
+| Edge | Cloudflare, checked-in `_headers` CSP | In place |
+| Mobile Companion | React Native 0.87, New Architecture, Hermes | In place |
+
+**Decisions still open, and my recommendations:**
+
+| Question | Recommendation | Why |
+|---|---|---|
+| Overlay framework | **No framework.** Vanilla TS + a tiny module registry | React's reconciler is the wrong tool for a 60fps canvas inside OBS. Modules are pure render functions over one state store |
+| Overlay animation | CSS transitions + Web Animations API; Lottie only for creator art | Compositor-driven, no JS per frame |
+| Overlay audio | Web Audio API with a normalisation gain stage | Loudness normalisation (§23.1) is impossible with bare `<audio>` |
+| Dashboard state | TanStack Query + a versioned `if-match` write path | Matches the optimistic-concurrency model already in the API |
+| Overlay ↔ server | Keep SSE. Do **not** move to WebSockets | One direction, replayable, proxy-friendly, already correct |
+| Cache | Postgres-backed derived cache first; Redis only when measured | Avoids a new dependency and a new failure mode before there is evidence |
+| Object storage | **Google Cloud Storage + Cloudflare CDN** | See 19.0.1 |
+
+#### 19.1.1 Where custom audio and GIF libraries live — this must change
+
+Lottie and branding are currently stored as **`bytea` in Postgres**. That was a
+reasonable call for a handful of small vector files. **It does not extend to audio and
+GIF libraries** and must not be copied forward:
+
+- Every read pulls binary through the connection pool, competing with payment traffic.
+- Backups and replication bloat with media.
+- No range requests, no CDN, no browser caching.
+- A Studio creator at 1GB × N creators makes the primary database a media server.
+
+**Target design:**
+
+```text
+Upload  → API validates type, size, duration, dimensions
+        → asset scan pipeline (stage 1 structural; stage 2 malware, MED-14)
+        → normalise: audio loudness + transcode to a single codec,
+                     GIF → MP4/WebM, images pre-scaled to the sizes we serve
+        → store bytes in GCS at a content-addressed key (sha256)
+        → Postgres row: id, channel, kind, sha256, bytes, duration,
+                        moderation state, rights attestation, audit
+        → serve via CDN with a short-lived signed URL
+```
+
+Content addressing gives free deduplication — the same meme sound uploaded by 500
+creators is stored once. Postgres keeps metadata, moderation state and the rights
+attestation; it never keeps the bytes.
+
+Migration: keep existing Lottie `bytea` rows working, write all *new* media to GCS,
+backfill opportunistically. Do not block on the backfill.
+
+### 19.2 The flows that matter
+
+**Tip → alert (the critical path).**
+
+```text
+Support Hub → POST tip order (idempotency key)
+            → provider order created, scoped to the creator's connected account
+            → viewer pays in Razorpay Checkout / UPI intent / QR
+            → Hub shows "confirming", never "paid"
+            → Razorpay webhook → Go ingress → HMAC + event-id dedup
+            → ONE transaction: delivery + payments + intent + alert_events + outbox
+            → best-effort NOTIFY → worker pump → queue selection → moderation gate
+            → Interaction Rules Engine evaluates (§23.2)
+            → TTS synthesis if eligible → SSE push → overlay renders → ack
+            → Hub status advances verified → queued → shown
+```
+
+**Capability resolution (every render, every surface).**
+
+```text
+control plane (kill → denylist → rollout → min_tier → override)
+  → creator enabled → creator config → runtime activation → render
+```
+
+Resolved server-side, cached per channel with a version, invalidated on control-plane
+change. The client never decides entitlement — it only renders what it is told, which
+is the existing L24 rule generalised.
+
+**Creator media upload.** As 19.0.1, plus: manual activation before an asset can be
+triggered, and immediate disable propagating to the overlay within one SSE cycle.
+
+**Co-stream room.** Both creators authorise → room record with short-lived grants →
+public page renders two IFrame players + our modules → Companion controls layout,
+audio side and safe layout → revoke kills the grant and the page falls back to a
+single-creator or ended state.
+
+### 19.3 Grilling the architecture — the four real risks
+
+**Risk 1: the control plane becomes a new source of outages.** Making tiers editable
+at runtime means a bad admin edit can disable a feature for everyone. Mitigations are
+in §20.6, and the non-negotiable one is that Layer 1 correctness dimensions are not
+editable there.
+
+**Risk 2: derived aggregates do not scale.** Already covered (§19.3 below), and the
+answer is a cache invalidated by the outbox event, never a stored counter.
+
+**Risk 3: the capability registry becomes an N+1 disaster.** Sixty capabilities ×
+per-channel resolution on every request is a trap. Resolve once per channel into a
+compact bitmap-plus-limits blob, version it, cache it, and invalidate on control-plane
+or subscription change. Never query per capability.
+
+**Risk 4: media serving pulled into the API.** If signed URLs are not in place before
+audio ships, the API becomes a file server and the frame budget dies. GCS + CDN is a
+prerequisite for AUD-01, not a follow-up.
+
+---
+
 
 The overlay runs inside OBS while the machine is encoding a game. Every millisecond we
 spend is a frame the creator loses. "Lightweight" is therefore a correctness
 requirement, not a nice-to-have, and the honest constraint is that **we are adding
 work to a machine that is already saturated**.
 
-### 19.1 Budgets — measured, not asserted
+### 19.4 Budgets — measured, not asserted
 
 | Surface | Budget |
 |---|---|
@@ -1251,7 +1369,7 @@ work to a machine that is already saturated**.
 
 These go in CI as budgets that fail the build, not in a document as aspirations.
 
-### 19.2 Overlay — the architecture that keeps it cheap
+### 19.5 Overlay — the architecture that keeps it cheap
 
 **One source, one connection, one loop.** The Master Canvas already collapses N browser
 sources into one; the win is only real if it also collapses N connections and N render
@@ -1285,7 +1403,7 @@ Rules that keep it fast:
   boundaries per module, and a module that fails twice stays down for the session with
   a creator-visible note.
 
-### 19.3 The derive-don't-store tension, and how to resolve it
+### 19.6 The derive-don't-store tension, and how to resolve it
 
 Goal progress, streaks, badges, leaderboards and reputation are all computed live from
 `payments − refunds`. That is architecturally right — it is why refunds need no special
@@ -1305,7 +1423,7 @@ popular stream with eight widgets and a reconnecting overlay.
 - Materialised views are acceptable for expensive historical reads (supporter history,
   post-stream analytics) where staleness is tolerable and visible.
 
-### 20.4 Server and realtime
+### 19.7 Server and realtime
 
 - The overlay listener needs its **own direct connection** (`DATABASE_URL_DIRECT`);
   pooled `LISTEN/NOTIFY` is best-effort signalling only and never the correctness path.
@@ -1320,7 +1438,7 @@ popular stream with eight widgets and a reconnecting overlay.
 - Keep the alert path's atomic transaction narrow. It is correct today; new features
   must not be added inside that transaction.
 
-### 20.5 Companion (mobile)
+### 19.8 Companion (mobile)
 
 - Push-driven, not polling. The Live Deck updates from events; a slow timer exists only
   as a fallback.
@@ -1333,7 +1451,7 @@ popular stream with eight widgets and a reconnecting overlay.
 - The app must remain usable one-handed on a mid-range Android on 4G — that is the real
   device, not a flagship on Wi-Fi.
 
-### 20.6 Support Hub
+### 19.9 Support Hub
 
 - Server-render the page; the YouTube player is lazy and optional.
 - The player is the heaviest thing on the page — it must never block first paint, and a
@@ -1343,7 +1461,7 @@ popular stream with eight widgets and a reconnecting overlay.
 - The payment path stays functional with JavaScript degraded — a QR and a link always
   work.
 
-### 20.7 How we stay ahead of competitors on this
+### 19.10 How we stay ahead of competitors on this
 
 The competitive claim is not "more widgets". It is **one source instead of twelve**,
 which is a measurable CPU and memory win on the creator's encoding machine, and the
@@ -1357,15 +1475,498 @@ feature set is not worth what it costs the creator.
 
 ---
 
-## 20. Master task register — nothing deferred
+## 20. The control plane — flags, tiers and limits as data
+
+**Requirement: every feature and every widget has a master switch in the admin panel,
+and staff can move any capability between tiers, change any limit, or kill any feature
+at any time — with the marketing site following automatically.**
+
+This is the single biggest architectural change in this document, because today the
+opposite is true.
+
+### 20.1 What has to change
+
+| Today | Required |
+|---|---|
+| Tier values live in `app_private.tier_entitlement_dimensions` (a migration) and in `entitlement-policy.ts` (TypeScript constants) | One authoritative, admin-editable store |
+| Changing a limit means a migration and a deploy | Changing a limit is an audited admin action |
+| Marketing pricing copy is hand-written and hand-synced | Marketing reads the same source |
+| Eight closed entitlement dimensions | An open registry of capabilities, each with its own gate |
+| No kill switch | Every capability independently disableable, globally or per channel |
+
+The closed eight-dimension set was a deliberate decision and it was right for
+correctness-critical queue behaviour. It does not extend to sixty widgets and
+features. The resolution is two layers, not one.
+
+### 20.2 Two layers, deliberately separate
+
+**Layer 1 — correctness entitlements (unchanged).** The eight dimensions that govern
+queue behaviour, TTS eligibility and character limits stay exactly where they are:
+enforced in SQL and in `entitlement-policy.ts`, changed by migration, reviewed. These
+affect payment and delivery correctness and must not be editable from a web form at
+2am.
+
+**Layer 2 — the capability registry (new).** Everything else — every widget, module,
+Hub feature, lobby mode, AI feature, giveaway type, audio capability — is a row:
+
+```
+capability_id            stable slug, e.g. "widget.wins_this_season"
+kind                     widget | module | feature | hub_lane | lobby_mode | ai_feature
+min_tier                 free | pro | creator | studio | enterprise | disabled
+limits                   jsonb, e.g. {"max_instances": 3, "max_duration_ms": 8000}
+global_kill              boolean
+rollout                  {percent, allowlist_channel_ids, denylist_channel_ids}
+beta                     boolean
+marketing_visible        boolean
+marketing_label          text
+marketing_blurb          text
+effective_from           timestamptz
+created_by / reason      audit
+```
+
+Every change is an append-only version with an actor and a reason, exactly like the
+existing entitlement override audit. Nothing is edited in place.
+
+### 20.3 Resolution order at runtime
+
+```text
+global_kill            → off for everyone, immediately
+denylist               → off for this channel
+allowlist / rollout %  → on for this channel regardless of tier
+min_tier vs tier       → entitled or not
+per-channel override   → staff grant, audited, time-boxed
+creator enabled flag   → does the creator want it
+creator configuration  → how it behaves
+runtime activation     → is its dependency live
+```
+
+The last three are the creator's four-switch model from §15; the first five are the
+control plane. **A capability is visible to a creator only if the resolution says
+entitled; a locked one is shown with the tier that unlocks it** — never hidden, never
+a dead control.
+
+### 20.4 How the marketing site follows automatically
+
+The marketing site stops hand-writing feature and pricing tables. It reads a published
+snapshot:
+
+- The API exposes `GET /v1/public/capability-matrix` — capability id, marketing label,
+  blurb, and the minimum tier, filtered to `marketing_visible = true`.
+- Marketing builds render from that snapshot at build time, and revalidate on a
+  webhook when the matrix version changes. Static output stays static; it just stops
+  being hand-maintained.
+- A capability with `marketing_visible = false` (internal, beta, killed) never appears
+  publicly. This is how we stop advertising things that do not exist — the exact
+  failure behind the current watermark and custom-sound claims.
+- Prices remain a separate, deliberately manual, legally-reviewed decision. The matrix
+  controls **what is in which tier**, not what a tier costs.
+
+**This inverts the current bug class.** Today the site can claim a feature the code
+does not have. After this, the site cannot render a capability the control plane does
+not publish.
+
+### 20.5 Full site behind flags
+
+Every marketing page, section and CTA gets a flag in the same registry
+(`kind = marketing_section`), so an unlaunched product area, a pricing experiment or a
+legally-unreviewed claim can be switched off without a deploy. The existing rule that
+no Enterprise tier or contact-sales CTA may appear until L10 is amended becomes a flag
+default rather than a code review.
+
+### 20.6 Safety rails on the admin panel
+
+Because this panel can now break production:
+
+- Correctness dimensions are **not** exposed here. Attempting to gate a Layer 1
+  dimension through Layer 2 is rejected.
+- Lowering a limit never destroys creator data — the same read-only/pause behaviour as
+  a tier downgrade.
+- Every change previews an impact count: "affects 214 channels, 3 currently live".
+- Changes affecting live channels are staged by default with an effective time.
+- Two-person approval for `global_kill` and for moving a paid capability into Free.
+- A capability can be reverted to its previous version in one action.
+- All of it is behind platform-admin auth with MFA (ADM-07) — this panel is now a much
+  higher-value target than a DLQ viewer.
+
+---
+
+## 21. More widgets, and where their data comes from
+
+### 21.1 Stat widgets — the honest data question first
+
+"Wins this season" needs a source, and **we cannot read game state**. Anything that
+claims to is either a game integration we do not have or scraping we will not do. So
+every stat widget declares its source explicitly:
+
+| Source | How | Reliability |
+|---|---|---|
+| **Companion tap** | Creator taps +1 Win / +1 Loss on the Live Deck | Honest, instant, always available |
+| **Lobby / tournament result** | Auto-filled when the match ran through our Lobby Engine (§16) | Automatic, only for our sessions |
+| **Manual correction** | Creator edits the running total in the dashboard | Always available, audited |
+
+That is the whole set for v1. It is also a genuine advantage: a creator tapping a
+button on their phone is more reliable than a fragile game-memory reader, and it works
+for every game including ones nobody integrates with.
+
+### 21.2 New widget modules
+
+| Module | Data source |
+|---|---|
+| **Wins This Season** | Companion tap / lobby result |
+| **Session Record (W–L–D)** | Same, scoped to this stream |
+| **Win Streak** | Derived from the record |
+| **Personal Best / Record** | Creator-set, celebrated when beaten |
+| **Rank / Tier Progress** | Creator-entered current rank and target |
+| **Season Objective Tracker** | Creator-defined objective with progress |
+| **Head-to-Head** | Two creators or two squads, for co-streams (§22) |
+| **Match Countdown** | Next scheduled lobby or tournament match |
+| **Tournament Standings** | Bracket state (§17) |
+| **Squad Roster Card** | Lobby seats, opted-in names only |
+| **Hours Streamed** | Session and weekly totals from our own session records |
+| **Milestone Ticker** | Subscriber, member or viewer milestones via the YouTube API |
+| **Top Clip of Stream** | Creator-marked stream marker |
+| **Stream Recap Card** | End-of-stream stats, for the outro scene |
+| **Scoreboard** | Manual two-side score with a centre event rail |
+
+All of them are modules of the one canvas (§6), all carry the four switches (§15), and
+all are rows in the capability registry (§20) so staff can retier them at will.
+
+---
+
+## 22. Creator Co-Stream Room
+
+Two creators, one BharatStudio page, two official YouTube embeds.
+
+**The boundary that makes this buildable: we embed, we never ingest.** BharatStudio
+puts two authorised YouTube players on a shared page and composes everything *around*
+them. Ingesting, mixing and rebroadcasting two live feeds would mean relay and encoding
+infrastructure, rights handling and latency control, and it is outside this product.
+
+### 22.1 Flow
+
+1. Creator A opens a room: title, category, time, layout, audience rules.
+2. Creator B **explicitly accepts** — a request alone attaches nothing.
+3. Both select their live broadcast.
+4. BharatStudio creates a public viewer page at `/live/collab/<id>`, a private
+   Companion control room, and an OBS scene preset.
+5. At start, both broadcasts appear together.
+6. Either creator can end the session, pause their card, or revoke access instantly.
+
+No viewer can attach a stream. Viewer participation and creator co-stream permission
+are separate systems.
+
+### 22.2 Layout modes
+
+Horizontal 50/50 (duos, podcasts, debates) · Vertical 50/50 (mobile co-streams) ·
+Active speaker (interviews) · Gameplay + facecam · Squad grid (3–4 approved creators) ·
+Battle view (two sides, centre score rail) · Host + guest (70/30) · **Switch Window**.
+
+**Switch Window replaces "random switching":** creators pick a range (45–90s) and we
+choose the next change within it. Both see the countdown; either can pause or override.
+Dynamic without feeling arbitrary or unfair.
+
+### 22.3 What makes it better than two browser tabs
+
+**One audio source at a time — never both by default**, with viewer-controlled
+switching and volume · shared event rail (kills, rounds, votes, goals, milestones) ·
+supporter alerts visually assigned to the correct side · shared timer, scorecard, match
+state, next-round prompt · chat tabs per creator plus optional community chat · clear
+attribution ("Watching Creator A on YouTube") · follow/subscribe for both ·
+mobile-first vertical with swipe-to-focus · optional captions and translation ·
+session metadata recording collaborators, times, layout and sponsor placements.
+
+### 22.4 Companion control room
+
+Invite / accept / revoke · confirm each broadcast is live · choose layout and switch
+window · select primary audio · pause one side, show BRB or a disconnected card ·
+one-tap **safe layout** if a stream ends or becomes unsuitable · shared moderation
+notes and operator roles · preview before going public · OBS scene-template export.
+
+For OBS, we generate a **collaboration overlay scene** — branded frames, team cards,
+score, timers, alerts, live state. The creator keeps controlling their real media
+sources; the embedded player is never their production feed.
+
+### 22.5 Money — the rule that must not bend
+
+A tip to Creator A stays Creator A's transaction, receipt, ledger entry and alert. A
+tip to Creator B stays Creator B's. **Never silently split a supporter's payment.**
+
+A joint goal may show combined progress, but each contribution's destination is shown
+clearly. Any real revenue split needs an explicit agreement, a separate payout ledger,
+refund rules and tax treatment — not a 50/50 toggle. That is the Enterprise problem
+(§24) and it is blocked for the same reasons.
+
+v1 ships a **contribution selector**: *Support Creator A · Support Creator B · Support
+the shared goal* — where the shared goal is a visual target and money settles to one
+declared beneficiary.
+
+### 22.6 Add-ons and safety
+
+Creator Battle Mode with transparent scoring and no paid random outcomes · Squad Night ·
+Guest Pass for an emerging creator · Raid Hand-off · collaborative non-monetary
+challenge votes · sponsor mode with an auditable exposure timeline · clip handoff with
+both creators' approval · cross-community lobby via §16.
+
+Safety: mutual approval, re-authentication, **short-lived collaboration grants** ·
+instant revoke either side · no permanent channel linking · no merged private chats or
+supporter data without consent · per-creator moderation boundaries · the public page
+tolerates one feed ending, being region-blocked, or lagging · **we never promise
+frame-perfect sync** — two independent YouTube broadcasts have different delay and the
+UI must say so rather than look broken.
+
+---
+
+## 23. Sound Moments and the Interaction Rules Engine
+
+Benchmarked against StreamTipz, which ships a soundboard, alert media, TTS voices,
+goal/top-supporter/recent-tip widgets and provider routing. The gap worth attacking is
+not "more toggles" — it is turning dozens of disconnected settings into one auditable
+system.
+
+### 23.1 Sound Moments
+
+A supporter picks a creator-approved **moment** while tipping: sound, animation,
+sticker, TTS style, optional on-screen effect. The creator controls every allowed
+combination.
+
+```text
+₹49   GG sound + small chat bubble
+₹99   Hindi meme sound + supporter name
+₹199  animated sticker + premium TTS voice
+₹499  creator-approved mega alert scene effect
+```
+
+Controls: creator-curated catalogue, no arbitrary supporter uploads · one sound per tip
+· strict duration and **loudness normalisation** · per-sound, per-viewer and
+stream-wide cooldowns · one-tap Companion mute, skip, pause, emergency safe mode ·
+themed packs (family-safe, gaming, roast, Hindi, Punjabi, Tamil, festival) · creator
+uploads only after type validation, scanning, size and duration limits, copyright
+acknowledgement and manual activation (§18).
+
+**Never execute a remote audio or GIF URL in the overlay.** Everything is validated and
+served from our own storage. Convenient remote URLs are how overlays become an abuse,
+reliability and copyright problem.
+
+### 23.2 The Interaction Rules Engine
+
+Instead of sixty settings, a creator writes rules:
+
+```text
+Tips above ₹99          → supporter may choose one safe sound
+Tips ₹199+              → TTS enabled
+Mode = ranked match     → suppress all audio, show a small ticker only
+Mode = BRB              → queue alerts, replay afterwards
+Overlay offline         → hold everything, nothing is lost
+```
+
+Supports thresholds · stream-mode rules · member and subscriber perks · cooldowns ·
+daily caps · event priority · creator-approval-required · **never interrupt gameplay**
+mode · automatic fallback when the overlay is offline.
+
+This is the feature that turns the product from a widget collection into an operating
+system, and it composes with everything else: Sound Moments, TTS eligibility, Clutch
+Mode, queue modes and the capability registry are all inputs to the same evaluation.
+
+### 23.3 Overlay URLs are bearer credentials
+
+The competitor review's sharpest lesson. Our current design is already good — token in
+the URL fragment, only a SHA-256 hash stored, per-overlay lookup, rotate and revoke —
+but it is missing expiry.
+
+Required: **short-lived signed capabilities** with explicit renewal, session and device
+binding where practical, scheduled rotation, immediate revocation, and a standing rule
+that overlay URLs never appear in screenshots, support tickets, logs or error messages.
+A creator screenshotting their OBS setup for a support request must not hand over a
+permanent credential.
+
+### 23.4 Other things worth taking from the benchmark
+
+Test/sandbox mode that never reaches viewers · shadow mode beside an existing provider
+· a global emergency-disable button · transparent-background source · portrait and
+landscape layouts · scene profiles (gameplay, Just Chatting, BRB, lobby, results,
+sponsor) · Indic TTS pronunciation dictionaries · multi-goal campaigns with scheduled
+rollover · captions for TTS and reduced-motion overlay mode · a creator policy panel
+(no abusive audio, no adult sounds, no political content, family-safe defaults).
+
+---
+
+## 24. Enterprise
+
+Governance-blocked in v1, and included here so the scope is not lost.
+
+### 24.1 Capability set
+
+Multi-channel allocations · SSO · RBAC beyond owner/moderator · shared brand kits ·
+licensed design packs · campaigns · cross-channel analytics · API and outbound webhooks
+· finance and audit exports · SLA and named support.
+
+### 24.2 The money shape
+
+The 85/15 split is **enterprise ↔ creator** via Razorpay Route, executed at capture.
+BharatStudio takes 0% and **is never the parent Route account holder** — the enterprise
+holds the parent, creators are linked accounts. If Razorpay says a BharatStudio-owned
+parent is the only supported shape, that reopens the product decision; it is not
+accepted silently.
+
+### 24.3 The rule that governs every split
+
+The payment-account binding and allocation-policy version stored at order creation is
+**permanent**. A later policy change never retroactively alters an old tip's split, and
+refunds read the stored snapshot, never current config. This is the same
+immutable-snapshot discipline the alert path already uses.
+
+### 24.4 Work sequence
+
+EN-00 approve the commercial and legal model · EN-01 org, roles, allocations · EN-02
+immutable snapshot schema · EN-03 creator-direct / enterprise-retained / Route adapters
+· EN-04 pre-order snapshot resolver · EN-05 visibility and finance-control APIs · EN-06
+transfers, refunds, reconciliation · EN-07 scheduler handlers · EN-08 dashboard views ·
+EN-09 pilot rollout.
+
+### 24.5 Reopening gate
+
+Written evidence required on: Route linked-account onboarding, KYC, transfer, reversal,
+refund, dispute and settlement · merchant-of-record and funds-flow model · TDS, GST,
+KYC, AML, FCRA, consumer and privacy obligations · seats, invitations, auto-allocation,
+roles, reporting, billing and support model · immutable effective-dated snapshots ·
+finance access, step-up auth, audit and refund authority.
+
+Until then: **no Enterprise tier, role, UI, allocation, fund movement, marketing CTA or
+contact-sales flow anywhere.** In the new control plane this is a flag default, not a
+convention.
+
+---
+
+## 25. Tier matrix
+
+**This is the seed for the capability registry (§20), not a hard-coded ladder.** Once
+the control plane exists, staff move any row at any time. What matters is that the
+initial division is principled rather than arbitrary.
+
+The principle, one line per tier:
+
+| Tier | What it is |
+|---|---|
+| **Free** | Everything correctness-critical, plus a real working alert. Never crippled, always watermarked |
+| **Pro ₹199** | Personality — voice, sounds, look, more alerts on screen |
+| **Creator ₹399** | Community mechanics — goals, votes, lobbies, co-streams, connectors |
+| **Studio ₹499/₹599** | Team and events — seats, approval, tournaments, pooled AI, priority |
+| **Enterprise** | Governance-blocked (§24) |
+
+### 25.1 Correctness — identical on every tier, forever
+
+Payment verification · immutable records · webhook dedup · reconciliation · refund
+tracking · queue durability and no-drop · retry and replay · security · privacy · audit
+· accessibility · downgrade preservation · legal disclosures · receipts · anonymous
+tipping with no login.
+
+### 25.2 The existing ladder (already enforced in code)
+
+| Dimension | Free | Pro | Creator | Studio |
+|---|---|---|---|---|
+| Queues | 1 | 2 | 3 | 5 |
+| Queue modes | fifo | +stacked, pills, aggregated | +priority | same as Creator |
+| Visible items | 3 | 5 | 8 | 12 |
+| Char limit | 100 | 150 | 300 | 500 |
+| Display ms | 6,000 | 8,000 | 12,000 | 20,000 |
+| Quiet mode | — | yes | yes | yes |
+| Approval required | — | — | yes | yes |
+| Premium TTS | — | 20K chars | 40K | 60K |
+| Moderator seats | 0 | 0 | 2 | 5 |
+| Connectors | 0 | 1 | 2 | 3 |
+| Interaction types | 3 | 6 | 8 | 8 |
+| Widget types | 1 | 3 | 7 | 7 |
+| Sticker packs | — | 10 | 25 | 50 |
+| Asset storage | — | 100MB | 250MB | 1GB |
+| Companion slots | 8 | 16 | 32 | 64 |
+| Companion page size | 4 | 8 | 16 | 16 |
+| Control sessions | 1 | 1 | 2 | 4 |
+| Read-only sessions | 2 | 3 | 5 | 8 |
+| Event bindings | 3 | 5 | 10 | 20 |
+| Saved presets | 1 | 2 | 4 | 8 |
+| Pending visuals | 20 | 50 | 150 | 500 |
+| Watermark | yes | — | — | — |
+| Lottie / branding upload | — | — | — | yes |
+
+**Queue count is disputed** — 1/2/3/5 in one source, 1/3/5/10 in another (open
+decision 2). The table above uses the conservative reading.
+
+### 25.3 Proposed placement for everything new
+
+| Capability | Free | Pro | Creator | Studio |
+|---|---|---|---|---|
+| **Master Canvas modules active** | 2 | 5 | 12 | all |
+| Support Theater, goal bar, ticker | yes | yes | yes | yes |
+| Stat widgets (wins, streak, record) | — | 2 | all | all |
+| Scoreboard, head-to-head | — | — | yes | yes |
+| Tournament standings | — | — | — | yes |
+| Vertical layout | — | yes | yes | yes |
+| Scene profiles | 1 | 3 | 6 | unlimited |
+| **Support Hub** | | | | |
+| Amount presets, message, receipts | yes | yes | yes | yes |
+| Free reactions, supporter wall | yes | yes | yes | yes |
+| Approved sticker picker | — | yes | yes | yes |
+| Sound Moments (catalogue) | — | yes | yes | yes |
+| Goal ladder + milestones | — | yes | yes | yes |
+| Pick-a-side vote | — | — | yes | yes |
+| Embedded YouTube player | — | yes | yes | yes |
+| Event layout presets | — | — | yes | yes |
+| Campaign + referral links | — | — | yes | yes |
+| "Where support goes" explainer | yes | yes | yes | yes |
+| **Sound and media** | | | | |
+| Browser TTS | yes | yes | yes | yes |
+| Creator sound uploads | — | 5 | 25 | 100 |
+| Themed sound packs | — | 1 | 5 | all |
+| Mega alert scene effects | — | — | — | yes |
+| Loudness normalisation | yes | yes | yes | yes |
+| **Interaction Rules Engine** | | | | |
+| Amount thresholds | — | yes | yes | yes |
+| Stream-mode rules (ranked, BRB) | — | — | yes | yes |
+| Cooldowns and daily caps | — | — | yes | yes |
+| Approval-required rules | — | — | — | yes |
+| Never-interrupt-gameplay mode | — | yes | yes | yes |
+| **Community** | | | | |
+| Lobby Engine (queue, ready check, seats) | — | — | yes | yes |
+| Lobby templates and filters | — | — | — | yes |
+| Cross-creator lobbies | — | — | — | yes |
+| Co-Stream Room (2 creators) | — | — | yes | yes |
+| Squad grid (3–4 creators) | — | — | — | yes |
+| Giveaways (free entry) | — | yes | yes | yes |
+| Giveaways (weighted, scheduled) | — | — | yes | yes |
+| Tournaments and brackets | — | — | — | yes |
+| **AI credits** | trial | monthly | larger monthly | pooled team |
+| AI moderation (live) | — | — | yes | yes |
+| Thumbnail / Channel DNA | — | — | yes | yes |
+| **Ops** | | | | |
+| Sponsor manager + exposure log | — | — | — | yes |
+| Finance exports (Sheets, Tally) | — | — | yes | yes |
+| Post-stream analytics | basic | yes | yes | yes |
+| Priority support | — | — | — | yes |
+
+### 25.4 Rules that keep the matrix honest
+
+- **Nothing correctness-related ever moves up a tier.** §25.1 is immutable.
+- **Free must be genuinely usable**, not a demo. A Free creator takes real money, gets
+  a real alert, real TTS via browser voice, and a real receipt. The watermark is the
+  price.
+- Every locked row is **visible with its unlocking tier** (§15.3), never hidden.
+- A capability moved down a tier takes effect immediately; **moved up, it grandfathers
+  existing users** rather than breaking them — matching the existing moderator-seat
+  behaviour.
+- Any change to this matrix that affects a published marketing claim requires the
+  marketing snapshot to rebuild (§20.4) before it is announced.
+
+---
+
+## 26. Master task register — nothing deferred
 
 Status key: **U** usable · **X** unreachable · **P** partial · **A** absent · **B** blocked.
 Priority: **P0** launch-blocking · **P1** launch-shaping · **P2** post-launch · **P3** later.
 
-### 20.1 Foundation repairs
+### 26.1 Foundation repairs
 See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (P0, cheap).
 
-### 15.2 Payments and money
+### 26.2 Payments and money
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1399,7 +2000,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-28 | Paytm / Cashfree / PhonePe | B | — |
 | PAY-29 | Recurring memberships | B | — |
 
-### 15.3 Alerts, queues, overlay
+### 26.3 Alerts, queues, overlay
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1423,7 +2024,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ALQ-18 | Master Canvas single browser source with modules (§6) | A | P0 |
 | ALQ-19 | Vertical / second-output canvas | A | P2 |
 
-### 19.4 TTS
+### 26.4 TTS
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1438,7 +2039,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | TTS-09 | Mute / cancel in-flight from dashboard (companion API exists) | P | P1 |
 | TTS-10 | TTS character top-ups | A | P1 |
 
-### 19.5 Viewer identity, history, trust
+### 26.5 Viewer identity, history, trust
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1463,7 +2064,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-19 | YouTube identity attribution carried onto payments | A | P0 |
 | VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§14.2) | A | P1 |
 
-### 19.6 Engagement — interactions, widgets, goals, challenges
+### 26.6 Engagement — interactions, widgets, goals, challenges
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1500,7 +2101,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CHL-07 | `!challenge` chat command | A | P2 |
 | CHL-08 | Refundable multi-contributor challenges | B | — |
 
-### 19.7 Stickers, media, Alert Studio
+### 26.7 Stickers, media, Alert Studio
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1526,7 +2127,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | MED-20 | Curated meme/media queue module | A | P2 |
 | MED-21 | Lottie + custom branding upload, Studio-tier, live gate, bytea storage | U | — |
 
-### 20.8 Companion
+### 26.8 Companion
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1566,7 +2167,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-34 | Push tokens stored as fingerprint + ciphertext, raw never returned | U | — |
 | CMP-35 | Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them | A | P2 |
 
-### 20.9 Connectors and chat
+### 26.9 Connectors and chat
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1592,7 +2193,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-20 | Optional YouTube `/live` support page | A | P3 |
 | CON-21 | YouTube identity/trust model and namespaces (§14.2) | A | P1 |
 
-### 20.10 Entitlements, billing, admin, ops
+### 26.10 Entitlements, billing, admin, ops
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1635,7 +2236,7 @@ works, they must be instrumented from the first cohort, and they **cannot be
 reconstructed later**. Shipping without them means never knowing whether BharatStudio
 raised a creator's income.
 
-### 20.11 Marketing, legal, support
+### 26.11 Marketing, legal, support
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1649,7 +2250,7 @@ raised a creator's income.
 | MKT-08 | Support surface and staffing | A | P0 |
 | MKT-09 | Public copy matches versioned decisions with dated history | U | — |
 
-### 20.12 AI
+### 26.12 AI
 
 All **A** (absent) except the L23 seam. AI-01 safety rules + moderation queue ·
 AI-02 TTS-safe rewrite and PII protection · AI-03 title/description/translation ·
@@ -1660,7 +2261,7 @@ recommendations · AI-11 moderator copilot · AI-12 Clutch Mode intensity detect
 AI-13 sponsor-safe scanning. Priority P1 for AI-01/02/06, P2 for the rest.
 L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free.
 
-### 20.13 Live Support Hub
+### 26.13 Live Support Hub
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1688,7 +2289,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | HUB-22 | Post-stream supporter recap and receipt export | A | P2 |
 | HUB-23 | Milestone unlocks framed as a creator promise, never a contract | A | P1 |
 
-### 20.14 Customisation and gating
+### 26.14 Customisation and gating
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1699,7 +2300,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CUS-05 | Preset bundles that are fully editable afterwards | A | P2 |
 | CUS-06 | Per-source alert styling (Super Chat distinct from UPI tip) | A | P1 |
 
-### 20.15 Lobby Engine
+### 26.15 Lobby Engine
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1727,7 +2328,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | LOB-22 | Screened Guest Queue (audio-only, time-boxed) | A | P3 |
 | LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | **Never** | — |
 
-### 20.16 Giveaways and tournaments
+### 26.16 Giveaways and tournaments
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1745,7 +2346,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | TRN-05 | Standings overlay module | A | P2 |
 | TRN-06 | Sponsor slot with exposure log | A | P2 |
 
-### 20.17 Custom audio and creator media
+### 26.17 Custom audio and creator media
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1761,7 +2362,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | AUD-10 | Asset storage quota enforcement (MED-13 dependency) | A | P1 |
 | AUD-11 | Shared or discoverable music library | **Never** | — |
 
-### 20.18 Performance
+### 26.18 Performance
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -1782,7 +2383,99 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | PRF-15 | Companion: optimistic UI, virtualised lists, no re-render storms | P | P1 |
 | PRF-16 | Published one-source-vs-many benchmark, re-run in CI | A | P1 |
 
-## 21. Blocked — with the exact unblocking condition
+### 26.19 Control plane and admin
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| CTL-01 | Capability registry table with versioned, audited rows | A | **P0** |
+| CTL-02 | Resolution order engine (kill → denylist → rollout → tier → override) | A | **P0** |
+| CTL-03 | Per-channel resolved blob, versioned and cached; never per-capability queries | A | P0 |
+| CTL-04 | Admin UI: master switch, retier, edit limits, kill | A | P0 |
+| CTL-05 | Impact preview ("affects 214 channels, 3 live") | A | P1 |
+| CTL-06 | Staged effective-time changes | A | P1 |
+| CTL-07 | Two-person approval for global kill and paid→Free moves | A | P1 |
+| CTL-08 | One-action revert to previous version | A | P1 |
+| CTL-09 | Layer 1 correctness dimensions rejected from this panel | A | P0 |
+| CTL-10 | `GET /v1/public/capability-matrix` published snapshot | A | P0 |
+| CTL-11 | Marketing build reads the snapshot; webhook revalidation | A | P0 |
+| CTL-12 | Marketing sections behind flags (`kind = marketing_section`) | A | P1 |
+| CTL-13 | Admin MFA + durable admin registry (ADM-07 dependency) | A | P0 |
+
+### 26.20 New widgets
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| WID-01 | Companion tap source (+1 win / +1 loss) | A | P1 |
+| WID-02 | Lobby/tournament auto-fill of results | A | P2 |
+| WID-03 | Wins This Season, Session Record, Win Streak | A | P1 |
+| WID-04 | Personal Best, Rank Progress, Season Objective | A | P2 |
+| WID-05 | Head-to-Head, Scoreboard | A | P2 |
+| WID-06 | Match Countdown, Tournament Standings, Squad Roster | A | P2 |
+| WID-07 | Hours Streamed, Milestone Ticker, Top Clip, Recap Card | A | P2 |
+
+### 26.21 Co-Stream Room
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| COS-01 | Room create, explicit mutual accept, short-lived grants | A | P1 |
+| COS-02 | Public `/live/collab/<id>` page with two IFrame players | A | P1 |
+| COS-03 | Eight layout modes | A | P1 |
+| COS-04 | Switch Window with published range, countdown, override | A | P2 |
+| COS-05 | One audio source at a time, viewer-switchable | A | P1 |
+| COS-06 | Shared event rail, timer, scorecard | A | P1 |
+| COS-07 | Side-assigned supporter alerts | A | P1 |
+| COS-08 | Chat tabs per creator | A | P2 |
+| COS-09 | Companion control room incl. one-tap safe layout | A | P1 |
+| COS-10 | OBS collaboration overlay scene export | A | P2 |
+| COS-11 | Contribution selector (A / B / shared goal) | A | P1 |
+| COS-12 | Instant revoke; page degrades to single or ended state | A | P1 |
+| COS-13 | Explicit "feeds are not frame-synced" UI treatment | A | P1 |
+| COS-14 | Clip handoff consent | A | P2 |
+| COS-15 | Silent payment splitting | **Never** | — |
+
+### 26.22 Sound Moments and Rules Engine
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| SND-01 | Moment = sound + animation + sticker + TTS style + effect, creator-curated | A | P1 |
+| SND-02 | Amount-tiered moment catalogue | A | P1 |
+| SND-03 | Loudness normalisation and duration caps | A | P1 |
+| SND-04 | Per-sound, per-viewer, stream-wide cooldowns | A | P1 |
+| SND-05 | Themed packs incl. Indic and festival | A | P2 |
+| SND-06 | Companion mute / skip / pause / emergency safe mode | P | P1 |
+| SND-07 | No remote URL execution in the overlay | A | P0 |
+| RUL-01 | Rules engine: thresholds, modes, cooldowns, caps, priority, approval | A | P1 |
+| RUL-02 | Never-interrupt-gameplay mode | A | P1 |
+| RUL-03 | Overlay-offline hold-and-replay | P | P1 |
+| SEC-01 | Short-lived signed overlay capabilities with renewal | A | **P0** |
+| SEC-02 | Session/device binding where practical | A | P1 |
+| SEC-03 | Scheduled rotation; never in screenshots, logs or tickets | P | P1 |
+| MIG-01 | Shadow mode with a migration report (delivered, missed, latency, unsupported) | A | P1 |
+| MIG-02 | Test/sandbox mode that never reaches viewers | A | P1 |
+| MIG-03 | Global emergency-disable button | A | P0 |
+
+### 26.23 Enterprise
+
+All **B** (blocked) pending §24.5. EN-00 commercial/legal model · EN-01 org, roles,
+allocations · EN-02 immutable snapshot schema · EN-03 settlement adapters · EN-04
+pre-order snapshot resolver · EN-05 finance-control APIs · EN-06 transfers, refunds,
+reconciliation · EN-07 scheduler handlers · EN-08 dashboard views · EN-09 pilot.
+Plus SSO, RBAC, shared brand kits, licensed packs, campaigns, cross-channel analytics,
+outbound webhooks, finance/audit exports, SLA support.
+
+### 26.24 Storage and media platform
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| STO-01 | GCS + CDN with content-addressed keys and signed URLs | A | **P0 for audio** |
+| STO-02 | Postgres holds metadata, moderation state and attestation only | A | P0 |
+| STO-03 | Normalisation pipeline (audio loudness, GIF→MP4/WebM, image pre-scale) | A | P1 |
+| STO-04 | Deduplication by sha256 across creators | A | P2 |
+| STO-05 | Keep existing Lottie bytea working; new media to GCS; opportunistic backfill | A | P1 |
+
+---
+
+## 27. Blocked — with the exact unblocking condition
 
 | Item | Unblocked by |
 |---|---|
@@ -1802,7 +2495,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 
 ---
 
-## 22. Open decisions the owner must make
+## 28. Open decisions the owner must make
 
 1. **Studio price: ₹499 or ₹599?** `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` says
    ₹599 GST-inclusive superseding ₹499/₹799; task files carry both. One must win.
@@ -1828,14 +2521,25 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 17. Lobby: default eligibility mode shipped to new creators.
 18. Whether the tip-for-room-code flow (§10.5) coexists with the Lobby Engine or is
     replaced by it — they overlap and currently both exist on paper.
+19. **Queue-count ladder** must be settled before the capability matrix is seeded —
+    1/2/3/5 or 1/3/5/10.
+20. Whether the Co-Stream Room is Creator-tier or Studio-only.
+21. Whether creator sound-upload counts (5 / 25 / 100) and the Free tier's exclusion
+    from uploads are right.
+22. Who may operate the control plane, and whether moving a paid capability into Free
+    needs owner approval rather than two-staff approval.
 
 ---
 
-## 23. Build order
+## 29. Build order
 
 Scope is Alerts, dashboard, overlay, Support Hub and mobile Companion. Nothing else.
 
-**Phase 0 — make what exists real.** F01–F22 plus PRF-01. Nothing new ships until the
+**Phase 0 — make what exists real, and make it controllable.** F01–F22, PRF-01, plus
+the control plane (CTL-01 to CTL-04, CTL-09 to CTL-11) and short-lived overlay
+capabilities (SEC-01). The control plane comes first because every later phase adds
+capabilities that need a switch, and retrofitting a registry onto sixty hard-coded
+gates is far worse than seeding it with eight. Nothing new ships until the
 product stops being a set of disconnected parts. The identity writer, receipts, TTS
 safety, YouTube connect UI, mobile handler wiring, TipForm as the interaction surface,
 schedules on, account activation, quarantine UI, the reachability CI checks, and the
@@ -1851,7 +2555,9 @@ presets · goal controls · markers · per-item queue control · the six monetis
 notification types.
 
 **Phase 3 — community mechanics.** Lobby MVP and trust layer · goal ladder ·
-transparent votes · mission card · milestone queue · custom audio with attestation.
+transparent votes · mission card · milestone queue · Sound Moments and the Interaction
+Rules Engine · custom audio with attestation, on GCS (STO-01 first) · stat widgets with
+the Companion tap source.
 
 **Phase 4 — YouTube depth.** Member reconciliation · like goals · controlled broadcast
 lifecycle · chat moderation · the identity and trust model.
@@ -1862,8 +2568,12 @@ Questions · member perks · top-ups and the credit ledger · Discord role sync.
 **Phase 6 — safety and AI.** Indic safety · AI moderation queue · TTS-safe rewrite ·
 copilot · recap and clips.
 
-**Phase 7 — events and business.** Giveaways · tournaments · sponsor manager and
-exposure logs · finance exports · post-stream analytics · portability.
+**Phase 7 — events and collaboration.** Co-Stream Room · giveaways · tournaments ·
+sponsor manager and exposure logs · finance exports · post-stream analytics ·
+portability.
+
+**Blocked track, unscheduled.** Enterprise (§24) proceeds only when its reopening gate
+closes. Nothing in Phases 0–7 depends on it.
 
 Two things are not phases:
 
@@ -1874,7 +2584,7 @@ Two things are not phases:
 
 ---
 
-## 24. Maintaining this document
+## 30. Maintaining this document
 
 This file is the product authority. Master plan Part 7 is superseded and should not be
 consulted for status.
