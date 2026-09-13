@@ -80,6 +80,8 @@ Three properties define the product and none of them are negotiable:
 
 1. **One source, one app, one deck.** One Master Canvas browser source replaces the
    pile of Streamlabs/StreamElements sources. One phone app runs the stream.
+   *Aspiration, not present tense: Master Canvas is not built (PRF-02) and today each
+   widget is a separate source. Not publishable until it ships and RT-01..RT-07 close.*
 2. **Everything agrees on what happened.** UPI tips, YouTube events, overlay state and
    moderation decisions reconcile to one truth.
 3. **Failure is legible and partial.** If YouTube chat dies, tips and overlay keep
@@ -1379,6 +1381,15 @@ chars. That is the entire filter. Required before public launch:
 - Moderator approval before TTS as a distinct decision from alert display
 - PII detection (phone, UPI ID, email, address, card-like strings)
 
+**Audio never delays or blocks the picture.** A TTS failure, timeout, quota exhaustion
+or safety rejection changes only whether a voice speaks. The visual alert is released,
+displayed, acknowledged and recorded regardless, and it never waits for synthesis —
+the two-phase release in §19.0 RT-03 is how this rule is actually implemented, and the
+current worker violates it.
+
+Safety runs **before** synthesis and identically on both voice routes (§11.10.3). The
+browser-voice path is not a cheaper path with weaker checks.
+
 ### 12.3 Privacy and viewer rights
 
 - **Tipping must never require login, at any level, ever.** If a viewer-account outage
@@ -1519,6 +1530,49 @@ The test: if the creator asks for their own records, that is free at any tier an
 size. If we run something on a schedule for them, that is a service and may be priced.
 **A creator on Free is never told their history is unavailable — only, at most, that we
 will not push it somewhere on a timer for them.**
+
+### 12.7 Bounded data — no surface fetches more than it can safely display
+
+**Decided 2026-09-14, and it is a hard boundary, not a guideline.**
+
+> **No surface may fetch, render, subscribe to, or retain more live data than it can
+> display safely.**
+
+The browser, OBS and the phone receive **small, purpose-built projections**. They never
+receive raw history. Every server response to a live surface is already aggregated,
+capped and projected to the fields that surface actually paints.
+
+This does not narrow §12.6 in any way. Durable records stay complete, searchable and
+exportable — the rule is about **what a live surface pulls into memory in one go**, not
+about what a creator can reach. Deep history is paginated, searched, or exported
+asynchronously as a background job. It is never dumped into a dashboard or an overlay.
+
+| Surface | What it may hold |
+|---|---|
+| **Dashboard** | A compact summary first. Each tab lazy-loads. Cursor pagination only. Lists over 50 rows virtualised. Search debounced. **Exports run as background jobs**, never by rendering thousands of rows |
+| **Tip page** | Server-renders creator identity, presets and the payment form — nothing else. Player, reactions, wall, stickers and social embeds load after first paint and only if enabled |
+| **Overlay** | One Master Canvas connection · a bounded event queue · current and next alert state · compact widget snapshots. **Never** all tips, supporter history, chat, or full goal transactions |
+| **Widgets** | The server returns already-aggregated capped results — top 10 supporters, latest 5 tips, one goal number — never hundreds of rows for the client to reduce |
+| **Media** | Pre-processed, CDN-ready assets. No database binary reads, no browser-side resizing, no arbitrary remote URLs, no unbounded Lottie or audio work in the browser |
+| **Companion** | Push-driven, virtualised above ~50 rows, no continuous value held in React state (§19.8) |
+
+Backend obligations that make it enforceable rather than aspirational:
+
+- Strict cursor and payload limits on **every** endpoint, with field projections rather
+  than `select *`.
+- Query timeouts, so a pathological read fails fast instead of holding a connection.
+- Every widget-backing query proven with `EXPLAIN ANALYZE`, checked in, and re-checked
+  when the query changes. A sequential scan on `payments` behind a widget is a
+  production incident waiting for a popular creator.
+- Derived-cache invalidation driven by the event (§19.6), never by polling.
+- **Backpressure before a read can harm payment traffic.** The payment path has priority
+  over every widget, dashboard and analytics read, and that priority is enforced, not
+  assumed.
+
+**The two current violations, named:** idle overlays poll and replay every two seconds
+(RT-01), and standalone widgets each open their own live transport (§21.3). Both are
+replaced by the channel-keyed, single-Master-Canvas model before the experience may be
+described as smooth.
 
 ---
 
@@ -1837,6 +1891,136 @@ flag, usable by a named pilot cohort at most, and it is not marketed.
 
 ## 19. Architecture — stack, storage, flows and performance
 
+### 19.0 Runtime remediation — four P0 paths, from the 2026-09-14 architecture audit
+
+**Local correctness is green. Production performance is unproven, and four shipped
+paths will not hold under load.** These are corrections to running code, not new
+features, and they outrank every feature in §34 Phase 1. Until all four close, **no
+"lag-free", "fast", "smooth" or "one source replaces twelve" claim may appear anywhere**
+— marketing site, store listing, pricing page or investor material (§20.4 enforces it
+through the snapshot).
+
+#### RT-01 · Idle overlays poll the database every two seconds
+
+`apps/api/src/routes/overlay.ts:18` — the SSE route runs a 25-second stream window with
+a 2-second replay poll. At the Cloud Run cap of 800 concurrent API requests that is
+roughly **400 replay queries per second while nothing is happening**, before a single
+tip, dashboard read or webhook.
+
+**Fix:** delete the idle poll. An idle overlay issues **zero** database queries. The
+connection is held open with a heartbeat; state moves only when an event for that
+channel arrives. Polling returns only as a **jittered slow fallback after a
+disconnect**, never as the steady state.
+
+#### RT-02 · One event wakes every overlay on the instance
+
+`apps/api/src/db/overlay-wakeup.ts:29` — `LISTEN/NOTIFY` resolves *all* waiters and each
+one then replays from the database. A tip to Channel A causes replays for Channels
+B through Z. That is a thundering herd, and it gets worse exactly when the product is
+busiest.
+
+**Fix:** **channel-keyed fanout.** The notification carries the channel; only that
+channel's subscribers wake; each replays once and the result is shared across that
+channel's sessions rather than fetched per session. Per-instance subscriber and
+admission limits are explicit, and a rejected admission is a clear, retryable state, not
+a silent hang.
+
+#### RT-03 · TTS delays the visual alert
+
+`services/alert-worker-go/internal/handler/cloud_tasks.go:137` calls TTS enrichment
+*before* releasing the delivery, with a 2.5-second HTTP timeout
+(`internal/tts/client.go:42`). A slow provider therefore delays the picture. That
+directly contradicts §12.2's rule that audio failure never delays the visual.
+
+**Fix: two-phase release, decided 2026-09-14.** The worker releases the visual delivery
+the instant the visual payload is ready. TTS enrichment runs **after** release and
+arrives as a **second event on the same channel**, played against the alert already on
+screen. The visual path's latency becomes fully independent of the provider.
+
+Rules for phase two: it is best-effort and its failure is invisible to the viewer · if
+the alert's display window has already closed, the audio is **dropped, never played
+late over a different alert** · the two events share the alert's identifier so the
+overlay can match them · quota, safety and the routing decision (§11.10) all still
+happen before synthesis, not after.
+
+#### RT-04 · Payment acknowledgement waits on a worker-pump scan
+
+`services/payment-webhook-go/internal/ingress/handler.go:109` — after committing payment
+truth, the webhook waits on a worker-pump HTTP call with a five-second timeout
+(`worker_pump.go:15`). A burst turns an **already-safe payment** into a provider retry
+purely because dispatch was slow. And a failed enqueue has no enabled periodic sweeper
+to recover it (`bharatstudio-crons` ships every schedule `"enabled": false`).
+
+**Fix:** the webhook does exactly one thing — **one atomic durable commit, then an
+immediate 2xx**. Dispatch is a **post-commit wakeup only**, fire-and-forget, and never
+part of the acknowledgement. An **independently scheduled, leased outbox dispatcher**
+owns enqueueing, so a missed wakeup is recovered on the next tick rather than lost.
+That dispatcher is the reason the cron schedules must be enabled (F-track) — without it
+this fix has no recovery path.
+
+#### RT-05 · The pump is uncoordinated
+
+`packages/db/migrations/0063_...sql:101` — every webhook may scan up to 100 ready
+deliveries, so concurrent webhooks scan and enqueue the same backlog repeatedly.
+Deterministic Cloud Task names protect correctness but not latency, and not the pressure
+we put on our own API and on the provider.
+
+**Fix:** the leased dispatcher from RT-04 is the only scanner. Webhooks never scan.
+Leases make concurrent dispatchers safe and bounded.
+
+#### The target shape, stated once
+
+```text
+Payment webhook
+  → one atomic durable commit
+  → immediate provider 2xx
+  → post-commit wakeup only (fire-and-forget)
+  → independently scheduled, leased outbox dispatcher
+  → Cloud Task
+  → release VISUAL delivery immediately
+  → TTS / media enrichment separately, as a second event
+
+Committed event
+  → channel-keyed fanout
+  → only that channel's active overlay sessions wake
+  → one Master Canvas SSE connection per channel session
+  → one bounded snapshot / state update
+  → zero idle database polling
+```
+
+#### RT-06 · We cannot currently measure the budgets we promise
+
+`apps/api/src/observability/metrics.ts:42` and the Go services expose **totals and
+duration sums, not histograms**. That yields averages. §19.4 promises p99s, and an
+average cannot falsify a p99 claim. Reconciliation snapshots are process-local and the
+reconciler schedule is unwired (`apps/api/src/routes/metrics.ts:48`).
+
+**Fix:** histogram metrics with explicit buckets on every path that carries a budget,
+aggregated across instances, plus a real p95/p99 read-out. **A budget without a
+histogram is not a budget**, and PRF-01 cannot pass CI without this.
+
+#### RT-07 · No browser, OBS or device evidence exists
+
+The web suite is JSDOM. There is no Chromium-in-OBS harness, no low-end Android run, no
+3G profile, no 8-hour soak, no frame or memory profiler in any repo. **Every number in
+§19.4 is currently an assertion.**
+
+**Fix, and this is the release gate:** a real end-to-end browser harness; a staged test
+at the concurrency target below; and an **8-hour OBS soak** proving flat memory and node
+count. Local suites and the SQL harness (20 synthetic tips, concurrency 5, p95 31ms) are
+SQL-correctness evidence only — that harness runs no HTTP, no Razorpay, no Cloud Tasks,
+no real SSE, no Cloud Run, no OBS and no sized database, and it may never be cited as
+performance evidence (§35.1 rule 6).
+
+#### The concurrency target
+
+**Decided 2026-09-14: design and size for 2,000 concurrent live overlays.** That number
+governs the connection model, the per-instance subscriber limits, the database
+connection budget and the Cloud Run caps, and it is the concurrency the staged test must
+actually reach. It is deliberately above a first-year expectation: a shared, channel-keyed
+subscriber registry is cheap to design in now and a rebuild later, and the failure we are
+avoiding is a successful launch weekend taking the product down.
+
 ### 19.1 The stack, and what is already decided
 
 | Layer | Choice | Status |
@@ -1993,15 +2177,45 @@ work to a machine that is already saturated**.
 | Support Hub first contentful paint | < 1.5s on 4G, < 3s on 3G |
 | Support Hub JS | < 150KB gzipped before the optional player |
 | API p99 | < 200ms for reads, < 500ms for the tip-order path |
+| Idle overlay database load | **Zero queries.** An overlay with nothing happening touches the database not at all (RT-01) |
+| Visual alert release | Never waits on TTS, media or any enrichment (RT-03) |
+| Payment webhook acknowledgement | 2xx after the durable commit, never after a dispatch call (RT-04) |
+| Concurrency the design is sized for | **2,000 concurrent live overlays**, and that is the concurrency the staged test must reach |
 
 These go in CI as budgets that fail the build, not in a document as aspirations.
 
+**A budget with no histogram is not a budget (RT-06).** Every path above needs bucketed
+histogram metrics aggregated across instances before its number means anything; totals
+and duration sums yield averages, and an average cannot falsify a p99. PRF-01 does not
+pass until this exists.
+
+**And no budget is met until it is measured where it runs (RT-07):** Chromium inside
+OBS, a low-end Android, a 3G profile, and an 8-hour soak showing flat memory and a flat
+node count. JSDOM tests and the local SQL harness are not evidence of any number in this
+table.
+
 ### 19.5 Overlay — the architecture that keeps it cheap
 
-**One source, one connection, one loop.** The Master Canvas already collapses N browser
-sources into one; the win is only real if it also collapses N connections and N render
-loops. One SSE connection, one `requestAnimationFrame` scheduler, modules as pure
-render functions driven by a single state store.
+**One source, one connection, one loop.** The Master Canvas collapses N browser sources
+into one; the win is only real if it also collapses N connections and N render loops.
+One SSE connection, one `requestAnimationFrame` scheduler, modules as pure render
+functions driven by a single state store.
+
+**Master Canvas is not built yet (PRF-02, absent), so the claim is not yet true.** Today
+each widget route is an independent OBS browser source opening its own transport. Until
+Canvas is the runtime, **"one source replaces twelve" may not be marketed** (§20.4).
+
+The connection model, corrected 2026-09-14 (RT-01, RT-02):
+
+- **Channel-keyed subscribers.** A notification carries its channel; only that channel's
+  sessions wake. No cross-channel wake, ever.
+- **Deduplicated per-channel replay.** One replay per channel per event, shared across
+  that channel's sessions — not one query per session.
+- **Heartbeats** carry connection health; they are not a data path.
+- **Zero idle polling.** Jittered slow polling exists only as a post-disconnect
+  fallback.
+- **Explicit per-instance subscriber and admission limits**, with a clear retryable
+  rejection rather than a silent hang.
 
 Rules that keep it fast:
 
@@ -2029,6 +2243,9 @@ Rules that keep it fast:
 - **Degrade per module.** One module throwing must not blank the canvas — error
   boundaries per module, and a module that fails twice stays down for the session with
   a creator-visible note.
+- **The Free watermark is a protected top layer** rendered after every module, outside
+  the module system and outside the error boundaries. A module crash must never take the
+  attribution with it. Specified in §30.6.
 
 ### 19.6 The derive-don't-store tension, and how to resolve it
 
@@ -2055,7 +2272,16 @@ popular stream with eight widgets and a reconnecting overlay.
 - The overlay listener needs its **own direct connection** (`DATABASE_URL_DIRECT`);
   pooled `LISTEN/NOTIFY` is best-effort signalling only and never the correctness path.
   Durable cursor replay remains authoritative (ALQ-04).
+- **The notify payload carries the channel, and fanout is keyed on it** (RT-02). Waking
+  every waiter and letting each one query is the current behaviour and it is a defect.
 - SSE fan-out is per-overlay, not per-widget. Adding a widget must not add a connection.
+- **Dispatch is never inside a request the provider is waiting on** (RT-04). One atomic
+  commit, immediate 2xx, post-commit wakeup, and a separately scheduled leased dispatcher
+  that owns enqueueing and recovers anything the wakeup missed.
+- **Only the dispatcher scans for ready deliveries** (RT-05). Request handlers never
+  scan a backlog.
+- **The visual path never waits on enrichment** (RT-03). TTS and media arrive as a second
+  event keyed to the same alert.
 - Every list endpoint is cursor-paginated with a bounded page size — no offset
   pagination, no unbounded reads. Several are already capped at 100; make it universal.
 - Index every query behind a widget. A widget read that sequential-scans `payments` is a
@@ -2089,6 +2315,10 @@ popular stream with eight widgets and a reconnecting overlay.
   work.
 
 ### 19.10 How we stay ahead of competitors on this
+
+**This claim is currently unpublishable (RT-09).** Master Canvas is absent, idle
+overlays poll every two seconds, and no OBS measurement exists. Everything below is what
+the claim becomes once Phase 0.5 closes and the benchmark is real.
 
 The competitive claim is not "more widgets". It is **one source instead of twelve**,
 which is a measurable CPU and memory win on the creator's encoding machine, and the
@@ -2187,6 +2417,11 @@ snapshot:
   failure behind the current watermark and custom-sound claims.
 - Prices remain a separate, deliberately manual, legally-reviewed decision. The matrix
   controls **what is in which tier**, not what a tier costs.
+- **Performance claims are gated the same way (RT-09).** "Lag-free", "fast", "smooth",
+  "instant" and "one source replaces twelve" are treated as capability claims with a
+  `marketing_visible` flag that stays **false** until RT-01 to RT-07 close and the
+  published benchmark exists. A performance adjective is a claim about measured
+  behaviour, and we have no measurement yet.
 
 **This inverts the current bug class.** Today the site can claim a feature the code
 does not have. After this, the site cannot render a capability the control plane does
@@ -2282,6 +2517,22 @@ for every game including ones nobody integrates with.
 
 All of them are modules of the one canvas (§6), all carry the four switches (§15), and
 all are rows in the capability registry (§20) so staff can retier them at will.
+
+### 21.3 Standalone widget URLs — kept, capped, second-class
+
+**Decided 2026-09-14.** Standalone widget browser sources stay supported. Creators built
+working scenes around them and breaking those setups punishes people who did nothing
+wrong. But they are the second violation of §12.7 — each one opens its own live
+transport — so they are bounded rather than free.
+
+| Rule | Detail |
+|---|---|
+| **Live-transport budget** | A **per-channel cap on concurrent live transports**, counted across Master Canvas and every standalone widget together. Canvas counts as one no matter how many modules it holds |
+| **Over the cap** | Additional standalone widgets fall back to a slow, jittered snapshot poll instead of a live transport, and say so plainly in the dashboard. Nothing silently stops updating |
+| **Product direction** | Canvas is the default and the recommended path everywhere — the editor, the docs, the onboarding. Standalone is an escape hatch, never the thing we teach |
+| **Transport parity** | A standalone widget uses the same channel-keyed subscriber path as Canvas. No second delivery mechanism (ENG-06 already rejects that) |
+| **Free-tier attribution** | A standalone widget carries the watermark **only if it is the channel's only active overlay source**; otherwise Canvas owns it and duplicating it would be worse (§30.6) |
+| **Not deprecated** | There is no removal date. If we ever want one, it is a decision row with a migration, not a quiet break |
 
 ---
 
@@ -3146,7 +3397,8 @@ defect against §12.6.
 | Event bindings | 3 | 5 | 10 | 20 |
 | Saved presets | 1 | 2 | 4 | 8 |
 | Pending visuals | 20 | 50 | 150 | 500 |
-| Watermark | yes | — | — | — |
+| Overlay watermark — one protected mark, fixed corner (§30.6) | yes | — | — | — |
+| Tip-page attribution line (§30.6) | yes | — | — | — |
 | Lottie / branding upload | — | — | — | yes |
 
 **Queue count decided 2026-09-13: 1 / 2 / 3 / 5**, as shown. The 1/3/5/10 figure in
@@ -3282,14 +3534,69 @@ one. Until that exists, standalone is a config flag with no viable signup path.
 
 - **Nothing correctness-related ever moves up a tier.** §25.1 is immutable.
 - **Free must be genuinely usable**, not a demo. A Free creator takes real money, gets
-  a real alert, real TTS via browser voice, and a real receipt. The watermark is the
-  price.
+  a real alert, real TTS via browser voice, and a real receipt. **The price is exactly
+  two marks — one small logo in a fixed Master Canvas corner and one quiet line on the
+  tip page (§30.6) — and nothing else.**
 - Every locked row is **visible with its unlocking tier** (§15.3), never hidden.
 - A capability moved down a tier takes effect immediately; **moved up, it grandfathers
   existing users** rather than breaking them — matching the existing moderator-seat
   behaviour.
 - Any change to this matrix that affects a published marketing claim requires the
   marketing snapshot to rebuild (§20.4) before it is announced.
+
+### 30.6 Branding and attribution — one watermark, one place
+
+**Decided 2026-09-14. The tier distinction is exactly this and nothing more:**
+
+| Tier | Branding |
+|---|---|
+| **Free** | One small BharatStudio logo in a fixed corner of the stream overlay, plus one quiet attribution line on the tip page |
+| **Any paid tier** | **Zero BharatStudio branding anywhere.** No logo, no watermark, no "powered by", no end-card, no spoken mention, no QR badge, no tip-page attribution, nothing in a receipt or an email |
+
+#### 30.6.1 How the overlay watermark behaves
+
+- **Rendered once per Master Canvas**, in a fixed safe corner. **Not** repeated on every
+  alert, widget, ticker, sound or module — one mark, one place.
+- **Visible only while the Free tier is active.**
+- **Never spoken by TTS, and never interrupts or delays an alert.**
+- **A protected top-layer element**: rendered after every module, above all widgets,
+  images, GIFs, themes, alerts and creator-uploaded assets. It is not a configurable
+  widget and there is no switch that disables it.
+- **The corner is a reserved safe zone.** The Canvas editor refuses module placement
+  over it — the constraint lives in the editor, so a creator cannot accidentally cover
+  it and cannot deliberately cover it from inside our product.
+- **Outside the module error boundaries**, so a crashing module cannot take the
+  attribution down with it (§19.5).
+- **On a standalone widget, only when that widget is the channel's only active overlay
+  source.** Otherwise Canvas owns the mark and a second copy would just look broken.
+
+#### 30.6.2 What we do not do
+
+We cannot stop a creator adding an image source above our browser source in OBS,
+cropping it, or hiding it. OBS is their software on their machine, and trying to defeat
+that would be brittle, invasive and hostile — a product that spies on a creator's local
+scene graph is a product people rightly refuse to install.
+
+So the position is stated plainly and honestly:
+
+- **Technically prevent hiding inside our Canvas.** That part is ours and we enforce it.
+- **Never attempt detection of external OBS layers, scene inspection, or any
+  covering-check telemetry.** Not now, not as a "compliance feature" later.
+- **State it in the Free terms**: attribution must remain visible while BharatStudio
+  Free overlays are in use. It is a term of the free tier, enforced the way terms are.
+- **Paid tiers remove it completely**, which is the actual answer to anyone who does not
+  want it.
+
+#### 30.6.3 Lapse behaviour — branding never appears mid-stream
+
+- A paid creator stays **completely unbranded through the entire grace period** (§26.2).
+- **Branding is never injected into a live stream** after a payment problem. Not on
+  grace, not on pause, not ever. The audience is not told about a billing issue by a
+  logo appearing on screen.
+- Once **paused**, premium modules stop. Only on the **next clean overlay reload** may
+  the Free fallback render the single watermark, and only if native alerts are still
+  enabled.
+- This is the same rule as LIF-06 and §26.3, stated from the branding side.
 
 ---
 
@@ -3680,7 +3987,7 @@ raised a creator's income.
 | MKT-02 | Commission calculator with provider fees shown on both sides | U | — |
 | MKT-03 | No competitor names in rendered HTML | U | — |
 | MKT-04 | No Enterprise tier, CTA or contact-sales flow until L10 amended | U | — |
-| MKT-05 | Watermark claim vs reality — pricing page says tip page + alert; only the alert has one | A | P1 |
+| MKT-05 | Watermark claim vs reality — the pricing page says tip page + overlay, and only the overlay has one. §30.6 settles it as correct: build the tip-page line rather than weaken the claim | A | P1 |
 | MKT-06 | `/features` frames Alerts and Companion as co-equal; Companion is bundled | A | P2 |
 | MKT-07 | Legal sign-off: pricing/feature claims, DPDP deletion, plaintext reset URL in email | B | — |
 | MKT-08 | Support surface and staffing | A | P0 |
@@ -3801,10 +4108,30 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 
 ### 31.18 Performance
 
+#### 31.18.0 Runtime remediation (§19.0) — corrections to shipped code, ahead of Phase 1
+
 | ID | Item | State | Pri |
 |---|---|---|---|
-| PRF-01 | CI-enforced budgets (§19.1) | A | P0 |
-| PRF-02 | Single connection, single rAF loop, modules as pure renderers | A | P0 |
+| RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | X | **P0** |
+| RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits | X | **P0** |
+| RT-03 | Two-phase release: visual out immediately, TTS/media as a second event on the same alert; late audio dropped, never played over a different alert | X | **P0** |
+| RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | X | **P0** |
+| RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | X | **P0** |
+| RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget | A | **P0** |
+| RT-07 | Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count | A | **P0** |
+| RT-08 | Enable the cron schedules the dispatcher depends on (`bharatstudio-crons` ships every schedule `"enabled": false`) | X | **P0** |
+| RT-09 | No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | A | **P0** |
+| RT-10 | Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads | A | **P0** |
+| RT-11 | Query timeouts on every read path; a pathological query fails fast rather than holding a connection | A | P1 |
+| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes | A | **P0** |
+| RT-13 | Per-channel live-transport cap counted across Canvas and standalone widgets; over-cap widgets degrade to slow snapshot polling with a visible notice (§21.3) | A | P1 |
+
+#### 31.18.1 Overlay and read-path performance
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| PRF-01 | CI-enforced budgets (§19.4) — **cannot pass until RT-06 exists**; averages cannot falsify a p99 | A | P0 |
+| PRF-02 | Master Canvas as the runtime: single connection, single rAF loop, modules as pure renderers. **Absent — so "one source replaces twelve" is unmarketable until it lands** | A | P0 |
 | PRF-03 | Composite-only animation; no layout-triggering properties | P | P0 |
 | PRF-04 | Bounded DOM with recycling; flat node count over 8 hours | A | P0 |
 | PRF-05 | Idle modules fully unsubscribed | A | P0 |
@@ -3819,6 +4146,16 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | PRF-14 | Per-module error boundaries; twice-failed module stays down with a note | A | P1 |
 | PRF-15 | Companion: optimistic UI, virtualised lists, no re-render storms | P | P1 |
 | PRF-16 | Published one-source-vs-many benchmark, re-run in CI | A | P1 |
+| PRF-17 | Bounded-data rule (§12.7) enforced per surface: dashboard summary-first and virtualised, tip page first-paint-only, overlay bounded queue, widgets server-aggregated and capped | A | **P0** |
+| PRF-18 | Exports run as background jobs, never by rendering rows into a page | A | P1 |
+| PRF-19 | Field projections and strict payload caps on every endpoint — no `select *` behind a live surface | A | P1 |
+| WMK-01 | Watermark as a protected top layer rendered after every module, outside the module system and its error boundaries | A | **P0** |
+| WMK-02 | Reserved safe-zone corner the Canvas editor refuses to place modules over | A | **P0** |
+| WMK-03 | Watermark on a standalone widget only when it is the channel's only active overlay source | A | P1 |
+| WMK-04 | Tip-page attribution line on Free only (MKT-05) | A | P1 |
+| WMK-05 | Zero branding on every paid tier, everywhere — overlay, tip page, receipts, emails, end-cards, TTS | A | **P0** |
+| WMK-06 | Branding never injected mid-stream on lapse; Free fallback mark appears only on the next clean overlay reload after pause | A | **P0** |
+| WMK-07 | No external-layer detection, scene inspection or covering-check telemetry — ever | N | — |
 
 ### 31.19 Control plane and admin
 
@@ -4055,6 +4392,13 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
 | **Social Relay** | One event becomes an approved, platform-specific action. Approve-then-send is the default; auto-send is Creator+ and opt-in. Never auto-post tips, followers or alerts anywhere. |
 | **Packs** | Tiers sell a capability class, packs sell capacity and scope. A pack never grants correctness and is never the only route to a capability. |
+| **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
+| **Alert audio** | **Two-phase release.** The visual goes out the moment it is ready; TTS arrives as a second event keyed to the same alert. Late audio is dropped rather than played over a different alert. Audio latency can never again become visual latency. |
+| **Concurrency target** | **2,000 concurrent live overlays.** Deliberately above a first-year expectation, because a shared channel-keyed subscriber registry is cheap now and a rebuild later, and the failure being avoided is a successful launch weekend taking the product down. |
+| **Bounded data** | **No surface may fetch, render, subscribe to or retain more live data than it can display safely** (§12.7). Live surfaces receive small purpose-built projections, never raw history. Deep history stays durable and exportable under §12.6 but is paginated, searched, or exported as a background job — never dumped into a dashboard or an overlay. |
+| **Standalone widget URLs** | **Kept, capped, second-class** (§21.3). A per-channel live-transport cap counts Canvas and standalone widgets together; over-cap widgets degrade to slow snapshot polling with a visible notice. No deprecation date, no silent break. |
+| **Branding** | **Free: one small protected logo in a fixed Master Canvas corner, plus one quiet tip-page line. Every paid tier: zero branding anywhere** — no logo, watermark, "powered by", end-card, spoken mention, QR badge, tip-page attribution, receipt or email line. The mark is rendered once per Canvas, never per alert or per widget, never spoken, never delaying an alert, above every module and outside their error boundaries, in an editor-reserved safe zone. On a standalone widget only when it is the channel's only overlay source. |
+| **Branding enforcement** | **Prevent hiding inside our Canvas; never attempt to detect external OBS layers.** No scene inspection, no covering-check telemetry, now or later. Free terms require attribution to remain visible; paid tiers remove it entirely. Branding is **never injected mid-stream** after a payment problem — the Free mark can appear only on the next clean overlay reload after pause. |
 | **Durable creator records** | **Never tier-gated, never sold, never withdrawn.** Storing, viewing, searching, fetching and exporting payments, receipts, refunds, audit trail, supporter relationships, event history, configurations, layouts and moderation history is free at every tier including Free, with no row, date or search cap. Restoring access to data we already accepted is never charged for. Tiering limits **new active capacity only** — active connectors, active widgets, AI usage, new media uploads, custom assets, team seats, automation volume. Over-quota assets go read-only and stay viewable and exportable; deletion follows the published retention policy alone, never a tier lapse. §12.6 outranks every tier table and pricing decision in this document. |
 | **Retention** | **One uniform published policy for every tier**, Free to Studio. Per-tier retention windows are removed and the "Event retention" top-up is deleted. Retention is a trust, privacy and legal position, not an upsell. The window itself is a legal number and stays open (§33.2). |
 | **Export vs. automation** | Owning the data is free; us doing scheduled work with it is a service. A one-off export of everything, any size, open format, is free at every tier. **Scheduled delivery** into Sheets, Tally or a webhook is an active connector and stays Creator+. |
@@ -4130,6 +4474,13 @@ product stops being a set of disconnected parts. The identity writer, receipts, 
 safety, YouTube connect UI, mobile handler wiring, TipForm as the interaction surface,
 schedules on, account activation, quarantine UI, the reachability CI checks, and the
 performance budgets that will police everything after.
+
+**Phase 0.5 — runtime remediation, and it blocks Phase 1.** RT-01 to RT-13. These are
+corrections to code that already runs in front of real payments, and every one of them
+gets worse with more traffic and more surfaces on top. RT-06 and RT-07 come with them
+rather than after, because a fix with no histogram and no OBS soak is a fix we cannot
+show worked. Master Canvas (PRF-02) lands here too — it is the thing every later phase
+assumes and the reason the connection model is worth fixing once.
 
 **Phase 1 — the surfaces people touch.** Live Support Hub steps 1–3 (tray, verified
 state, receipts, ticker, goals, reactions, sticker and sound picker, message preview) ·
@@ -4241,6 +4592,14 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| Architecture claimed "one source, one connection, one loop" while overlays polled every 2s and one event woke every stream | §19.0 RT-01 to RT-13, a new Phase 0.5 that blocks Phase 1, and a publishable-claims freeze until they close |
+| TTS enrichment ran before the visual was released, contradicting §12.2 | Two-phase release: visual first, audio as a second event, late audio dropped (RT-03) |
+| Payment webhook acknowledged only after a worker-pump call with no recovery sweeper | One commit, immediate 2xx, fire-and-forget wakeup, leased dispatcher that owns enqueueing and recovery (RT-04, RT-05, RT-08) |
+| §19.4 promised p99s the metrics cannot compute | Histograms mandatory; PRF-01 cannot pass without RT-06; §19.4 gains idle-load, visual-release, ack and concurrency rows |
+| §19.5 asserted the Canvas benefit as present tense | Marked absent, and the "one source replaces twelve" claim blocked until PRF-02 ships |
+| No rule bounded what a live surface may load | §12.7 bounded data, with a per-surface table and the backend obligations that make it enforceable (PRF-17 to PRF-19) |
+| Standalone widgets each opened their own transport with no limit | §21.3 keeps them, capped by a per-channel live-transport budget, degrading to snapshot polling over the cap (RT-13) |
+| Branding was one undefined "watermark" row in the tier matrix | §30.6: one protected Canvas mark plus a Free tip-page line; zero branding on every paid tier; no mid-stream injection; explicitly no external-layer detection (WMK-01 to WMK-07) |
 | Durable creator records were tier-gated and retention was sold as a top-up | §12.6 makes records untiered and unsellable at every tier; retention is uniform; the top-up row is deleted; CTL-14/CTL-15 enforce it in the registry rather than by review |
 | §26.2 deleted paid-only configuration at Expired | Only third-party secrets are destroyed; configuration, layouts, mappings and every durable record persist and stay exportable |
 | The "Retained 90 days" state read as a history clock | It is the connector-secret window only; durable records are not on that clock |
