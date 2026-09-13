@@ -114,9 +114,12 @@ client-facing gRPC · **in-app checkout in Companion** (see §5.6.1).
 | **N** | Never |
 
 **Post-v1 slices, in labelled order.** YouTube depth (P2) · AI credits and top-ups (P2)
-· Lobby Engine and tournaments (P3) · Social Relay (P3) · packs and creator jobs (P3) ·
-payment Compatibility Routing (**R**) · Enterprise (**R**, and additionally blocked on
-§32).
+· interop: Canvas Packages, asset import and the migration wizard (P2, §9) ·
+BharatStudio Bot (P2, §36, and additionally blocked on the chat-write scope) · Lobby
+Engine and tournaments (P3) · Social Relay (P3) · packs and creator jobs (P3) ·
+outbound bridges (P3, §9.6) · payment Compatibility Routing (**R**) · third-party
+package marketplace (**R**, §9.7) · StreamElements event bridge (**R**) · Enterprise
+(**R**, and additionally blocked on §32).
 
 **The evidence rule, which this document does not get to relax.** A local test, a
 passing suite, a document review, or a section of this file is never launch evidence.
@@ -938,6 +941,193 @@ relay widget · MIDI / hotkey / Stream Deck trigger mappings.
 undocumented provider endpoints. Use user-installed compatibility widgets and explicit
 local configuration only.
 
+### 9.1 The Interop layer — three separate capabilities, deliberately not one
+
+Expanded 2026-09-14. Creators want other people's alert designs, other people's
+automations, and a way to switch without a disruptive weekend. Those are three
+different problems with three different risk profiles, and merging them into one
+"integrations" feature is how a product ends up executing strangers' JavaScript inside
+OBS.
+
+| Capability | Purpose | Safe approach |
+|---|---|---|
+| **Style packages** | More alert designs and widget looks | Import or re-author assets into a signed BharatStudio package format |
+| **Migration tools** | Make switching from an existing setup easy | Inspect, map, preview, import — with approval and reversal |
+| **Event bridges** | Keep using existing automation during the switch | Emit selected BharatStudio events outbound to chosen tools |
+
+#### 9.1.1 The rule that makes all three safe
+
+> **BharatStudio never embeds an arbitrary third-party browser-source URL, HTML,
+> JavaScript, CSS or iframe inside the Master Canvas. Ever.**
+
+This is the same boundary as PRF-13 ("no third-party scripts in the overlay"), stated
+from the interop side because this is where the pressure to break it will come from.
+An external script inside the Canvas would put someone else's code in charge of OBS
+performance, viewer data, reliability, our visual branding and our security — and it
+would sit above the protected watermark layer (§30.6) and outside the bounded-data
+rule (§12.7). There is no tier, no attestation and no "advanced mode" that makes it
+acceptable.
+
+What we do instead is everything below.
+
+### 9.2 BharatStudio Canvas Packages — the format that makes a look portable
+
+A **signed, versioned, declarative** template format. A package contains:
+
+- layout and slot definitions
+- theme tokens (colour, type scale, spacing, radii)
+- animations chosen from an **allowed set**, not authored as code
+- fonts, images, video, audio and Lottie assets, all bundled
+- configurable fields the creator fills in (name, colour, threshold, sound)
+
+A package contains **no JavaScript, no network fetches, no external font or asset URLs,
+no CSS that executes, and no template expressions that can reach the runtime**. It is
+data the Canvas renders, not a program the Canvas runs. Every package is signed,
+version-pinned, and declares the minimum Canvas runtime it needs, so an old package
+keeps rendering when the runtime moves.
+
+**This is also the answer to the template-catalogue problem** that has been open since
+§33.2 item 1. The 359 unwritten packages were unwritten because each one was bespoke
+work. With a declarative format the shape of the work changes: author a small,
+genuinely good first-party set, and let asset import cover the long tail. That is a
+different and far more tractable problem than authoring 359 of anything.
+
+### 9.3 Asset imports — creators bring the look they already own
+
+Support importing assets a creator **owns or has licensed**: exports from Canva, Figma,
+LottieFiles, Photoshop, and purchased packs of the OWN3D / Nerd or Die kind. Accept
+SVG, PNG, WebP, audio, video and Lottie.
+
+Every import goes through the pipeline that already exists in §19.1 and is gated by
+§18.3: validate → scan → normalise and transcode → store content-addressed and
+tenant-scoped → serve from CDN → render through our own engine.
+
+Two consequences that must not be lost:
+
+- **An imported asset is a creator upload.** It carries the same rights attestation,
+  the same quarantine, the same provenance record and the same takedown route as any
+  other upload. Importing from a design tool does not launder the rights question, and
+  a purchased pack's licence is between the creator and the seller.
+- **We never present one creator's imported asset to another creator** (§18.2), and
+  imported assets are tenant-scoped in storage (§19.1). An import is not a
+  contribution to a shared library.
+
+The creator gets the look; we keep the runtime fast, safe and ours.
+
+### 9.4 Migration wizard — "bring my setup"
+
+1. **Inventory.** Read an OBS scene collection or a supported exported configuration
+   and list what is there.
+2. **Map.** Translate sounds, images, durations, thresholds, queue behaviour and text
+   settings into BharatStudio equivalents.
+3. **Preview and diff.** Side by side, before anything changes, with every unmapped
+   item named rather than silently dropped.
+4. **Publish on approval only.** Nothing goes live until the creator says so.
+5. **Reversible.** The original sources are untouched and stay in the scene, disabled
+   rather than deleted, so the creator can go back in one action.
+
+An honest "could not import" list is worth more than a high import percentage. A
+mapping we are unsure of is shown as unsure.
+
+### 9.5 Bridges — outbound only, and outside the critical path
+
+```text
+Verified payment / event
+  → durable BharatStudio event + overlay release
+  → Master Canvas renders immediately
+  → optional connector outbox
+       → Streamlabs / Streamer.bot / SAMMI / Mix It Up
+```
+
+**A bridge failure must never delay, cancel, duplicate or alter a BharatStudio alert.**
+This is the same architecture as RT-03 and RT-04: the critical path completes first and
+the optional work happens afterwards, in its own outbox.
+
+Every bridge destination gets: its own queue · retries with backoff · a dead-letter
+record · a per-destination kill switch · an idempotency key · and a redacted delivery
+log. A destination that fails repeatedly is disabled with a creator-visible notice, not
+retried forever.
+
+### 9.6 Per-integration assessment — including where I disagree with the proposal
+
+| Integration | Position | Phase |
+|---|---|---|
+| **Streamlabs outbound alert bridge** | Build, but **do not position it as parity** — see below | P3 |
+| **Streamer.bot local adapter** | Build, in the Companion desktop helper, `localhost` only, explicit pairing, creator-chosen allow-list of actions | P3 |
+| **SAMMI local adapter** | Same shape as Streamer.bot | P3 |
+| **Mix It Up local adapter** | Same shape, lower priority — smallest overlap with our audience | P3 |
+| **StreamElements** | Configuration **migration** only. An event bridge waits on a confirmed API/partner position | **R** |
+
+**Where I would change the proposal: Streamlabs cannot be a general alert bridge.**
+Their documented guidance is roughly **two alerts per user per minute**. A creator
+taking forty tips during a raid cannot bridge them, and a bridge that silently drops
+thirty-eight of them is worse than no bridge — the creator will believe the tips did
+not arrive. So the bridge ships as:
+
+- **Selected event types only**, defaulting to low-frequency ones — goal reached,
+  milestone, session start, sponsor moment — and **not** every tip.
+- **Rate-limited and coalesced** by us, below the documented limit, with the coalescing
+  stated in the UI: *"bridged alerts are summarised; your BharatStudio overlay shows
+  every one."*
+- **Labelled a transition tool** in the product, with the Replace step as the
+  destination. It is a bridge in the literal sense: something you walk across once.
+
+**Local adapters are helper mechanisms, not a product surface.** §14 keeps desktop
+Companion out of scope as a product; these adapters live in the same local helper that
+already exists for OBS control. Rules: `localhost` only, never a publicly reachable
+port · the creator pairs explicitly and picks the permitted actions from a list · we
+never accept an arbitrary command, from us or from anyone else (the same rule as
+CMP-05, which already rejects `obs_*` sent directly).
+
+**StreamElements stays research-only.** Migration of a creator's own exported
+configuration is fine. An event bridge is not, until there is a confirmed API position
+or partner contract — and under no circumstances do we scrape a dashboard, import a
+browser-source secret, or execute copied widget code.
+
+### 9.7 The marketplace — the part I would slow down
+
+A reviewed template marketplace with creator publishing is the most attractive item on
+this list and the one with the most hidden product in it. It is not a feature; it is a
+second business:
+
+- **Payouts to package authors**, which means a second money flow, a second settlement
+  problem, a second refund policy and a second tax position — on top of the one that is
+  still gated on the CA row in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`.
+- **GST on digital goods** sold by third parties through our storefront.
+- **Content review at scale**, plus takedown, disputes, impersonation and repeat
+  infringement — the §18.3 gate again, but now for assets we distribute rather than
+  host privately.
+- **Curation liability**: a "verified" badge is a claim we have to be able to defend.
+
+So the sequencing is: **first-party curated packages only**, free, authored by us, with
+private creator packages that never leave the creator's account. Third-party paid
+publishing is **phase R** and reopens only when the payout, tax and review positions
+exist. Nothing else in the interop layer depends on it.
+
+### 9.8 Tier placement
+
+| Tier | Interop |
+|---|---|
+| **Free** | First-party native templates and basic customisation |
+| **Pro** | First-party packages, asset import within the storage quota |
+| **Creator** | Migration wizard · private imported style packages · outbound bridges |
+| **Studio** | Multi-destination bridges · team-managed style libraries · reusable brand kits · approval workflow before a package goes live |
+
+Consistent with §33.1: connect, import and bridge are Creator-tier and above, and
+nothing here touches the never-charged-for set. **Importing is a paid capability;
+exporting your own work never is** (§12.6).
+
+### 9.9 Build order for the interop layer
+
+1. Define and validate the declarative Canvas Package format — everything else depends
+   on it, and it is also the template-catalogue answer.
+2. Asset import, transcoding, validation and preview, on the §18.3 gate.
+3. OBS/setup migration inventory and configuration mapping.
+4. Streamlabs bridge (selected events, rate-limited) plus the Companion-helper adapters
+   for Streamer.bot, SAMMI and Mix It Up.
+5. First-party curated package library and private creator packages.
+6. *(Phase R)* Third-party marketplace publishing, once payouts, tax and review exist.
+
 ---
 
 ## 10. Monetization
@@ -1603,7 +1793,7 @@ Recorded so it is not rediscovered as a "gap" in six weeks.
 |---|---|---|
 | **Mirror** | `stream-mac`, `stream-windows` | Out of scope. Screen mirroring from phone to desktop. |
 | **Stream** | `stream-ios`, `stream-android` | Out of scope. Mobile live-streaming apps. |
-| **Desktop Companion** | `companion-desktop` | Not a product surface. May persist as a local OBS mechanism only. |
+| **Desktop Companion** | `companion-desktop` | Not a product surface. May persist as a local **mechanism** only — OBS control, and the Streamer.bot / SAMMI / Mix It Up adapters in §9.6. `localhost` only, explicit pairing, creator-chosen action allow-list, never a public port, never an arbitrary command. |
 | **Platform** | `bharatstudio-platform` | Out of scope. Cross-product identity and store entitlements. |
 
 The Companion catalogue's `mirror_*` (3) and `stream_*` (2) actions stay in the enum
@@ -3461,6 +3651,14 @@ L03's retier note is superseded.
 | Streamlabs / StreamElements migration + bridge | — | — | yes | yes |
 | YouTube connection + advanced live controls | — | — | yes | yes |
 | Outbound events (Streamer.bot, SAMMI, Mix It Up, OBS WS) | — | — | yes | yes |
+| First-party Canvas Packages | yes | yes | yes | yes |
+| Asset import into a package (within the storage quota) | — | yes | yes | yes |
+| Migration wizard, private imported packages, outbound bridges | — | — | yes | yes |
+| Multi-destination bridges, team style libraries, brand kits, package approval | — | — | — | yes |
+| Bot — commands, aliases, cooldowns, role permissions | yes | yes | yes | yes |
+| Bot — scheduled messages, deterministic moderation controls | — | yes | yes | yes |
+| Bot — import wizard, overlay/Companion actions, multilingual aliases | — | — | yes | yes |
+| Bot — multi-channel, moderator approval, team command libraries | — | — | — | yes |
 | Multiple channels, brands, collaborators, advanced routing | — | — | — | yes |
 | Sponsor reports, multi-creator controls | — | — | — | yes |
 | Custom domains, API / outbound webhooks | — | — | — | add-on |
@@ -4326,7 +4524,54 @@ outbound webhooks, finance/audit exports, SLA support.
 | JOB-10 | Editor payouts / staff revenue splitting | **Never** | — |
 | JOB-11 | Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio | **Never** | — |
 
-### 31.28 Storage and media platform
+### 31.28 Interop, packages and bridges (§9)
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| INT-01 | **Declarative Canvas Package format** — signed, versioned, runtime-pinned; no JS, no network fetch, no external font or asset URL, no executing CSS, no runtime-reaching expressions | A | P2 |
+| INT-02 | Package validator and signature verification at import and at render | A | P2 |
+| INT-03 | Allowed-animation set — animations are chosen, never authored as code | A | P2 |
+| INT-04 | First-party curated package library authored by us | A | P2 |
+| INT-05 | Private creator packages, tenant-scoped, never shown to another creator | A | P2 |
+| INT-06 | Asset import (SVG, PNG, WebP, audio, video, Lottie) on the §18.3 gate: attestation, quarantine, scan, provenance, takedown | A | P2 |
+| INT-07 | Transcode, normalise and pre-scale on import; content-addressed tenant-scoped storage (§19.1) | A | P2 |
+| INT-08 | Migration wizard: inventory → map → side-by-side preview and diff → publish on approval → reversible | A | P2 |
+| INT-09 | Unmapped items named explicitly; an uncertain mapping shown as uncertain | A | P2 |
+| INT-10 | Connector outbox per destination: queue, backoff, dead-letter, kill switch, idempotency key, redacted delivery log | A | P2 |
+| INT-11 | A bridge failure never delays, cancels, duplicates or alters a BharatStudio alert | A | **P0 rule, P2 build** |
+| INT-12 | Streamlabs bridge — **selected low-frequency event types only**, rate-limited and coalesced below the documented ~2/min guidance, labelled a transition tool | A | P3 |
+| INT-13 | Streamer.bot local adapter in the Companion helper: `localhost` only, explicit pairing, creator-chosen action allow-list | A | P3 |
+| INT-14 | SAMMI local adapter, same shape | A | P3 |
+| INT-15 | Mix It Up local adapter, same shape | A | P3 |
+| INT-16 | StreamElements configuration migration only | A | P3 |
+| INT-17 | StreamElements event bridge | **R** — confirmed API/partner position | — |
+| INT-18 | Third-party paid marketplace publishing | **R** — author payouts, GST on third-party digital goods, content review at scale, takedown and dispute handling, defensible "verified" badge | — |
+| INT-19 | Never embed a third-party browser-source URL, HTML, JS, CSS or iframe in the Canvas — enforced by the package validator, not by review | A | **P0** |
+| INT-20 | Never scrape a competitor dashboard, import a browser-source secret, or execute copied widget code | N | — |
+
+### 31.29 BharatStudio Bot (§36)
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| BOT-01 | Command engine: names, aliases, cooldowns, role permissions | A | P2 |
+| BOT-02 | Scheduled and timed messages | A | P2 |
+| BOT-03 | Six-area UI and no more (Commands, Moderation, Automations, Languages, Connected channels, Import) | A | P2 |
+| BOT-04 | Deterministic multilingual aliases with Unicode and transliteration matching | A | P2 |
+| BOT-05 | Localised replies per channel or per the viewer's command language | A | P2 |
+| BOT-06 | Blocked-term lists by language including transliterated variants — **one corpus shared with §12.2 TTS safety, never a second list** | A | **P0 with TTS-06** |
+| BOT-07 | Deterministic spam, flood, repeated-text, emoji and link controls | A | P2 |
+| BOT-08 | Import wizard for simple commands from creator-supplied exports; honest "cannot import" table | A | P2 |
+| BOT-09 | Never import scripts, raw JS, shell commands, arbitrary HTTP calls or third-party credentials | N | — |
+| BOT-10 | Automation recipes from a narrow allow-list of actions | A | P3 |
+| BOT-11 | One event action at first release: command → overlay or Companion action | A | P2 |
+| BOT-12 | Rate-limited and coalesced writes; degrade to silence with a visible notice, never a delayed backlog dump | A | P2 |
+| BOT-13 | AI layer on §11 credits: translate, summarise, suggest, classify — **recommend or soft-action only** | A | P3 |
+| BOT-14 | AI audit record: original text, action, reason, confidence, policy version, appeal and reversal path | A | P3 |
+| BOT-15 | Moderation correctness untiered (§30.1); a Free creator's chat is not less safe | A | P2 |
+| BOT-16 | Bot UI languages follow the §5.6.2 waves; no separate language set | A | P2 |
+| BOT-17 | Blocked on the Google chat-write scope (`CON-08`, §32) and on YouTube being post-v1 | B | — |
+
+### 31.30 Storage and media platform
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -4349,7 +4594,9 @@ outbound webhooks, finance/audit exports, SLA support.
 | Cashfree, PhonePe | Partner confirmation |
 | Windows Companion | A Windows build agent; target has never compiled |
 | Mirror and Stream Companion actions | Those products emitting a liveness signal (`0093` hard-codes activation false) |
-| Bot chat acknowledgement | Google chat-write scope approval |
+| Bot chat acknowledgement, and **BharatStudio Bot as a whole** (§36) | Google chat-write scope approval, plus YouTube depth landing at all — the bot has no platform without it |
+| Third-party paid package marketplace (§9.7) | Author payout flow · GST position for third-party digital goods sold through us · content review at scale with takedown and dispute handling · a "verified" badge we can defend. Four separate positions, none of which exist |
+| StreamElements event bridge | A confirmed API position or partner contract. Configuration migration is unaffected and may proceed |
 | Template catalogue (359 packages) | Individual authoring + design/native-language review. Mass-copy explicitly forbidden |
 | Archive schedules | Approved eligibility, integrity and retention/legal decision |
 | Platform KMS/HSM signing | Provisioned KMS/HSM |
@@ -4392,6 +4639,14 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
 | **Social Relay** | One event becomes an approved, platform-specific action. Approve-then-send is the default; auto-send is Creator+ and opt-in. Never auto-post tips, followers or alerts anywhere. |
 | **Packs** | Tiers sell a capability class, packs sell capacity and scope. A pack never grants correctness and is never the only route to a capability. |
+| **Interop layer** | **Three separate capabilities, never merged** (§9.1): style packages, migration tools, event bridges. The boundary that makes all three safe: **BharatStudio never embeds a third-party browser-source URL, HTML, JavaScript, CSS or iframe in the Master Canvas** — no tier, no attestation and no advanced mode changes that (INT-19). |
+| **Canvas Packages** | A **signed, versioned, declarative** format: layout, theme tokens, an allowed animation set, bundled assets, configurable fields. No JS, no network fetch, no external font or asset URL, no executing CSS. This is also the answer to the template-catalogue problem — author a small first-party set well and let asset import cover the long tail. |
+| **Asset imports** | Creators bring assets they own from Canva, Figma, LottieFiles, Photoshop or purchased packs. **An imported asset is a creator upload**: same §18.3 gate, same attestation, quarantine, provenance and takedown, tenant-scoped, never shown to another creator. |
+| **Streamlabs bridge** | **Build, but never position it as parity.** Their guidance is roughly two alerts per user per minute, so a general tip bridge would silently drop most of a raid and make a creator believe the tips never arrived. It ships as **selected low-frequency events only**, rate-limited and coalesced by us, with the summarising stated in the UI, labelled a transition tool. |
+| **Local adapters** | Streamer.bot, SAMMI and Mix It Up live in the Companion desktop **helper** — a mechanism, not a product surface (§14). `localhost` only, never a public port, explicit pairing, creator-chosen action allow-list, never an arbitrary command. |
+| **StreamElements** | Configuration migration only. An event bridge is **phase R** until a confirmed API or partner position exists. Never scrape a dashboard, import a browser-source secret, or execute copied widget code. |
+| **Package marketplace** | **Slowed deliberately.** First-party curated packages and private creator packages only. Third-party **paid** publishing is phase R: it is a second money flow with author payouts, GST on third-party digital goods, content review at scale, takedowns, disputes, and a "verified" badge we would have to defend. Nothing else in the interop layer depends on it. |
+| **BharatStudio Bot** | **An automation product, not another dashboard** (§36). Six areas and no more. First release is six things done well: commands with aliases/cooldowns/roles, scheduled messages, English/Hindi/Hinglish, deterministic spam and link controls, a simple import wizard, and one event action. Multilingual is **deterministic first** — transliteration-matched aliases and per-language blocked terms — with AI as an optional, quota'd layer that **recommends or soft-actions and never bans**. The blocked-term corpus is **one list shared with §12.2 TTS safety**, never a second. Never imports scripts, raw JS, shell commands or third-party credentials. P2 at the earliest, blocked on the Google chat-write scope and on YouTube being post-v1. |
 | **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
 | **Alert audio** | **Two-phase release.** The visual goes out the moment it is ready; TTS arrives as a second event keyed to the same alert. Late audio is dropped rather than played over a different alert. Audio latency can never again become visual latency. |
 | **Concurrency target** | **2,000 concurrent live overlays.** Deliberately above a first-year expectation, because a shared channel-keyed subscriber registry is cheap now and a rebuild later, and the failure being avoided is a successful launch weekend taking the product down. |
@@ -4412,10 +4667,13 @@ outbound webhooks, finance/audit exports, SLA support.
 
 **Needs data or legal input, not a snap judgement**
 
-1. **Template catalogue** — author the 359 missing packages, cut to the 241 that
-   render, relax the HTML prohibition (the plan's author advises against this even
-   sandboxed), or defer past launch. Deliberately left pending; nothing in Phases 0–7
-   depends on it.
+1. **Template catalogue** — **answered in principle 2026-09-14 by §9.2, still open on
+   scope.** The declarative Canvas Package format changes the problem: instead of
+   authoring 359 bespoke packages, author a small first-party set well and let asset
+   import (§9.3) cover the long tail. The HTML prohibition is now permanent rather than
+   pending — §9.1.1 makes it a boundary, not a trade-off. What remains open is only how
+   many first-party packages ship and whether the 241 that render are migrated into the
+   new format or retired. Nothing in Phases 0–7 depends on the answer.
 2. **The retention window itself** — one number, uniform for every tier (§12.6.2),
    reconciling DPDP with statutory retention for payment records. A legal number, not a
    pricing one, and it blocks nothing else in Phase 0.
@@ -4511,6 +4769,11 @@ copilot · recap and clips.
 calendar and public schedule page · sponsor deliverable tracker · the pack framework
 itself.
 
+**Phase 6.75 — interop (P2).** Canvas Package format and validator · asset import on
+the §18.3 gate · migration wizard · first-party curated package library · private
+creator packages. The format comes first because it is also the template-catalogue
+answer, and because every later interop item renders through it.
+
 **Phase 7 — events, collaboration and social (P3).** Social Relay starting with Discord,
 then YouTube, then Instagram and WhatsApp opt-in · Co-Stream Room · giveaways · tournaments ·
 sponsor manager and exposure logs · finance exports · post-stream analytics ·
@@ -4518,8 +4781,14 @@ portability.
 
 **Decided:** the control plane is Phase 0, not a later retrofit.
 
-**Research-only track, phase R, unscheduled and unstaffed.** Payment Compatibility
-Routing (§25) — no schema, no UI, no marketing until its four gates close. Enterprise
+**Phase 7.5 — bot and bridges (P2/P3).** BharatStudio Bot's six-item first release
+(§36.5), then the Streamlabs bridge and the Companion-helper adapters for Streamer.bot,
+SAMMI and Mix It Up. The bot cannot start before YouTube depth (Phase 4) and the
+chat-write scope; the bridges cannot start before the connector outbox (INT-10).
+
+**Research-only track, phase R, unscheduled and unstaffed.** Third-party package
+marketplace publishing (INT-18) · StreamElements event bridge (INT-17) · Payment
+Compatibility Routing (§25) — no schema, no UI, no marketing until its four gates close. Enterprise
 (§24) proceeds only when its reopening gate closes. Nothing in Phases 0–7 depends on
 either.
 
@@ -4592,6 +4861,9 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| §9 described interop in six lines with no format, no boundary and no bridge architecture | §9.1–9.9: three separated capabilities, the no-embedded-third-party-code boundary, the Canvas Package format, asset imports on the §18.3 gate, the migration wizard, the outbound-only bridge path, per-integration positions, tier placement and build order (INT-01 to INT-20) |
+| No chat-bot product existed anywhere in the document | §36 BharatStudio Bot: six areas, deterministic multilingual first, AI recommends and never bans, one shared safety corpus with §12.2, a deliberately small first release, and an explicit statement of what blocks it (BOT-01 to BOT-17) |
+| The template catalogue had been open since v1.0 with no path | §9.2 answers it in principle — a declarative format plus imports replaces authoring 359 bespoke packages; the HTML prohibition becomes permanent rather than pending |
 | Architecture claimed "one source, one connection, one loop" while overlays polled every 2s and one event woke every stream | §19.0 RT-01 to RT-13, a new Phase 0.5 that blocks Phase 1, and a publishable-claims freeze until they close |
 | TTS enrichment ran before the visual was released, contradicting §12.2 | Two-phase release: visual first, audio as a second event, late audio dropped (RT-03) |
 | Payment webhook acknowledged only after a worker-pump call with no recovery sweeper | One commit, immediate 2xx, fire-and-forget wakeup, leased dispatcher that owns enqueueing and recovery (RT-04, RT-05, RT-08) |
@@ -4608,3 +4880,154 @@ corrected — not the other way round.
 | Premium TTS was spent uniformly until the quota ran out | §11.10 voice routing: deterministic creator rules, default off, no classifier in the live path, route and reason recorded (TTS-11 to TTS-16) |
 | Packs had no prices | §28.3 price sheet; three ₹99 packs raised to ₹129 so Creator + two feature packs actually exceeds Studio (₹597 did not); four-pack first release, four hidden until their features are real |
 | Companion had no shipping plan: no purchase position, no languages, no push infrastructure, no auth requirements, no IA, no first run, no device matrix, no release process, no store compliance, no ops | §5.6 and 56 new register rows (CMP-38 to CMP-93) |
+
+---
+
+## 36. BharatStudio Bot
+
+Added 2026-09-14. **Phase P2, and gated** — see §36.8. This section exists so the shape
+is decided before anyone starts, not because it is next.
+
+### 36.1 What it is, and what it must not become
+
+An **automation product, not another dashboard**. The failure mode for every chat bot
+is the same: it grows into an unreadable node-graph builder that three power users love
+and everyone else abandons. We are building the opposite — a small set of things
+creators actually type into chat, done well, in their language.
+
+```text
+Chat platform events
+  → connected-channel adapter
+  → BharatStudio command / moderation engine
+  → actions: reply · overlay · loyalty · poll · Discord · Companion · webhook
+```
+
+The creator sees six areas and no more:
+
+**Commands · Moderation · Automations · Languages · Connected channels · Import from
+existing bot**
+
+### 36.2 Command import — guided, honest, best-effort
+
+Creators can import or paste **their own exported** command sets from Nightbot,
+StreamElements, Streamlabs Cloudbot, Streamer.bot, Mix It Up and SAMMI. Export files
+the creator supplies, never a scrape and never their credentials.
+
+Mappable fields: command name and aliases · response text · cooldown and user-level
+restriction · enabled platforms · basic variables (`{user}`, `{amount}`, `{count}`) ·
+trigger phrases · simple timed messages.
+
+The result is shown as a plain table, and the honest rows matter more than the imported
+ones:
+
+```text
+Old command      BharatStudio result
+!discord         Imported
+!rules           Imported
+!songrequest     Needs a music-provider connection
+Custom script    Cannot import safely — recreate as an Automation
+```
+
+**Never imported, under any circumstance:** arbitrary scripts, raw JavaScript, shell
+commands, HTTP calls to arbitrary URLs, or any third-party credential. Those become an
+explicit manual **Automation recipe** built from a narrow allow-list of actions — the
+same principle as CMP-05 and §9.6: we never execute a command shape we did not define.
+
+### 36.3 What the bot is for
+
+- **Info commands** — `!tip`, `!support`, `!membership`, `!discord`, `!rules`,
+  `!socials`
+- **Live mechanics** — goals, polls, predictions, giveaways, viewer queues, "play with
+  me" lobbies (§16, §17)
+- **Acknowledgement** — tip acknowledgement and donor thank-yous, subject to the
+  visibility consent rules in §12.3
+- **Outbound** — "stream is live", "goal reached", "new video" to Discord, Telegram, and
+  WhatsApp Community where permitted. This is the Social Relay path (§27), not a second
+  one
+- **Chat-controlled overlays** — `!vote`, `!join`, `!rank`, `!challenge`
+- **Moderation** — warnings, timeout and ban *requests*, blocked terms, link filtering,
+  spam and flood detection
+- **Creator workflow** — a command that opens a Companion action, switches a scene
+  through an approved local adapter, or triggers a selected Streamer.bot / SAMMI action
+  (§9.6)
+- **Commerce** — sponsor codes, affiliate links, ticket links, merch announcements
+- **Post-stream** — chat highlights, an FAQ list, moderator actions, poll results, into
+  the Wrap Stream summary (§5.5)
+
+### 36.4 Multilingual chat — deterministic first, AI second
+
+This is the part with the most value for an Indian audience and the most temptation to
+do badly. **The default is not "AI translates everything".**
+
+Deterministic layer, built first:
+
+- Command aliases in English, Hindi, Hinglish and creator-selected languages
+- **Unicode and transliteration matching** — `!rules`, `!niyam`, `!niyem`, `!नियम` all
+  reach the same command
+- Localised bot replies, per channel or per the language the viewer used
+- **Profanity and blocked-term lists by language, including transliterated variants** —
+  this is the same corpus as the §5.3 TTS safety work, and it must be one list, not two
+- Canned moderation responses in the creator's preferred language
+- Language-aware rate limits, emoji flooding, repeated-text detection and link controls
+
+Optional AI layer, on explicit quotas from the §11 credit model:
+
+- Translate a selected message for the creator or a moderator
+- Summarise fast chat in the creator's language
+- Suggest a polite multilingual reply
+- Classify likely spam, harassment or scam attempts
+- Translate a creator's announcement into chosen community languages
+
+**AI recommends or soft-actions. It does not ban.** Permanent bans, any payment
+decision and any public reply need explicit creator or moderator policy — this is
+§11.8 applied to chat. Every AI action records the original text, the action, the
+reason, the confidence, the policy version, and an appeal and reversal path.
+
+The bot's UI language set follows the Companion waves in §5.6.2. It does not get its
+own, and it does not ship ahead of them.
+
+### 36.5 The first release is deliberately small
+
+1. Connected YouTube chat, once provider access exists
+2. Native commands, aliases, cooldowns, role permissions, scheduled messages
+3. English / Hindi / Hinglish localisation
+4. Deterministic spam and link controls
+5. The import wizard, for simple commands only
+6. **One** event action: command → BharatStudio overlay or Companion action
+
+Everything else — advanced automations, multi-platform chat unification, AI moderation,
+third-party bot bridges — comes later. A creator with six working commands in Hinglish
+is better served than one facing an empty automation canvas.
+
+### 36.6 Rate limits are a design input, not an afterthought
+
+Writing to YouTube chat costs quota and is rate-limited, and the product must be
+designed around that rather than discovering it in production: announcements are
+rate-limited and coalesced by us (§27 already specifies this for relays), a command
+storm produces one reply and not two hundred, and the bot degrades to silence with a
+creator-visible notice rather than queueing a backlog it will dump minutes later. The
+measured ceiling replaces every assumed number before this ships.
+
+### 36.7 Tier placement
+
+| Tier | Bot |
+|---|---|
+| **Free** | Commands, aliases, cooldowns, role permissions — a real working bot, with the §30.6 attribution unchanged |
+| **Pro** | Scheduled messages, more commands, deterministic moderation controls |
+| **Creator** | Import wizard · overlay and Companion actions from commands · multilingual alias sets · outbound announcements |
+| **Studio** | Multi-channel, moderator roles and approval, team-managed command libraries |
+
+Moderation **correctness** — blocked terms, link filtering, the safety corpus — is not
+tiered. It sits with §30.1 for the same reason TTS safety does: a Free creator's chat
+is not a less safe place.
+
+### 36.8 What blocks it
+
+- **YouTube chat write needs the Google chat-write scope**, which is unfiled (§32,
+  `CON-08`). Without it there is no bot on the only platform we support.
+- **YouTube ingestion is excluded from v1** by the launch authority (§1.9). The bot is
+  therefore **P2 at the earliest**, and cannot be marketed before it exists.
+- The safety corpus it depends on is the §12.2 work, which is P0 and unbuilt.
+
+Nothing in Phases 0 to 2 depends on the bot, and it may not be used as a reason to
+start YouTube work early.
