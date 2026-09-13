@@ -83,7 +83,7 @@ rehearsal remain required before L02 can become `Verified`.
 
 ## Batch 10 reconciliation — 2026-09-13
 
-Verified against `bharatstudio-alerts` commit `377227a` (`feat(0120): supporter reputation, per-source by necessity, plus wiring`), read directly. This is new work relative to this task's prior scope, recorded here because it is a retention/RLS decision of the same kind this task tracks; the full feature record is the new `L25-supporter-reputation.md`.
+Verified against `bharatstudio-alerts` commit `2f70028` (`feat(0120): supporter reputation, per-source by necessity, plus wiring`), read directly. This is new work relative to this task's prior scope, recorded here because it is a retention/RLS decision of the same kind this task tracks; the full feature record is the new `L25-supporter-reputation.md`.
 
 - Migration `0120_v1_l02b_reputation_signals_and_score.sql` adds `reputation_signal_events`, forbidding `refund` as a storable signal type entirely (a raw insert attempt raises `errcode 22023`, confirmed by reading `app_private.record_reputation_signal`) and forbidding `chargeback` outside `bharatstudio_tip` by table CHECK (`signal_type <> 'chargeback' or source = 'bharatstudio_tip'`, confirmed at line 80).
 - No score is stored: confirmed no `reputation_scores` table and no score/verdict column exists anywhere in this migration; `app_private.reputation_score()` recomputes a weighted 180-day-window sum live on every call. The test suite proves this operationally by flipping a refund to `reversed` and back and observing the score move with zero reputation-specific writes.

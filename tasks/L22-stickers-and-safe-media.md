@@ -88,7 +88,7 @@ Studio review, and takedown controls remain open.
 
 ## Batch 10 reconciliation — 2026-09-13
 
-Verified against `bharatstudio-alerts` commit `30ff3bf` (`feat(0119): creator sticker packs and a shared asset-scan entry point`), read directly.
+Verified against `bharatstudio-alerts` commit `dde7c3e` (`feat(0119): creator sticker packs and a shared asset-scan entry point`), read directly.
 
 - Migration `0119_v1_l22b_creator_sticker_packs.sql` adds creator-supplied packs in wholly separate tables from the BharatStudio-approved catalogue — confirmed by reading the migration; neither listing function reads the other's table.
 - Pack size limits confirmed: `app_private.creator_pack_tier_limit` (migration lines 105-121) returns 10 (pro) / 25 (creator) / 50 (studio). This task's own file says only "Pro small, Creator limited, Studio larger" with no numbers — the 10/25/50 ladder is a documented implementation choice by the building agent, not a citation from this task, and is flagged here for product sign-off, matching the commit's own framing.

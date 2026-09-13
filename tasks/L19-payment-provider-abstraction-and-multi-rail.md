@@ -85,7 +85,7 @@ Evidence: `apps/api/src/domain/payment-provider-creator.ts`, `apps/api/src/domai
 
 ## Batch 10 reconciliation — 2026-09-13
 
-Verified against `bharatstudio-alerts` commit `2787949` (`feat(0118): route the live tip flow through CreatorPaymentProvider`), read directly, correcting the map above where it had gone stale.
+Verified against `bharatstudio-alerts` commit `af6d1e2` (`feat(0118): route the live tip flow through CreatorPaymentProvider`), read directly, correcting the map above where it had gone stale.
 
 - `apps/api/src/routes/public.ts` and `apps/api/src/routes/payments.ts` (both tip-creation call sites) now call `provider.createPayment`, confirmed by reading the routes; this closes the previous "wired only to a read-only capabilities endpoint" gap.
 - `CreatorPaymentIntent` (`apps/api/src/domain/payment-provider-creator.ts`) is widened with `donorDisplayName`, `message`, `alertConsent`, `providerReceipt`, `expiresAt` — confirmed present. `createPayment` delegates to the unmodified `PaymentOrderService`; a request/response shape-equivalence test exists (`apps/api/test/l19c-payment-provider-live-wiring.test.ts`).

@@ -9,7 +9,7 @@
 
 ## Authority and evidence
 
-No existing master-plan section named this work; the only prior "abuse" control anywhere in `bharatstudio-alerts` was a Turnstile CAPTCHA on the tip page, which is bot prevention at the moment of payment, not behavioural reputation. This task is created fresh per this reconciliation's instruction, to give reputation a proper task/test record rather than leaving it undocumented against a migration number alone. Built in `bharatstudio-alerts` commit `377227a` (`feat(0120): supporter reputation, per-source by necessity, plus wiring`), migration `0120_v1_l02b_reputation_signals_and_score.sql`.
+No existing master-plan section named this work; the only prior "abuse" control anywhere in `bharatstudio-alerts` was a Turnstile CAPTCHA on the tip page, which is bot prevention at the moment of payment, not behavioural reputation. This task is created fresh per this reconciliation's instruction, to give reputation a proper task/test record rather than leaving it undocumented against a migration number alone. Built in `bharatstudio-alerts` commit `2f70028` (`feat(0120): supporter reputation, per-source by necessity, plus wiring`), migration `0120_v1_l02b_reputation_signals_and_score.sql`.
 
 ## Objective
 
