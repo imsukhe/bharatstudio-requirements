@@ -581,7 +581,10 @@ provider price, a per-token rate, or a "BharatStudio fee". They see a rupee pric
 a quantity of our units.
 
 **Internally** we compute the bundle so that a margin of **25% or more** is retained
-before the remainder is issued as units. The margin is a private input to the
+before the remainder is issued as units. **Decided 2026-09-13: 25% is a floor, not a
+flat rate** — the actual figure is set per credit class, because premium vision work
+costs many times a TTS call and one global percentage would over-charge the cheap
+features and under-charge the expensive ones. The margin is a private input to the
 conversion, never a line item, never disclosed, and never described as a commission —
 because it is not one. Nothing is being taken from the creator's earnings.
 
@@ -927,8 +930,18 @@ chars. That is the entire filter. Required before public launch:
 - A creator must never see cross-creator viewer spend
 - Public viewer profiles are opt-in and off by default; exact lifetime spend is
   private by default and never published
-- Deleting a viewer account removes profile and linkage but preserves the immutable
-  payment and audit record
+- **Deletion is archival, never destructive — decided 2026-09-13.** No row is ever hard
+  deleted, for a viewer or a creator. Identifying fields (email, display name, contact)
+  move out of the live columns into an archive so the history and audit trail stay
+  intact, and the live record is left non-identifying. If the same person returns they
+  are **treated as new** — we do not re-link them to the archived identity
+  - *Legal caveat, flagged not resolved:* retaining an email in an archive column is
+    still retaining personal data after an erasure request. To be DPDP-defensible the
+    archived identity should be **irreversibly hashed** rather than kept in plaintext —
+    which still satisfies "keep the history, treat returners as new", because we keep
+    the record without keeping the readable identity. Payment and audit records have
+    their own statutory retention basis and are unaffected either way. This needs to be
+    in the legal sign-off scope (§29)
 - Historical claiming must be idempotent, with repeat-claim and contested-claim tested
 - Badges are explicitly non-financial and opt-in: *Supporter since 2026*, *3-month
   member*, *12-month member*, *Challenge Champion*, *10 Challenges Completed*, *Stream
@@ -1886,6 +1899,29 @@ Recommended for creators who cannot yet use Razorpay.
 
 The creator **accepts this on enabling the route**. It does not live in Terms.
 
+**These routes are labelled Beta and explicitly not recommended.** The card says so, the
+dashboard says so, and the acceptance step says so. A creator must finish enabling one
+knowing it can be withdrawn at any time — by us, or by the provider, without notice.
+
+**What the Terms must state, in the creator's own acceptance flow and not buried:**
+
+- The provider's terms bind the creator as the account holder. If those terms prohibit
+  credential sharing or automated access, using this route may put the creator in breach
+  and **the provider may suspend or terminate their merchant account**. BharatStudio
+  cannot restore it.
+- A provider PIN or password is a payment authentication credential. The creator
+  authorises us to hold and use it strictly for payment-signal detection, and accepts
+  responsibility for that authorisation.
+- Detection is best-effort. Alerts may be delayed, duplicated, missed or stop entirely,
+  and a routed signal is **not** a verified payment or a receipt.
+- The route may be removed at any time, by us or by the provider, with the notification
+  sequence in §25.6.1 where circumstances allow it.
+- Razorpay Direct is the recommended, verified alternative and is always available.
+
+Responsibility for the provider relationship sits with the creator. **Our own
+obligations do not transfer with it** — breach notification, secure handling under
+C1–C7, and honest labelling remain ours regardless of what the creator accepted.
+
 Live health state, shown on the dashboard and in Companion:
 
 | State | Meaning |
@@ -1983,15 +2019,62 @@ missing:*
 | C6 | A creator can revoke instantly, and revocation deletes the secret rather than disabling a flag |
 | C7 | Blast-radius controls: per-route kill switch (§25.4), anomaly detection on access patterns, and a rehearsed incident procedure specific to credential compromise |
 
-**Amazon Pay is still a harder case than these two.** PhonePe and HDFC use a *delegated,
-restricted* business user the creator creates for this purpose — bad, but scoped.
-Amazon's flow collects the creator's **primary consumer account password**, which is not
-scoped to anything: it is access to their shopping account, saved cards, addresses and
-order history. Consent does not make that proportionate, and no encryption design makes
-a stored consumer password safe. It remains flagged for an explicit owner decision
-rather than folded in with the other two.
+**Amazon Pay — owner decision 2026-09-13: build under C1–C7, behind an admin switch.**
 
-### 25.6 Per-provider assessment — and where I stop
+It remains the highest-risk route in the set and the reason is worth keeping visible:
+PhonePe and HDFC use a *scoped delegated business user* the creator creates for this
+purpose, whereas Amazon's flow takes the creator's **primary consumer account
+password**, which also reaches their shopping account, saved cards, addresses and order
+history. C1–C7 apply in full, and C2 (provider terms read and dated) and C5 (KMS/HSM
+envelope encryption, no human read path) are the ones that will decide whether it
+actually ships.
+
+### 25.6 Every route has an admin master switch
+
+**Every payment route** — Razorpay Direct included, not only the compatibility ones —
+is a capability-registry row (§20) with its own switch, so any route can be enabled,
+disabled, restricted to a tier, rolled out to a percentage, or killed outright without
+a deploy. One uniform mechanism, no special cases. This is what makes a high-risk route acceptable to attempt:
+**we can withdraw it in one action.**
+
+| Control | Effect |
+|---|---|
+| `global_kill` | Route disappears for everyone immediately; existing settings retained |
+| `min_tier` | Which tier may use it |
+| `rollout` | Percentage or allowlist, for a cautious first cohort |
+| `beta` | Forces the Beta labelling and the acceptance step |
+| `sunset_date` | Starts the notification sequence below |
+
+#### 25.6.1 Notifying creators when a route is added or removed
+
+**Adding a route:** a dashboard notice and a Companion card. No action needed, nothing
+changes for anyone already set up.
+
+**Planned removal** (we withdraw it, or a Direct integration supersedes it):
+
+1. **T-30 days** — the route is marked *Sunsetting* with the date, in the dashboard, in
+   Companion, and by email. The card explains why and names the recommended
+   alternative.
+2. **T-14 days** — reminder, and the route stops accepting *new* creators.
+3. **T-7 days** — daily reminder to affected creators only.
+4. **On the date** — the route moves to **Paused**. Settings, mappings and history are
+   retained under the §26 lifecycle. Nothing is deleted.
+5. **T+90 days** — held credentials are revoked and deleted, after a final notice.
+
+**Emergency removal** (provider blocks us, or signals become unreliable):
+
+1. Route pauses immediately; in-flight attempts settle or expire safely.
+2. The creator is told **the same hour**, in Companion and by email, that it is
+   provider-side and not their fault.
+3. The dashboard shows the migration path to Razorpay Direct.
+4. Settings are retained exactly as in a planned removal.
+5. If the cause is a credential compromise, C7's incident procedure runs and credentials
+   are revoked before notification, not after.
+
+**A creator on a paid tier whose only route is withdrawn is never billed for a
+capability we removed** — the next invoice is credited automatically.
+
+### 25.7 Per-provider assessment — and where I stop
 
 Competitor research shows the incumbent's actual flows. The product *structure* is
 worth copying. The credential handling is not.
@@ -2027,7 +2110,7 @@ If all three resolve favourably, these ship as compatibility routes with the §2
 labelling. If not, they do not ship, and the honest creator message is "use Razorpay
 Direct" rather than a route we cannot operate safely.
 
-### 25.7 The engineering point everyone skips
+### 25.8 The engineering point everyone skips
 
 **None of the competitor's cards reveal how the payment event is actually detected.**
 Merchant ID plus VPA does not, by itself, tell anyone that a payment happened. The card
@@ -2333,6 +2416,8 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-09 | Dashboard bounded to newest 100 relations, deterministic tie-break | U | — |
 | VID-10 | Sessions capped at newest 100; password reset 30-min single-use, enumeration-safe | U | — |
 | VID-11 | DPDP deletion (erased-vs-retained split) | U | — |
+| VID-21 | Archival deletion: no hard deletes, identity fields moved aside, returner treated as new | A | P1 |
+| VID-22 | Irreversible hashing of archived identity (legal-gated) | A | P1 |
 | VID-12 | DPDP data export | A | P1 |
 | VID-13 | Reputation: verdict-only (3 keys), score never stored, 180-day window | X | P1 |
 | VID-14 | Reputation write path (chargeback, velocity, moderation strike producers) | A | P1 |
@@ -2457,6 +2542,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-05 | Quota budget, fair share, day-exhaust on 403 | U | — |
 | CON-06 | Super Chat / Super Sticker / member / milestone / gifted normalisation | U | — |
 | CON-07 | `!tip`, `!tip 100`, `!tip 100 message` → opaque short link | U | — |
+| CON-22 | Bare `!tip` replies with the short link and no amount; viewer chooses on the page | A | P1 |
 | CON-08 | Bot chat acknowledgement (flag default off) | B | — |
 | CON-09 | Connector entitlement counts 0/1/2/3 | U | — |
 | CON-10 | Connector count / limit shown in UI | A | P1 |
@@ -2828,7 +2914,11 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Paid integrations** | Connect, import, bridge, YouTube and compatibility routing are **Creator-tier and above**. Multi-channel, sponsor reports and multi-creator controls are Studio. Receipts, exports, account recovery, disconnecting an integration and security controls are **never** paid. |
 | **Lapse behaviour** | Five states: active → grace 14d → paused → retained 90d → expired. The overlay falls back to a quiet safe state; existing OBS URLs never become a payment wall or change branding on stream; nothing is deleted silently. |
 | **Delegated-credential routes** | **Proceed on a consent basis**, subject to legal sign-off. PhonePe Supervisor and HDFC Cashier are consent-gated on conditions C1–C7 in §25.5. Consent settles the privacy dimension; it does not settle the provider's own terms, payment regulation, or the security of holding the secret — those are carried knowingly. |
-| **Amazon Pay routing** | **Still open.** Unlike the other two it takes a primary consumer account password, not a scoped delegated user. Escalated as its own decision. |
+| **Amazon Pay routing** | **Build under C1–C7**, behind an admin switch like every other route. Highest-risk of the set and the reason stays documented. |
+| **Route switches** | **Every** payment route, Razorpay Direct included, is an independently switchable capability-registry row. Adding or removing one follows the §25.6.1 notification sequence, and a creator is never billed for a capability we withdrew. |
+| **Top-up margin** | **25% is a floor, tuned per credit class**, not a flat rate. |
+| **Account deletion** | **Archival, never destructive.** No hard deletes; identity fields move aside; a returning person is treated as new. The plaintext-vs-hashed question goes into the legal gate. |
+| **Bare `!tip`** | Replies with the creator's short link and no amount; the viewer picks on the page. |
 
 ### 30.2 Still open
 
@@ -2838,15 +2928,12 @@ outbound webhooks, finance/audit exports, SLA support.
    render, relax the HTML prohibition (the plan's author advises against this even
    sandboxed), or defer past launch. Deliberately left pending; nothing in Phases 0–7
    depends on it.
-2. Reputation retention vs DPDP — currently decided by default, which is not a decision.
 3. Legal sign-off on pricing and feature claims, DPDP deletion, and the plaintext reset
    URL in the email outbox.
 4. Whether any chance-based giveaway format ever ships (currently: no).
 
 **Pricing and packaging**
 
-5. Top-up bundle pricing — the rupee price and unit count per bundle, and whether 25%
-   is the right internal margin floor.
 6. AI credit prices per feature and per credit class.
 7. Companion bundled-vs-standalone pricing. Must remain configurable either way, and
    note that standalone is impossible until implicit channel provisioning exists.
@@ -2857,7 +2944,6 @@ outbound webhooks, finance/audit exports, SLA support.
 **Product behaviour**
 
 10. Sticker pack limits 10 / 25 / 50 — an implementation choice that was never signed off.
-11. Bare `!tip` with no amount — behaviour still undefined.
 12. Paid-tier Companion control-session concurrency (Free is exactly one).
 13. Lobby: the default eligibility mode new creators get.
 
