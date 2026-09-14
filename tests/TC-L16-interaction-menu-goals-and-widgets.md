@@ -5,6 +5,15 @@
 ## Batch 10 addendum — 2026-09-13
 
 External-contribution union verified in `apps/api/test/l16c-contribution-source-routes.test.ts` and `packages/db/tests/l16c-external-contribution-aggregation.sql` (part of the 49/49 SQL suite). Overlay SSE-transport behavior verified in `apps/web/.../overlay-transport-snapshot.test.tsx` and `overlay-transport-widget-poller.test.tsx`. Local counts re-run 2026-09-13: API 465/465, web 312/312, SQL 49/49 across 120 migrations. See `../tasks/L16-interaction-menu-goals-and-widgets.md` batch 10 section for the read-time union formula and the SSE-as-invalidation-signal design.
+
+## L16-08 — Public paid-vote reachability correction — 2026-09-14
+
+| Setup and action | Expected result | Required local evidence |
+|---|---|---|
+| Load a channel with active paid and free/closed/other-channel vote definitions | The public catalogue returns only the active paid definition id, label and its bounded options; it returns no queues, JSON configuration, vote amounts/tallies, identities, or another channel's entries | Isolated SQL proof for the `0126` function plus API projection/negative tests |
+| Select a catalogue option and create an order | The request serializes both tags; the durable tag is accepted exactly once before order creation | API composition test and browser request test |
+| Submit a stale, closed, cross-channel, unknown, or database-error selected tag | A redacted client error is returned and the provider/order service is never called; the donor can correct the selection | API negative/race tests |
+| Submit an ordinary unselected tip or encounter a malformed/unavailable catalogue | Ordinary tips retain their behavior; malformed/unavailable optional catalogue hides the picker and cannot manufacture a tag | Existing/public-order regression plus browser parser tests |
 **Task:** [`../tasks/L16-interaction-menu-goals-and-widgets.md`](../tasks/L16-interaction-menu-goals-and-widgets.md)
 **Authority:** `bharatstudio-alerts/docs/BharatStudio-MASTER-PLAN.md` Part 6 (L16) and Part 7 §7.6
 **Repository:** `/Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts`

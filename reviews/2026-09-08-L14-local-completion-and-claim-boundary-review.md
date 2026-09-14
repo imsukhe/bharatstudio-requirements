@@ -32,6 +32,26 @@ TypeScript/build checks, the disposable SQL suite, source audit, and central
 test/task updates. DPDP legal review, verified-provider configuration, and
 staging/browser evidence remain explicit external gates.
 
+## QA reachability decision — 2026-09-14
+
+**State:** `Approved for local implementation by active QA goal; evidence pending`
+
+The existing anonymous receipt contract is approved, but its reachable
+post-payment handoff is absent. The narrow correction is to mint a receipt in
+both direct-tip and TipIntent UI flows only after the durable public payment-status endpoint reports `paid`; its
+opaque token is used only to link the payer to the already-existing receipt
+page. The correction has no authorization, provider, data-retention, or
+financial-state change. Failure is deliberately non-fatal because payment
+truth remains the verified webhook/ledger. Browser, staging, and independent
+review evidence remain separate gates.
+
+**Local verification — 2026-09-14:** shared receipt-client tests cover the
+strict browser contract and failure boundary; both UI confirmation paths are
+compiled against it. `pnpm verify:local` exited 0 after 125 migrations, 52 SQL
+proofs, 501 API and 327 web tests, integration/race/load/fault checks, and
+three image builds. This is a self-review only; no real browser, provider,
+staging, or independent security conclusion is claimed.
+
 ## Execution and self-audit — 2026-09-08
 
 The audit rejected the original browser-supplied claim identity design. The

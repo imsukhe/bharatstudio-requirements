@@ -1557,6 +1557,27 @@ different. Revisit only with measured evidence that the rules route badly.
 - **Never routes to premium to burn quota faster.** Any change we make to the default
   preset that increases premium usage is a pricing change and follows §20.4.
 
+### 11.11 Quota exhaustion — continuity, never extra consumption
+
+**Decided 2026-09-14.** When premium characters run out, synthesis falls to browser voice
+**immediately**, with a notice in Companion and on the dashboard (TTS-17). No dead alert,
+no silence, no delay — and **no grace buffer**.
+
+A proposal for a 5% grace allowance was rejected, and the reason is recorded so it cannot
+return:
+
+- It is an **ungranted spend with no entry type** in the append-only credit ledger
+  (§10.2), which lists grant, reserve, settle, release, refund and expiry. "Grace" is
+  none of those.
+- It **silently redefines the cap**. If the effective limit is 63,000, the limit is
+  63,000, and the next conversation asks for another 5%.
+- It solves a problem TTS-04 already solved. The guarantee the creator needs is
+  *continuity*, not extra premium consumption.
+
+The ladder stays **20K / 40K / 60K**. Rollover and a better Studio top-up rate are both
+deferred and both blocked on the same open item — what a rupee of credit actually buys
+(§33.2) — because units whose value is not fixed cannot be rolled over or discounted.
+
 ---
 
 ## 12. Hard boundaries — the rules that never bend
@@ -1919,6 +1940,183 @@ growth lane) · copy overrides · which modules the viewer sees.
 - Preset bundles ("Gaming night", "Charity goal", "Podcast", "Tournament") are one-tap
   starting points, then fully editable — presets must never be a separate,
   less-configurable path.
+
+### 15.4 Customisation by tier — three levels, six surfaces
+
+Added 2026-09-14. §15.2 says how deep customisation goes; it never said **who gets which
+depth**, and it only covered the overlay and the tip page. The dashboard, the moderator
+view, Companion and transactional mail had no customisation model at all.
+
+#### 15.4.1 Three levels, and what each is for
+
+| Level | Name | What it is | Tier |
+|---|---|---|---|
+| **0** | Presets | Choose from first-party designs, change nothing structural | **Free** |
+| **1** | Safe presentation | Colour, layout, typography, sound, motion | **Pro** |
+| **2** | Advanced creator control | Conditional rules, per-scene variants, multilingual copy | **Creator** |
+| **3** | Brand and team | Brand kits, team approvals, multi-surface templates | **Studio** |
+
+Levels are cumulative. Each is a capability-registry row, so a level can be retiered
+without a release.
+
+#### 15.4.2 The protected string class — enforced, not reviewed
+
+**A creator may never override payment, legal, security, consent or error text.** This is
+the same kind of rule as the protected watermark layer (§30.6.1): the customisation
+system does not expose these strings at all, so there is nothing for a reviewer to catch
+later.
+
+| Protected | Why |
+|---|---|
+| Payment amounts, currency statements, "this is not refundable", fee and settlement wording | Consumer protection. A creator rewriting payment copy is a misrepresentation we carry |
+| The read-aloud consent checkbox and every consent prompt | DPDP. Consent that has been reworded is not the consent that was reviewed |
+| Refund policy, terms links, privacy notices, issuer identity (§30.6.4) | Legal documents are ours to word |
+| Security and account messages | A rewritten security notice is a phishing template |
+| Error text on a payment, auth or delivery failure | The supporter must be told what actually happened |
+
+Everything outside that set is fair game — headings, labels, thank-yous, empty states,
+preset names, module copy — per language.
+
+#### 15.4.3 Overlay and Master Canvas
+
+| Capability | 0 | 1 | 2 | 3 |
+|---|---|---|---|---|
+| First-party presets · premium first-party set at level 3 | yes | yes | yes | yes |
+| Colour from our palette · free colour choice at level 1 | palette | free | free | free |
+| Fonts from our set · **uploaded fonts** at level 3 | — | our set | our set | **uploaded** |
+| Position, size, anchor to the 9 safe zones | — | yes | yes | yes |
+| Show/hide, z-order, opacity, corner radius | — | yes | yes | yes |
+| Animation in/out, duration, easing, or none | — | yes | yes | yes |
+| **Reduced-motion variant** of every animation | — | yes | yes | yes |
+| **Performance mode** — strips blur and shadow for a weaker encoding PC | — | yes | yes | yes |
+| Per-widget sound, fade in/out, loudness target | — | yes | yes | yes |
+| Amount rendering: ₹1,000 / ₹1K / bracket name only / hidden | — | yes | yes | yes |
+| Name rendering: platform name / creator alias / anonymous, mask style, max length | — | yes | yes | yes |
+| Message rendering: line clamp, emoji and sticker scale, censoring style | — | yes | yes | yes |
+| **Indic script fallback order** per text role | — | yes | yes | yes |
+| A font per role — name, amount, message — with its own size, weight, tracking | — | — | yes | yes |
+| Per-bracket and per-source styling | — | — | yes | yes |
+| Burst behaviour: stack, replace or queue when two land together | — | — | yes | yes |
+| Do-not-interrupt windows tied to a scene | — | — | yes | yes |
+| **Per-scene-profile placement and theming** | — | — | yes | yes |
+| **Per-aspect-ratio variants** (16:9, 9:16, 4:3) of one canvas | — | — | yes | yes |
+| **Conditional themes**: festival date ranges (Diwali, Holi, Eid), time of day | — | — | yes | yes |
+| **Sponsor-safe mode** — swap to a neutral theme for a segment, swap back | — | — | yes | yes |
+| Overlay theme follows the OBS scene automatically | — | — | yes | yes |
+| Multilingual overlay copy and number formatting | — | — | yes | yes |
+| **Brand kit** — palette, type, logo saved once and applied across every surface | — | — | — | **yes** |
+| **Multi-surface templates** and package authoring with approval | — | — | — | **yes** |
+| Layer groups, lock, snap, guides, alignment, solo-preview | — | — | — | yes |
+| **Adversarial preview** — long Tamil name, 500-char message, emoji flood, before it happens live | — | yes | yes | yes |
+
+#### 15.4.4 Tip page
+
+| Capability | 0 | 1 | 2 | 3 |
+|---|---|---|---|---|
+| Name, avatar, amount presets, one accent colour | yes | yes | yes | yes |
+| Cover image, background colour, avatar shape, tagline, social row order | — | yes | yes | yes |
+| Module show/hide and lane order (free, community, growth) | — | yes | yes | yes |
+| **Labelled amount presets** — "Chai ₹49", "Fuel ₹199" — with min, max and default | — | yes | yes | yes |
+| Custom amount on/off, quick-pay chips | — | yes | yes | yes |
+| Copy overrides on non-protected strings (§15.4.2) | — | yes | yes | yes |
+| Privacy display: names, initials or nothing · hide amounts · anonymous default | — | yes | yes | yes |
+| FAQ block, "where support goes" text, trust row | — | yes | yes | yes |
+| Message settings: char limit, required or optional, read-aloud opt-in | — | — | yes | yes |
+| Which sticker and sound packs are offered | — | — | yes | yes |
+| Event layout presets, campaign and referral pages | — | — | yes | yes |
+| Multilingual copy sets, language selector or auto-by-browser | — | — | yes | yes |
+| Low-bandwidth default, player off, high-contrast variant | — | yes | yes | yes |
+| **Full theme including background media, brand kit applied** | — | — | — | **yes** |
+| **Multiple campaign pages per account**, each with its own theme, goal, copy and countdown, scheduled open and close | — | — | — | **yes** |
+| Per-page OG image, title and description for sharing | — | — | yes | yes |
+
+#### 15.4.5 Dashboard
+
+| Capability | 0 | 1 | 2 | 3 |
+|---|---|---|---|---|
+| Dark / light / system | yes | yes | yes | yes |
+| Accent colour | — | yes | yes | yes |
+| Density comfortable or compact, default landing tab | — | yes | yes | yes |
+| Pin and reorder home cards | — | — | yes | yes |
+| **Named saved views** with filters and sort, for payments, moderation and supporters | — | — | yes | yes |
+| Saved export column sets | — | — | yes | yes |
+| Notification choices, digest cadence, quiet hours | — | yes | yes | yes |
+| Timezone, week start, fiscal month, number format | — | yes | yes | yes |
+| Keyboard shortcut map | — | — | yes | yes |
+| **Logo and brand accent across the dashboard, per-role default views** | — | — | — | **yes** |
+
+**No background images at any tier.** The dashboard is where people read numbers; a
+background image breaks the contrast floor in §37.7 and buys nothing. Logo and accent
+give the same ownership feeling without the harm.
+
+#### 15.4.6 Moderator and operator view — preference versus policy
+
+The distinction matters, and neither existed before. A **preference** belongs to the
+person; a **policy** belongs to the channel and a moderator cannot customise their way
+out of it.
+
+| Per-moderator preference | 2 | 3 |
+|---|---|---|
+| Queue-first or chat-first layout, column choice, message density | yes | yes |
+| Which quick actions appear and in what order | yes | yes |
+| Notification and sound preferences | yes | yes |
+
+| Channel-enforced policy | 2 | 3 |
+|---|---|---|
+| Blocked terms per language, including transliterated variants | yes | yes |
+| Link domain allow and deny lists | yes | yes |
+| Auto-hold rules and escalation targets | yes | yes |
+| Canned responses per language | yes | yes |
+| Shift handover notes, audit filters | yes | yes |
+| **Team-managed policy libraries, approval workflows, per-moderator view layouts set centrally** | — | **yes** |
+
+**Permission classes themselves are never customisable.** Owner, admin, operator,
+moderator and viewer are fixed by the launch authority, and §24 places RBAC beyond
+owner/moderator in Enterprise, which is blocked. Studio gets presets, libraries and
+layouts inside those classes and never a new class.
+
+#### 15.4.7 Companion
+
+| Capability | 0 | 1 | 2 | 3 |
+|---|---|---|---|---|
+| Live Deck slot layout, within the tier's slot and page-size allocation (§30.4) | yes | yes | yes | yes |
+| Which stats sit on the top strip | — | yes | yes | yes |
+| Which health signals are shown | — | yes | yes | yes |
+| One-hand mode, left or right | yes | yes | yes | yes |
+| Colour-blind palette, haptics on/off | yes | yes | yes | yes |
+| Language override, independent of device language | yes | yes | yes | yes |
+| Notification types and quiet hours | tier-limited | yes | yes | yes |
+| Saved deck presets per stream type | — | — | yes | yes |
+| **Team decks — a layout pushed to every operator** | — | — | — | **yes** |
+
+Accessibility settings are level 0 on purpose. One-hand mode, colour-blind palettes and
+language are not premium features.
+
+#### 15.4.8 Receipts and transactional mail
+
+| Capability | 0 | 1 | 2 | 3 |
+|---|---|---|---|---|
+| Creator name and avatar on the receipt | yes | yes | yes | yes |
+| Creator logo and accent | — | yes | yes | yes |
+| Custom thank-you copy, per language | — | — | yes | yes |
+| Reply-to address | — | — | yes | yes |
+| **Brand kit applied, custom follow-up link block** | — | — | — | **yes** |
+
+All of it sits inside §30.6.4: the creator's brand goes on it, our issuer identity stays
+as a legal line, and every protected string in §15.4.2 is untouchable.
+
+#### 15.4.9 Rules that apply to all of it
+
+- **Every row above is a capability-registry entry** (§20), retierable without a release.
+  These are starting positions, to be tuned on real usage.
+- **Customisation never reaches a durable record** (§12.6) and never changes correctness
+  behaviour (§30.1).
+- **No customisation may increase what a live surface loads** (§12.7). A theme is data the
+  renderer already holds; it is never a reason to fetch more.
+- **The protected string class is enforced by the customisation system**, not by review.
+- Every customisation row carries its §31.0 metadata and the §37.11 suites for its area —
+  a theme that fails contrast or breaks at +40% text expansion is a defect, not a taste
+  question.
 
 ---
 
@@ -3710,7 +3908,7 @@ The principle, one line per tier:
 | **Free** | Everything correctness-critical, plus a real working alert. Never crippled, always watermarked |
 | **Pro ₹199** | Personality — voice, sounds, look, more alerts on screen |
 | **Creator ₹399** | Community mechanics — goals, votes, lobbies, co-streams, connectors |
-| **Studio ₹599** | Team and events — seats, approval, tournaments, pooled AI, priority |
+| **Studio ₹599** | **Brand and scale** — brand kits and multi-surface templates, multi-channel, team seats and approval workflows, events and tournaments, pooled AI, priority support |
 | **Enterprise** | Governance-blocked (§24) |
 
 ### 30.1 Correctness — identical on every tier, forever
@@ -3761,12 +3959,24 @@ defect against §12.6.
 | Companion page size | 4 | 8 | 16 | 16 |
 | Control sessions (concurrent) | 1 | 1 | 2 | 4 |
 | Read-only sessions | 2 | 3 | 5 | 8 |
-| Event bindings | 3 | 5 | 10 | 20 |
-| Saved presets | 1 | 2 | 4 | 8 |
+| Event bindings | 3 | 5 | 10 | **50** |
+| Saved presets | 1 | 2 | 4 | **20** |
 | Pending visuals | 20 | 50 | 150 | 500 |
 | Overlay watermark — one protected mark, fixed corner (§30.6) | yes | — | — | — |
 | Tip-page attribution line (§30.6) | yes | — | — | — |
 | Lottie / branding upload | — | — | — | yes |
+
+**Event bindings and saved presets raised for Studio, 2026-09-14** (20 → 50 and 8 → 20).
+These are stored configuration counts, not live payloads, so neither touches §12.7 or the
+connection model. **Read-only sessions stay at 8** — those are concurrent transports and
+interact with the RT-02 per-instance subscriber limits, so they wait for load evidence.
+
+**Pending visuals stay 20 / 50 / 150 / 500, and 500 itself needs verification.** A
+proposal to raise Studio to 2,000 was **rejected 2026-09-14**: a live surface may not
+hold 2,000 items (§12.7). Server-side retention is a separate matter and depth is reached
+by pagination and export, never by shipping it to the browser. Open question: whether the
+existing 500 is what the overlay holds or what the server retains — if the former, the
+current ladder is already over the bounded-data line and must be cut, not raised.
 
 **Queue count: 1 / 2 / 3 / 5.** Two authorities disagreed — the launch authority carried
 1/3/5/10 while the migration, the remediation authority and this document carried
@@ -3842,7 +4052,8 @@ no creator impact. Raising a limit later is painless; lowering one breaks creato
 | Bot — multi-channel, moderator approval, team command libraries | — | — | — | yes |
 | Multiple channels, brands, collaborators, advanced routing | — | — | — | yes |
 | Sponsor reports, multi-creator controls | — | — | — | yes |
-| Custom domains, API / outbound webhooks | — | — | — | add-on |
+| Custom domains | — | — | — | add-on, **hidden until the domain service is proven** (verification, TLS issuance and renewal, DNS support load, abuse handling, rollback) |
+| API / outbound webhooks | — | — | — | add-on |
 | **Never charged for** (§12.6 durable records in full, receipts, one-off exports, account recovery, disconnecting an integration, security controls) | yes | yes | yes | yes |
 | **Social Relay** | | | | |
 | Profile links, share cards, manual copy/open | yes | yes | yes | yes |
@@ -3862,6 +4073,7 @@ no creator impact. Raising a limit later is painless; lowering one breaks creato
 | Finance exports — **scheduled push** into Sheets or Tally (a one-off export of the same data is free on every tier, §12.6.3) | — | — | yes | yes |
 | Post-stream analytics | basic | yes | yes | yes |
 | Priority support | — | — | — | yes |
+| White-glove migration — capped pilot (§30.7) | — | — | — | yes |
 
 ### 30.4 Companion controls by tier
 
@@ -4002,6 +4214,42 @@ Two rules keep the carve-out from drifting into marketing:
   No product name-drops, no feature mentions, no "create your own tip page" footer.
 - **Any addition to the table above is a decision row in §33.1**, not a copy change.
 
+### 30.7 White-glove migration — a defined service, not a promise
+
+**Decided 2026-09-14: a capped Studio pilot.** Creators do not switch because migrating
+is frightening, and a human doing it once is the most direct answer we have.
+
+| Term | Value |
+|---|---|
+| **Scope** | One migration per account, a capped number of hours, booked not open-ended |
+| **Supported setups** | A named list — OBS scene collections and the supported exported configurations. Anything else is declined up front, in writing |
+| **Turnaround** | A stated working-day target from booking |
+| **On failure** | An honest written "could not import" list plus the wizard's own diff. No implication that a failed import affects billing either way |
+| **Escalation** | A named owner and a route when a setup is unusual or a creator disputes the result |
+| **Instrumentation** | **Every session logs what the migration wizard could not do, feeding INT-08 and INT-09** |
+
+That last row is the point. Without it, white-glove becomes how migrations succeed and we
+have masked a failing wizard with labour. It is a pilot precisely so we can read that log
+and decide whether the service or the wizard is the real product.
+
+**It is an acquisition benefit, not a retention one.** It fires once, at onboarding, and
+gives a creator nothing at their second invoice. It must never be counted as closing
+Studio's ongoing value gap.
+
+### 30.8 Reserved capacity, never priority
+
+**Recorded 2026-09-14 so the idea cannot return in the wrong shape.**
+
+- **Additive — may eventually be sold.** Reserved burst capacity, where we provision extra
+  headroom so a Studio channel's spike is absorbed without touching anyone else's service.
+- **Zero-sum — may never be sold.** Priority processing, where a paid tier goes first. In a
+  saturated system that means another tier's *accepted* alert arrives later, which §30.1
+  and the launch authority's no-drop rule forbid.
+
+Even the additive form waits for load evidence at the §37.5 target and a demonstrated
+no-drop guarantee for **every** tier including Free. And the phrase **"raid-night
+guarantee" is not usable** — a guarantee is a measured claim, and it implies priority.
+
 ---
 
 ## 31. Master task register — nothing deferred
@@ -4113,6 +4361,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | TTS-14 | Companion mode display and mid-stream switch, plus timed "premium everything" | A | P2 |
 | TTS-15 | Route and reason recorded per alert and shown in history and the quota view | A | P1 |
 | TTS-16 | Safety suite runs identically before both routes — never skipped on browser voice | A | **P0 with TTS-06** |
+| TTS-17 | Companion and dashboard notice at the moment of fallback; no grace buffer exists and none may be added (§11.11) | A | P1 |
 
 ### 31.5 Viewer identity, history, trust
 
@@ -4758,7 +5007,42 @@ outbound webhooks, finance/audit exports, SLA support.
 | INT-19 | Never embed a third-party browser-source URL, HTML, JS, CSS or iframe in the Canvas — enforced by the package validator, not by review | A | **P0** |
 | INT-20 | Never scrape a competitor dashboard, import a browser-source secret, or execute copied widget code | N | — |
 
-### 31.29 BharatStudio Bot (§36)
+### 31.29 Customisation (§15.4)
+
+| ID | Item | State | Pri |
+|---|---|---|---|
+| CUS-01 | Three-level model (0 presets / 1 safe presentation / 2 advanced / 3 brand and team) as registry rows, retierable without a release | A | P1 |
+| CUS-02 | **Protected string class enforced by the customisation system** — payment, legal, consent, security and error text are never exposed for override | A | **P0** |
+| CUS-03 | Overlay level 1: free colour, our fonts, position and anchor, show/hide, z-order, opacity, radius, animation, reduced-motion variant, performance mode | A | P1 |
+| CUS-04 | Amount / name / message rendering controls incl. hidden amounts and bracket-name-only | A | P1 |
+| CUS-05 | **Indic script fallback order per text role** | A | P1 |
+| CUS-06 | Overlay level 2: font per role, per-bracket and per-source styling, burst behaviour, do-not-interrupt windows | A | P2 |
+| CUS-07 | Per-scene-profile placement and theming; overlay theme follows the OBS scene | A | P2 |
+| CUS-08 | Per-aspect-ratio variants (16:9 / 9:16 / 4:3) of one canvas | A | P2 |
+| CUS-09 | **Conditional themes** — festival date ranges, time of day | A | P2 |
+| CUS-10 | **Sponsor-safe mode** — swap to a neutral theme for a segment and back | A | P2 |
+| CUS-11 | **Adversarial preview** — long Indic name, 500-char message, emoji flood | A | P1 |
+| CUS-12 | **Brand kit** — palette, type, logo saved once, applied across every surface | A | P3 |
+| CUS-13 | Multi-surface templates and package authoring with team approval | A | P3 |
+| CUS-14 | Tip page level 1: cover image, avatar shape, tagline, lane order, labelled amount presets, privacy display | A | P1 |
+| CUS-15 | Tip page level 2: message settings, pack selection, event layouts, campaign and referral pages, multilingual copy sets | A | P2 |
+| CUS-16 | Tip page level 3: full theme with background media, multiple campaign pages with own goal, copy, countdown and schedule | A | P3 |
+| CUS-17 | Per-page OG image, title and description | A | P2 |
+| CUS-18 | Dashboard: theme, accent, density, landing tab, notification and locale preferences | A | P1 |
+| CUS-19 | Dashboard: pinned cards, **named saved views**, saved export column sets, shortcut map | A | P2 |
+| CUS-20 | Dashboard: logo and brand accent, per-role default views. **No background images at any tier** | A | P3 |
+| CUS-21 | Moderator **preferences** — layout, columns, density, quick-action order | A | P2 |
+| CUS-22 | Moderator **policies** — blocked terms per language, link allow/deny, auto-hold, escalation, canned responses, handover notes | A | P2 |
+| CUS-23 | Team-managed policy libraries, approval workflows, centrally set moderator layouts | A | P3 |
+| CUS-24 | **Permission classes are never customisable** — presets and libraries only inside owner/admin/operator/moderator/viewer | A | **P0 rule** |
+| CUS-25 | Companion: top-strip stats, health signals shown, saved deck presets | A | P2 |
+| CUS-26 | Companion accessibility at level 0 — one-hand mode, colour-blind palette, haptics, language override | A | P1 |
+| CUS-27 | Companion team decks pushed to every operator | A | P3 |
+| CUS-28 | Receipts and transactional mail: creator logo, accent, thank-you copy per language, reply-to, brand kit — inside §30.6.4 | A | P2 |
+| CUS-29 | No customisation increases what a live surface loads (§12.7); themes are data the renderer already holds | A | **P0 rule** |
+| CUS-30 | Every theme passes contrast and +40% text-expansion checks (§37.7) — a failing theme is a defect, not a taste question | A | P1 |
+
+### 31.30 BharatStudio Bot (§36)
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -4780,7 +5064,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | BOT-16 | Bot UI languages follow the §5.6.2 waves; no separate language set | A | P2 |
 | BOT-17 | Blocked on the Google chat-write scope (`CON-08`, §32) and on YouTube being post-v1 | B | — |
 
-### 31.30 Storage and media platform
+### 31.31 Storage and media platform
 
 | ID | Item | State | Pri |
 |---|---|---|---|
@@ -4856,6 +5140,16 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Canvas Package signing** | **BharatStudio holds the only signing key.** First-party packages are signed by us; a creator's private package is bound to their account and validated rather than signed. KMS-held key with no human read path, scheduled rotation with key IDs recorded per package, a revocation list checked at import *and* at render, canonical serialisation specified before the first signature, provenance travelling with the package, and a renderer that treats every package as untrusted data regardless of signature. Creator keys and a third-party trust model arrive with the marketplace, which is phase R. |
 | **Top-up vs pack** | **One-time consumable is a top-up; recurring capacity or scope is a pack**, and nothing appears in both menus. Top-ups shrink to AI credits and TTS characters. Storage, connectors, seats, sticker and media slots, queue burst capacity, sponsor slots and extra outputs all move to packs. Season Pass issuance leaves both — it is the creator's own product. |
 | **Document repair sequencing** | **Fix every contradiction in the single file first; split into six documents second** (§35.5). Splitting a document that still contradicts itself copies the conflicts into six files. The split proceeds once the §35.3 CI checks pass clean. |
+| **Studio positioning** | Line becomes **"Brand and scale"**. Copy change; no capability moves. |
+| **Customisation by tier** | **§15.4, three levels**: 0 presets (Free) · 1 safe presentation (Pro) · 2 advanced creator control (Creator) · 3 brand and team (Studio), across six surfaces — overlay, tip page, dashboard, moderator view, Companion, receipts. **Customisation depth, not relocated features, is how Studio earns its price**, because it takes nothing from Creator and costs almost nothing to run. Accessibility settings sit at level 0 on purpose. |
+| **Protected strings** | A creator may **never** override payment, legal, security, consent or error text. "Every string overridable" was proposed and **rejected** — it is a consumer-protection and DPDP exposure. Enforced by the customisation system, not by review (CUS-02). |
+| **Dashboard backgrounds** | **Never, at any tier.** Logo and accent only. A background image breaks the §37.7 contrast floor on the surface where people read numbers. |
+| **Studio ceilings** | Event bindings 20 → **50**, saved presets 8 → **20** — stored configuration, no bounded-data or connection impact. **Read-only sessions stay 8** pending load evidence. **Pending visuals stay 500**, and whether even that is a client-held figure needs checking against §12.7. |
+| **TTS exhaustion** | Ladder held at 20K/40K/60K. **No grace buffer, and none may be added** — it is an ungranted spend with no ledger entry type and it silently redefines the cap. Immediate browser-voice fallback with a Companion and dashboard notice (§11.11, TTS-17). |
+| **White-glove migration** | Capped Studio pilot with defined scope, supported setups, turnaround, failure handling and escalation — **instrumented to feed the migration wizard** (§30.7). It is an acquisition benefit that fires once and must never be counted as closing Studio's ongoing gap. |
+| **Reserved capacity, never priority** | Additive reserved burst capacity may eventually be sold; **zero-sum priority processing may not**, because it delays another tier's accepted alert (§30.8). Even the additive form waits for load evidence, and **"raid-night guarantee" is not usable language**. |
+| **Custom domains** | Add-on **hidden until the domain service is proven** — verification, TLS issuance and renewal, DNS support load, abuse handling, rollback. An unproven service is not sellable as an add-on any more than it is includable in a tier. API and outbound webhooks split into their own add-on so they are not blocked by it. |
+| **Studio pack bundling** | **Rejected as proposed.** "Studio includes ₹357 of packs" double-counted: the sponsor manager, exposure log, sponsor reports and multi-creator controls are **already Studio-only** in the matrix, and scheduled finance push is already Creator+. Those packs largely exist to sell Studio-shaped capabilities *to Creator*. Bundling them would also advertise Sponsor and Finance, which are hidden precisely because their features and legal evidence are incomplete. The **₹357 figure may never appear in marketing.** Replaced by the open item in §33.2. |
 | **Pack gating** | Each of the eight packs is held for a stated reason, not out of caution (§28.3.0). Sponsor and Finance are held because selling them early produces a **document a creator forwards to a sponsor or a CA** — being wrong there costs the creator, not just us. Events and Socials are held because the feature does not exist and a pack multiplies a real capability. Storage and Team Seats are held because the **enforcement** is missing, and selling a limit we cannot apply means charging for something the creator already had. AI Credits is held because the price has no measured basis. |
 | **Pack launch sequencing** | **The pack system launches with whatever is ready, not with a fixed four.** Arrival order **Storage → AI Credits → Socials → Multi-Channel**. Socials cannot precede Social Relay; **Multi-Channel is the largest item on the list disguised as a pack** — tenant separation, cross-channel roles, billing allocation, connector routing and per-channel audit — and it does not ship until the tenant-isolation suite (§37.6) passes. Holding two sellable packs behind that dependency would be a choice with no benefit. |
 | **Testing and evidence** | **§37 is binding on every register row.** Done means: use cases, unit and contract tests, a reachability assertion, at least one real-browser or real-device E2E scenario, failure-path coverage, a measured performance number where the row is on a budgeted path, dated artefacts, and rollback proof. Merge gates and release gates are separated (§37.9), and §37.10 lists what is never evidence — including the local SQL harness, JSDOM tests, averages standing in for p99s, and any staging run we performed ourselves where a provider or counsel must speak. |
@@ -4921,7 +5215,26 @@ outbound webhooks, finance/audit exports, SLA support.
 8. **In-app account deletion vs. the blocked deletion policy** (CMP-78). Both stores
    require a route; legal has not approved one. Needs a decision before submission, not
    during review.
-9. Whether iOS link-outs to a purchase surface are safely permitted in India for this
+10. **Studio allowances instead of pack bundling** — define concrete numbers rather than
+    bundling packs: moderator and operator seats, sponsor campaign slots, scheduled
+    finance-export capacity, approval workflows, pooled AI capacity. **Each exposed only
+    after its own feature and evidence gate closes**, so none of it is an advance promise.
+11. **Pro moderator path** — one limited **non-financial** seat, or a tightly scoped
+    moderator add-on purchasable from Pro. Never exposes payment amounts or financial
+    records. Requires role projection, RLS, audit and the §37.6 tenant-isolation suite to
+    pass first — the same dependency as the Multi-Channel Pack, so one piece of work
+    unlocks two revenue items. Probably the strongest single pricing improvement
+    available.
+12. **A5 split rather than move** — basic campaign and referral links, and basic
+    Thumbnail / Channel DNA, stay at Creator; Studio takes multi-campaign management,
+    approvals, analytics, batch generation and team review. Moving entry-level
+    capabilities upward makes Creator feel artificially crippled. Deferred until usage
+    data shows which half people actually want.
+13. **Compatibility Routing tier placement** — it is phase R and tier placement cannot
+    loosen that gate. Recorded only so the reasoning is not re-derived: its audience is
+    creators who *cannot* use Razorpay, so Creator ₹399 may be the wrong home if it ever
+    ships. Decide when the four gates close, not before.
+14. Whether iOS link-outs to a purchase surface are safely permitted in India for this
    category — currently answered conservatively as no (§5.6.1) and revisited only on
    evidence.
 
@@ -5064,7 +5377,13 @@ corrected — not the other way round.
    weighted giveaways, because superseded text was left standing next to its
    replacement. Leaving the old wording "for the record" is how that happened; the
    record belongs in the decision row.
-8. **A capability's presence here is never permission to build it.** Phase label first
+8. **Every proposed tier-ladder or pricing change states which boundaries it was checked
+   against** — §12.6 durable records, §12.7 bounded data, §30.1 correctness, and the
+   launch authority's no-drop rule. Four lines on every proposal. Three proposals in a row
+   violated rules already written in this document (a TTS grace buffer against the ledger
+   invariant, Studio-only widgets against §37.11, 2,000 pending visuals against §12.7);
+   that is a missing gate, not three slips.
+9. **A capability's presence here is never permission to build it.** Phase label first
    (§1.9), then the ten fields in §31.0, then a lane.
 
 ### 35.2 Corrections applied 2026-09-14
@@ -5085,6 +5404,12 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
+| Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
+| 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
+| "Studio includes ₹357 of packs" double-counted capabilities already Studio-only, and would have advertised two hidden packs | Rejected; replaced by concrete gated allowances (§33.2 item 10) |
+| "Every string overridable" would have exposed payment, legal, consent, security and error text | §15.4.2 protected string class, enforced by the system |
+| No boundary check existed on tier or pricing proposals | §35.1 rule 8 |
 | **Amazon Pay carried three live outcomes** — "never build" in the §25.5 table, "build under C1–C7" in the conditions section, and "never build" again in §33.1 | The §25.5 conditions paragraph is **deleted**, not annotated. C1–C7 are stated to cover delegated sub-users only and never to reach a consumer credential |
 | **Account deletion was decided in §12.3 and blocked in §33.1** | §12.3 rewritten: the archival approach is an engineering *preference*, deletion is blocked on legal, nothing ships or is promised, deactivation ships meanwhile, and CMP-78 carries the store conflict |
 | **Phase 0 contained YouTube connect work** while the launch authority excludes YouTube from v1 | F06 and F07 moved to Phase 4; the Phase 0 prose no longer lists a YouTube surface |

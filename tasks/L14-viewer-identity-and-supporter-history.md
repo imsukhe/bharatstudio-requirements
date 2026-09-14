@@ -152,3 +152,32 @@ the OAuth, legal, deployment, and independent-review gates remain open.
 ## Batch 10 addendum — 2026-09-13
 
 Migration `0120_v1_l02b_reputation_signals_and_score.sql` (new supporter-reputation work, tracked at `L25-supporter-reputation.md`) extends this task's own migration-0085 erasure record with a further retained-on-deletion class (`reputation_signal_events`, and the score/verdict derived live from it), explicitly flagged `legalDispositionOpen: true`. This does not change any status or evidence already recorded above for viewer identity itself; it is cross-referenced here because it deepens the same open DPDP/deletion question this task already deferred to counsel. See `L02-security-rls-and-archive-proof.md` batch 10 section and `L25-supporter-reputation.md` for detail. No legal conclusion is asserted.
+
+## QA reachability correction — 2026-09-14
+
+The receipt API/page was implemented but the confirmed-tip UI never invoked
+`POST /v1/public/receipts`; no ordinary anonymous payer could obtain its opaque
+link. This L3 correction wires both existing direct-tip and opaque TipIntent
+confirmation UIs to mint the one-time receipt after the server confirms a payment. It sends the
+already-known opaque intent id, validates only the returned opaque token, and
+links to `/r/<token>` without logging, storing server-side, or exposing payment
+details. Receipt minting is advisory: an outage or an already-minted response
+must never turn a confirmed payment into an error or retry it. No schema,
+payment mutation, provider, pricing, retention, or legal posture changes.
+
+Acceptance: either confirmed payment journey requests a receipt once, displays only a
+validated opaque receipt link on success, and keeps the payment-confirmed
+state on any receipt failure. Tests must prove the browser contract and the
+full local verifier must remain green. Rollback is hiding the UI handoff; the
+additive existing receipt data remains untouched.
+
+**Local evidence — 2026-09-14:** `apps/web/app/tips/receipt-client.test.ts`
+proves the mint request contains only `intentId`, uses credentialed fetch,
+accepts the exact opaque-token format, and treats unavailable/malformed
+responses as no receipt rather than a payment error. Both direct-tip and
+TipIntent confirmation components invoke that shared helper only from their
+`paid` status path. `pnpm verify:local` exited 0 after 125 migrations, 52
+isolated SQL proofs, 501 API tests, 327 web tests, Go race/vet checks,
+integration/load/fault checks, and the three declared image builds. This is
+synthetic local evidence only; real browser/cookie, staging, provider, legal,
+and independent-review gates remain open.
