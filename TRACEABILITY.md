@@ -8,16 +8,16 @@ Six columns per `FULL-PRODUCT-DEFINITION.md` §35.4:
 A blank cell is a real gap, not an omission. Per §37.2 a row with a gap in any
 column is not done, whatever its state letter says.
 
-**623 requirement rows across 38 areas.**
+**633 requirement rows across 38 areas.**
 
 ## Coverage summary
 
 | Column | Populated | Missing |
 |---|---:|---:|
-| Task file in `tasks/` or `active/` | 2 | 621 |
-| Acceptance record (§37.3 scenarios) | 0 | 623 |
-| Review (who traced the user path) | 0 | 623 |
-| Evidence artefact (§37.8) | 0 | 623 |
+| Task file in `tasks/` or `active/` | 2 | 631 |
+| Acceptance record (§37.3 scenarios) | 0 | 633 |
+| Review (who traced the user path) | 0 | 633 |
+| Evidence artefact (§37.8) | 0 | 633 |
 
 Acceptance, review and evidence are uniformly empty because **no build work has
 started**. The §37.11 suite column below states what each row will need; it is a
@@ -297,6 +297,16 @@ requirement, not a claim that anything has been run.
 | CON-36 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
 | CON-37 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
 | CON-38 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-40 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-41 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-42 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-43 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-44 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-45 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-46 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-47 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-48 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-49 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
 | CON-39 | §31.9 Connectors and chat | N | — |  | post-v1 (Phase 4) |  |  |  | none |
 | ENT-01 | §31.10 Entitlements, billing, admin, ops | U | — |  | LIF-E1..E3 · isolation |  |  |  | none |
 | ENT-02 | §31.10 Entitlements, billing, admin, ops | U | — |  | LIF-E1..E3 · isolation |  |  |  | none |
@@ -661,7 +671,7 @@ requirement, not a claim that anything has been run.
 | BOT | 17 |
 | CHL | 8 |
 | CMP | 93 |
-| CON | 31 |
+| CON | 41 |
 | COS | 15 |
 | CST | 30 |
 | CTL | 15 |

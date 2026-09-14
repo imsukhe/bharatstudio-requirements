@@ -434,6 +434,106 @@ the build works, and this fits it — but the *instrumentation* is not an extern
 ships with the connector, or the application arrives with nothing behind it. Steps 1 and 2
 are engineering work in Phase 4; steps 3 and 4 are the filing.
 
+### 4.4 Demand-driven fetching — nothing is polled because it exists
+
+§4.2 removed per-surface calls. This removes calls nobody is waiting for. Together they
+are what makes the free allowance workable, and neither needs a single line of the
+scraping approach.
+
+> **A YouTube call happens only while a human is looking at something that needs it.**
+
+#### 4.4.1 Subscription with reference counting
+
+Every surface that needs a YouTube-derived value **subscribes** to a
+`(channel, datum)` pair rather than triggering a fetch. Datums are things like
+`broadcast_state`, `viewer_count`, `like_count`, `chat_stream`.
+
+- The server polls a datum **only while its reference count is above zero**.
+- Ten widgets wanting `like_count` on one channel is **one subscription, refcount 10**.
+- A hidden module, an inactive OBS scene, a closed dashboard tab or a backgrounded
+  Companion **unsubscribes**. `document.visibilityState` drives it; a background tab
+  drops to a slow cadence rather than holding the fast one.
+- **Hysteresis before unsubscribing** — a grace window of roughly a minute — so a
+  creator flicking between scenes does not thrash the subscription.
+- A creator whose overlay shows no YouTube-derived widget costs **zero YouTube quota**,
+  all day, even while live.
+
+**This is the same registry as RT-02.** The channel-keyed subscriber map being built for
+the SSE fanout is the map that drives upstream demand. One registry, not two — a
+subscriber count that already exists for delivery becomes the input that decides whether
+to fetch at all.
+
+#### 4.4.2 Batch across channels, and across fields
+
+Two multipliers, and the first is the largest single lever in this section:
+
+- **Many channels per call.** `videos.list` accepts a batch of video IDs in one request.
+  One global poller collects every channel with an active subscription, chunks them, and
+  issues one call per chunk instead of one per channel.
+- **Many fields per call.** Ask for the parts needed together — live details and
+  statistics in the same request — rather than two calls for one screen.
+
+Worked arithmetic, with the per-call figures flagged for §27.2 sourcing: at a documented
+1 unit per `videos.list` and a batch of 50 IDs, **200 concurrently live channels cost
+4 units per tick**. At a 60-second cadence that is 240 units per hour, well inside the
+free 10,000-unit day even at continuous full load.
+
+The naive design — one call per channel per tick — costs 200 units per tick and exhausts
+the same allowance in under an hour. **Same data, same freshness, fifty-fold difference.**
+
+#### 4.4.3 Lazy behind an explicit action, especially on the tip page
+
+The tip page server-renders creator identity, presets and the payment form and **nothing
+else** (§12.7). Everything live is click-to-load:
+
+| Control | What happens on click | Quota |
+|---|---|---|
+| **Watch live** | Mounts the IFrame player | **None** |
+| **Open live chat** | Mounts YouTube's official chat embed | **None** |
+| A live-state badge, if the creator enables one | Subscribes to `broadcast_state` while the page has a visitor, unsubscribes after an idle timeout | Shared across every visitor to that page |
+
+So a tip page with a thousand visitors costs the same as one with a single visitor, and a
+tip page with no visitors costs nothing. **Traffic never multiplies quota** — only
+distinct channels and distinct datums do.
+
+#### 4.4.4 Chat is subscribed by feature, not by liveness
+
+Chat ingestion is a long-lived connection per channel and cannot be batched, which makes
+it the one genuinely expensive datum. So it is **not** subscribed merely because a stream
+is live:
+
+- Subscribed when a chat-dependent feature is actually in use — the bot is enabled,
+  commands are configured, a moderator has the queue open, or `!tip` is switched on.
+- Unsubscribed the moment none of those is true.
+- A creator who uses BharatStudio purely for tips and overlays **never opens a chat
+  connection at all**.
+
+#### 4.4.5 The budget manager
+
+One component owns the daily allowance and behaves like a scheduler, not a counter:
+
+- **Priority by datum.** `broadcast_state` outranks `viewer_count`, which outranks
+  `like_count`. Under pressure, the cheap truthful signal survives and the decorative one
+  degrades.
+- **Global degradation, not per-creator starvation.** When the budget tightens, every
+  cadence slows together. We never silently stop serving one creator so another keeps a
+  fast counter.
+- **Visible degradation.** A slowed or paused datum says so in the dashboard and on the
+  affected widget. Never a stale number presented as live (§12.7).
+- **Spend accounting** feeds the same histograms as CON-37, so the quota application in
+  §4.3 is written from measured behaviour.
+- **Negative caching.** A channel that is not live is checked on the cheap datum only,
+  rarely, and its expensive datums are not polled at all.
+- **Never a cold-start stall.** A new subscriber receives the last known value with its
+  age immediately, then live updates. A render never waits on an upstream call.
+
+#### 4.4.6 The anti-patterns, named
+
+No client-side calls to YouTube · no per-widget or per-surface fetching · no polling while
+a channel is offline · no fetch on page load "just in case" · no prefetch on hover · no
+fixed global timer that runs whether or not anyone is watching · no per-visitor
+subscription on a public page.
+
 **Standing rule:** the YouTube connector is *locally proven only*. Real OAuth
 verification, quota grant, chat-write approval and staged live-stream evidence must
 land before anything here is called production-ready.
@@ -4725,6 +4825,16 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-36 | **Per-call, per-endpoint, per-channel quota instrumentation**, exported as a histogram (RT-06). Ships with the connector — the quota application is worthless without it | A | **P0 for Phase 4** |
 | CON-37 | Measure `streamList` against a real Google project: units per hour, per channel, per message volume, and behaviour during a chat burst | A | **P0 for Phase 4** |
 | CON-38 | Derive the supported concurrent-creator ceiling at the free allowance and at each increase tier, then file the quota application with measured numbers | A | P2 |
+| CON-40 | **Subscription registry with reference counting** — a datum is polled only while refcount > 0; reuses the RT-02 channel-keyed subscriber map rather than a second registry | A | **P0 for Phase 4** |
+| CON-41 | Visibility-driven subscribe and unsubscribe: hidden module, inactive scene, background tab, backgrounded Companion | A | P1 |
+| CON-42 | Unsubscribe hysteresis (~60s grace) so scene flicking does not thrash subscriptions | A | P1 |
+| CON-43 | **Cross-channel batching** — one global poller, chunked IDs, one call per chunk instead of one per channel | A | **P0 for Phase 4** |
+| CON-44 | Field batching — request the parts needed together in one call, never two calls for one screen | A | P1 |
+| CON-45 | Tip page: live player and chat are click-to-load embeds; a live badge subscribes only while the page has a visitor and drops after idle | A | P1 |
+| CON-46 | Chat ingestion subscribed **by feature in use**, never by liveness; a tips-and-overlay creator opens no chat connection | A | **P0 for Phase 4** |
+| CON-47 | Budget manager: per-datum priority, global degradation rather than per-creator starvation, visible slowdown, negative caching for offline channels | A | **P0 for Phase 4** |
+| CON-48 | Cold subscriber gets last-known value with its age immediately; a render never waits on an upstream call | A | P1 |
+| CON-49 | Anti-pattern enforcement (§4.4.6) — no client calls, no per-surface fetch, no offline polling, no fixed global timer, no per-visitor subscription | A | P1 |
 | CON-39 | Page scraping and InnerTube — **never build.** ToS-prohibited automated access, no contract, no stability, unverifiable financial provenance, and it moves the consequence onto the creator's channel (§4) | N | — |
 
 ### 31.10 Entitlements, billing, admin, ops
@@ -5303,6 +5413,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **BharatStudio Bot** | **An automation product, not another dashboard** (§36). Six areas and no more. First release is six things done well: commands with aliases/cooldowns/roles, scheduled messages, English/Hindi/Hinglish, deterministic spam and link controls, a simple import wizard, and one event action. Multilingual is **deterministic first** — transliteration-matched aliases and per-language blocked terms — with AI as an optional, quota'd layer that **recommends or soft-actions and never bans**. The blocked-term corpus is **one list shared with §12.2 TTS safety**, never a second. Never imports scripts, raw JS, shell commands or third-party credentials. P2 at the earliest, blocked on the Google chat-write scope and on YouTube being post-v1. |
 | **External filings sequencing** | **Owner decision 2026-09-14: none of the external gates blocks development, and all are filed after the build works.** Razorpay Technology Partner approval, legal counsel, the CA/tax review and Google OAuth verification are **release gates, not build gates** (§1.9 phase **G**), and the owner has chosen to file them once the decided scope is built and working, accepting that minor changes may follow from their feedback. Two obligations follow and are not optional: (a) **build to best practice as if each review had already happened** — DPDP-shaped data handling, GST-inclusive pricing arithmetic, terms and refund wording drafted to be reviewable rather than rewritten; and (b) **make no claim that depends on a filing that has not happened** — no "Razorpay partner", no tax representation beyond the GST-inclusive arithmetic already published, no verified-OAuth claim. The launch date moves with the filing cycle, not with the code. |
 | **Client-side scraping and InnerTube** | **Never build** (CON-39). "Just fetching" is accurate for one request and inaccurate for a scheduled client: the ToS prohibits automated access outside the API, and the API's quota *is* the permitted path. Moving the traffic to the creator's browser and IP does not change what the terms permit — it moves the consequence onto **their** channel, for our product's benefit. The valuable data (chat, Super Chat, members) is not reachable by public fetching at all; it needs InnerTube, which requires impersonating the official client. And what *is* publicly reachable — viewer count, likes — costs 1 unit, so the trade is bad before ethics enter it. **The permitted client-side path is the IFrame Player API and the official chat embed** (CON-32, CON-33), which are free and cover presence, playback and chat *display*. |
+| **Demand-driven fetching** | **A YouTube call happens only while a human is looking at something that needs it** (§4.4). Reference-counted subscriptions per `(channel, datum)`, driven by the same RT-02 subscriber map; visibility-based unsubscribe with hysteresis; cross-channel and cross-field batching; tip-page live player and chat behind an explicit click, as zero-quota embeds; chat ingestion subscribed **by feature in use**, never by liveness; and a budget manager that degrades globally and visibly rather than starving one creator. A creator with no YouTube-derived widget costs zero quota all day. Traffic never multiplies quota — only distinct channels and datums do. |
 | **Surface data sources** | **One fetch, many surfaces** (§4.2, CON-31): no surface ever calls YouTube; the server fetches once per channel and fans out over the channel-keyed SSE. Twelve widgets cost what one costs. Stream health comes from the local helper and never touches Google. Chat *display* is the official embed at zero quota; chat *ingestion* is the only genuinely expensive item and is Phase 4, gated on the quota grant. |
 | **YouTube quota** | **Quota is per Google Cloud project, not per creator** (§4.1). A creator's OAuth grant conveys permission, never allowance; every connected creator spends our 10,000-unit default day. A quota increase is required before YouTube ships at any scale, per-call unit costs need dated sources, and polling cadence is a quota budget with a defined degradation path. Filed in Phase 4 with measured usage, per the sequencing decision above. |
 | **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
