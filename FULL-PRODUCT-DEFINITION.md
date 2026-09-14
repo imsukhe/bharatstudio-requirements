@@ -1919,6 +1919,98 @@ The ladder stays **20K / 40K / 60K**. Rollover and a better Studio top-up rate a
 deferred and both blocked on the same open item — what a rupee of credit actually buys
 (§33.2) — because units whose value is not fixed cannot be rolled over or discounted.
 
+### 11.12 Safety classification cost — the ladder, and the cache
+
+Running a model over every message is the most expensive design available and close to
+the least accurate. Chat is enormously repetitive; abuse vocabulary is finite and slow to
+change; and most of what arrives is `gg`, an emoji and a copypasta. The architecture
+should exploit all three.
+
+**The target: AI touches the residual band only — the small fraction that the
+deterministic layers genuinely cannot decide — and its verdicts become deterministic
+rules so the residual shrinks over time.**
+
+#### 11.12.1 Decide as cheaply as possible, escalate rarely
+
+The §12.2.3 ladder is a cost design as much as a safety one. L0–L2 run in microseconds on
+our own CPU with no provider call. L3 is our compute. **Only L4 is metered**, and a
+message reaches it only when the layers below abstain.
+
+Two consequences worth stating plainly:
+
+- **Each language's coverage is a cost curve.** English and Hindi corpora will be strong
+  early, so their residual band is small. A low-resource language starts with a large
+  residual and gets cheaper as its corpus fills.
+- **Every AI verdict is an opportunity to never pay again.** A novel term the model
+  catches is reviewed and promoted into the L1 corpus, after which it costs nothing
+  forever. **The model's real job is to grow the list, not to judge every message.**
+
+#### 11.12.2 The verdict cache
+
+The product already content-caches TTS audio by SHA-256 (`TTS-01`). Safety verdicts use
+the same shape:
+
+```text
+key   = HMAC(server_secret, normalised_text ‖ language ‖ policy_version)
+value = verdict · confidence · deciding layer · matched rule
+```
+
+- **Normalised text, not raw**, so `fuuuck`, `f.u.c.k` and `ｆｕｃｋ` share one entry.
+- **`policy_version` in the key** means a corpus or model change invalidates naturally —
+  no purge, no stale verdict surviving a policy change.
+- **Cross-channel by design.** A classification of a string is not channel-specific, and
+  a shared cache is what makes the hit rate high. **Creator-specific rules are applied
+  after the cache**, never baked into it.
+- **HMAC with a server-side secret, not a bare hash.** A global store keyed on plain
+  message hashes would be reversible by dictionary attack; keyed hashing removes that.
+- **PII-flagged messages are never cached**, at all. If L0 detects a phone number, UPI
+  ID, email or card-like string, the verdict is computed and discarded.
+- **The cache stores verdicts, never message text.**
+
+#### 11.12.3 Sub-message caching, which is where the leverage is
+
+Whole-message caching helps with copypasta. **Term-level caching helps with everything
+else.** Once a token or n-gram has a verdict, every future message containing it is
+decided at L1 — so a single AI call on one novel slur immunises every later message that
+uses it, in any spelling that folds to the same phonetic key.
+
+This is why the corpus is the asset and the model is the tool.
+
+#### 11.12.4 The other cost controls
+
+| Control | Effect |
+|---|---|
+| **Batch the residual** | Classify the residual band in one call per short window rather than one call per message. Chat bursts batch naturally |
+| **Signal-based escalation** | Escalate on signal — first-time author, unusually long, mixed script, contains a link, high amount — not on arrival order |
+| **Spoken versus scrolling** | A message that will be **spoken to the audience** gets the full ladder. A message that only scrolls past in chat can stop at L3 unless it carries signal. The harm surfaces differ, and this is not tiering safety — every surface still runs L0–L3 |
+| **Distillation** | Periodically retrain L3 on accumulated L4 verdicts. Cost decays monthly rather than scaling with traffic |
+| **Negative caching** | Common benign phrases are cached as safe, which is most of chat |
+| **Compiled per-channel matcher** | Global corpus plus creator terms compiled into one automaton per channel, rebuilt on change, held in memory |
+| **Budgets** | Per-channel and global daily AI budgets, with the §4.4.5 degradation shape: slow, then stop escalating — **never stop running L0–L3** |
+
+#### 11.12.5 The rules this optimisation may not break
+
+- **Cost is never a reason to skip safety.** If the budget is spent, the deterministic
+  layers still run and TTS still fails closed (§12.2.6). Degradation is visible to the
+  creator.
+- **A cache hit is not a weaker decision.** It is the same verdict, from the same policy
+  version.
+- **Nothing here is tierable.** The cheap path exists to make safety affordable for every
+  creator including Free, not to give paid creators a better one.
+- **AI moderation stays recommend-or-soft-action** (§11.8), cache or no cache.
+
+#### 11.12.6 What gets measured
+
+Cache hit rate overall and per language · residual rate reaching L4 · **cost per thousand
+messages** · terms promoted into the corpus per week · false-negative reports from
+creators · L3-versus-L4 agreement. All as histograms (`RT-06`), because a hit rate is a
+distribution, not an average.
+
+**Why this matters commercially:** AI moderation is a Creator-tier capability, not a
+metered credit line — so its provider cost comes out of the tier margin, not the
+creator's balance. Every point of cache hit rate is margin, and the §10.1 25% floor
+depends on it.
+
 ---
 
 ## 12. Hard boundaries — the rules that never bend
@@ -1957,20 +2049,102 @@ these is not shipped, regardless of revenue.
   security, privacy, audit, accessibility, downgrade preservation and legal
   disclosures are on every tier including Free
 
-### 12.2 Content and TTS safety
+### 12.2 Content safety — one pipeline, every surface
 
 Current state: `provider.ts:28-29` strips C0/DEL control characters and bounds to 500
-chars. That is the entire filter. Required before public launch:
+characters. **That is the entire filter.** Everything below is required before public
+launch (`TTS-06`, P0) and is the single highest-harm gap in the register.
 
-- Profanity and slur filtering, Hinglish and Romanized Indic included
-- URL removal or neutralisation
-- Unicode normalisation, RTL-override and zero-width stripping
-- Repeated-character suppression
-- SSML-injection guard
-- Blocked terms and blocked users, creator-configurable
+#### 12.2.1 One corpus, one pipeline, every surface
+
+**Decided 2026-09-14.** There is exactly one safety pipeline and exactly one term corpus.
+Tip messages, TTS input, chat (`BOT-06`), Super Chat when it lands in Phase 4, supporter display
+names, sticker captions, lobby names and bot replies all pass through it. Two lists means
+a term blocked in speech and permitted in chat, and neither list ever fully maintained.
+
+```text
+message
+  → L0 normalise        → L1 exact match  → L2 fuzzy / phonetic
+  → L3 local classifier → L4 AI (residual only)
+  → decision: allow · mask · hold · block   (per surface, not global)
+```
+
+#### 12.2.2 L0 — normalisation, where most evasion dies
+
+Evasion is cheap; normalisation is cheaper. Before any matching:
+
+- **Unicode NFKC**, then strip zero-width (`U+200B-D`, `U+FEFF`), RTL/LTR overrides
+  (`U+202A-E`, `U+2066-9`) and combining-mark floods ("Zalgo").
+- **Homoglyph folding** — Cyrillic `а`, Greek `ο`, fullwidth forms and mathematical
+  alphanumerics fold to their Latin equivalents.
+- **Leet and separator folding** — `f_u_c_k`, `f.u.c.k`, `ph`→`f`, `0`→`o`, `1`→`i`,
+  `@`→`a`, `$`→`s`.
+- **Repeated-character collapse** — `fuuuuck` → `fuck`, with the original preserved for
+  display.
+- **Script detection and transliteration**: Devanagari, Bengali, Tamil, Telugu, Kannada,
+  Malayalam, Gujarati, Gurmukhi, Odia. A Hindi slur written in Devanagari, in Latin
+  transliteration, or code-mixed within an English sentence is **the same term**, and is
+  matched by a phonetic key rather than by spelling.
+- **The original text is never destroyed.** Normalisation produces a parallel form for
+  matching; display, receipts and audit keep what the supporter actually typed.
+
+#### 12.2.3 L1 to L4 — decide as cheaply as possible
+
+| Layer | What it does | Cost |
+|---|---|---|
+| **L1 exact** | Aho–Corasick over the compiled corpus — global terms plus this creator's own list — on the normalised form. Whole-word and substring rules are separate, because `assist` must not match a substring slur | Microseconds, no provider |
+| **L2 fuzzy and phonetic** | Bounded edit distance for typo-obfuscation, and a **phonetic key per script** (Soundex-class for Latin, a syllable-based key for Indic) so `bhosdi`/`भोसडी`/`bhosadi` collapse to one key | Microseconds, no provider |
+| **L3 local classifier** | A small model running on our own CPU for context the lists miss — threats, sexual harassment, scam patterns, coordinated raids | Our compute, no provider |
+| **L4 AI** | **The residual band only** — genuinely ambiguous, novel, or in a language where L1–L3 coverage is thin. See §11.12 for how this stays affordable | Metered |
+
+#### 12.2.4 Decisions are per surface, not one verdict
+
+One message can be **paid, displayed, unspoken and held for review** at the same time.
+Each decision is independent and separately audited:
+
+| Decision | Question |
+|---|---|
+| **Payment** | Never affected by content. A message is never a reason to reject money |
+| **Public display** | Shown, masked, or withheld |
+| **TTS** | Spoken, spoken after rewrite, or silent |
+| **Stored record** | Always stored in full — it is a durable record (§12.6) |
+| **Moderator review** | Queued for a human or not |
+
+#### 12.2.5 Everything else required before launch
+
+- URL removal or neutralisation, with an allow/deny domain list per creator
+- **SSML-injection guard** — a message can never become synthesis instructions
+- Blocked terms and blocked users, creator-configurable, per language
 - Minimum amount for TTS
-- Moderator approval before TTS as a distinct decision from alert display
-- PII detection (phone, UPI ID, email, address, card-like strings)
+- **Moderator approval before TTS as a decision distinct from alert display**
+- **PII detection** — phone, UPI ID, email, address, card-like strings — and the
+  no-accidental-doxxing rule from §5.3
+- Rate, flood, repeated-text and emoji-flood controls
+- Slow mode, raid mode and a high-toxicity profile
+- Policy presets: family-friendly · gaming · mature audience · sponsor-safe
+
+#### 12.2.6 Failure behaviour — closed for speech, open for money
+
+- **Safety unavailable → TTS does not speak.** Silence is a recoverable disappointment;
+  a slur read aloud to an audience is not.
+- **Payment and receipt are never blocked by a safety failure.** The money path does not
+  depend on the classifier.
+- **Display falls back to masked**, not to raw.
+- The creator sees the degraded state in Companion and on the dashboard; the audience
+  never does.
+- Safety runs **identically before both voice routes** (§11.10.3). The browser-voice path
+  is not a cheaper path with weaker checks.
+
+#### 12.2.7 Untiered, auditable, appealable
+
+- **No part of this pipeline is tierable** (§30.1). A Free creator's chat is not a less
+  safe place, and no pack, tier or add-on may sell better safety.
+- Every automated action records the original text, the normalised form, the layer that
+  decided, the matched rule or model score, the confidence, the **policy version**, and
+  the actor if a human was involved — visible in the Activity Log (§7.5).
+- **AI recommends or soft-actions; it never bans** (§11.8). Permanent bans and any
+  payment decision need explicit creator or moderator policy.
+- A supporter-visible appeal path exists for a block, and a reversal is itself audited.
 
 **Audio never delays or blocks the picture.** A TTS failure, timeout, quota exhaustion
 or safety rejection changes only whether a voice speaks. The visual alert is released,
@@ -5091,6 +5265,41 @@ surfaces had no rows.*
 | DSH-30 | Empty, loading, error and denied states authored for every screen (§7.7) | v1 | A | **P0** |
 | DSH-31 | Denied states name the unlocking tier or the missing role — never a dead control, never a silent hide (§15.3) | v1 | A | **P0** |
 
+### 31.13.2 Safety pipeline (§12.2, §11.12)
+
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| SAF-01 | **One corpus, one pipeline, every surface** — tips, TTS, chat, display names, sticker captions, lobby names, bot replies, and Super Chat when it lands in Phase 4 | v1 | A | **P0** |
+| SAF-02 | L0 normalisation: NFKC, zero-width and RTL-override stripping, combining-mark flood, homoglyph folding, leet and separator folding, repeated-character collapse | v1 | A | **P0** |
+| SAF-03 | Script detection and **phonetic keys per Indic script**, so a slur in Devanagari, Latin transliteration or code-mixed text is one term | v1 | A | **P0** |
+| SAF-04 | Original text never destroyed — normalisation produces a parallel matching form | v1 | A | **P0** |
+| SAF-05 | L1 Aho–Corasick over the compiled corpus, global plus per-creator, whole-word and substring rules kept separate | v1 | A | **P0** |
+| SAF-06 | L2 bounded edit distance plus phonetic match for obfuscation | v1 | A | P1 |
+| SAF-07 | L3 local classifier on our own compute for threats, harassment, scam patterns, raid coordination | v1 | A | P1 |
+| SAF-08 | L4 AI on the **residual band only** | v1 | A | P1 |
+| SAF-09 | **Per-surface decisions** — payment, display, TTS, stored record, moderator review are independent and separately audited | v1 | A | **P0** |
+| SAF-10 | URL neutralisation with per-creator allow and deny domains | v1 | A | **P0** |
+| SAF-11 | SSML-injection guard — a message can never become synthesis instructions | v1 | A | **P0** |
+| SAF-12 | PII detection: phone, UPI ID, email, address, card-like strings, plus the no-accidental-doxxing rule | v1 | A | **P0** |
+| SAF-13 | Rate, flood, repeated-text and emoji-flood controls; slow, raid and high-toxicity modes | v1 | A | P1 |
+| SAF-14 | Policy presets: family-friendly, gaming, mature audience, sponsor-safe | v1 | A | P1 |
+| SAF-15 | **Fails closed for speech, open for money** — safety unavailable means TTS is silent; payment and receipt are never blocked | v1 | A | **P0** |
+| SAF-16 | Degraded state visible to the creator, never to the audience | v1 | A | P1 |
+| SAF-17 | **Untiered** (§30.1) — no pack, tier or add-on may sell better safety | v1 | A | **P0** |
+| SAF-18 | Audit per action: original, normalised, deciding layer, matched rule or score, confidence, **policy version**, human actor — surfaced in the Activity Log | v1 | A | **P0** |
+| SAF-19 | Supporter-visible appeal path for a block; reversals audited | v1 | A | P1 |
+| SAF-20 | **Verdict cache** keyed `HMAC(secret, normalised ‖ language ‖ policy_version)`, storing verdicts and never text | v1 | A | P1 |
+| SAF-21 | PII-flagged messages are **never cached** | v1 | A | **P0** |
+| SAF-22 | Cross-channel cache with creator-specific rules applied **after** the lookup | v1 | A | P1 |
+| SAF-23 | **Term-level caching** — an AI verdict on a novel term is promoted into the L1 corpus after review, so it costs nothing again | v1 | A | P1 |
+| SAF-24 | Residual batching within a short window; signal-based escalation (new author, length, mixed script, link, amount) | v1 | A | P2 |
+| SAF-25 | Spoken messages get the full ladder; scrolling chat may stop at L3 absent signal — every surface still runs L0–L3 | v1 | A | P2 |
+| SAF-26 | Periodic distillation of L3 from accumulated L4 verdicts | v1 | A | P3 |
+| SAF-27 | Negative caching of common benign phrases | v1 | A | P2 |
+| SAF-28 | Compiled per-channel matcher rebuilt on change, held in memory | v1 | A | P1 |
+| SAF-29 | Per-channel and global AI budgets that stop escalation, **never L0–L3** | v1 | A | P1 |
+| SAF-30 | Metrics as histograms: cache hit rate overall and per language, residual rate, **cost per thousand messages**, terms promoted per week, creator-reported false negatives, L3-vs-L4 agreement | v1 | A | P1 |
+
 ### 31.14 Customisation and gating
 
 | ID | Item | Phase | State | Pri |
@@ -5935,6 +6144,8 @@ corrected — not the other way round.
 | **"File external gates after the build" had no checkpoint** before irreversible schema or copy freeze | Freeze checkpoint added, with five named areas and a required written go/no-go |
 | **§12.6 guaranteed moderation history be viewable and searchable, and nothing rendered it** — audit records existed (`ALQ-10`, `ADM-02`, `ADM-08`, `CTL-01`, `AUD-08`, `LOB-08`, `BOT-14`) with no surface. The §2 pattern forming before new code | §7.5 Activity Log, `DSH-12`…`DSH-15`, Companion Recent Actions (`CMP-94`), E2E `DSH-E6`…`DSH-E8` |
 | **§7 listed the dashboard's jobs and never its screens, and the register had no dashboard section at all** | §7.1 screen inventory · §7.2 detail-view contract · §7.3 one-click affordances · §7.4 supporter profile and command palette · §7.6 support handoff bundle · §7.7 authored states. New register section §31.13.1, `DSH-10`…`DSH-31` |
+| **§12.2 was a nine-bullet list** for the highest-harm gap in the register, with no pipeline, no evasion handling, no failure behaviour and no per-surface decision model | §12.2.1–12.2.7: one corpus and one pipeline across every surface, L0 normalisation against homoglyph/leet/zero-width/Zalgo evasion, phonetic keys per Indic script, independent per-surface decisions, fail-closed-for-speech, untiered, auditable, appealable. `SAF-01`…`SAF-19` |
+| **Nothing addressed what AI safety classification would cost** | §11.12: the ladder decides cheaply and escalates rarely; an HMAC-keyed verdict cache with `policy_version` in the key; **term-level caching so an AI verdict becomes a permanent deterministic rule**; batching, signal-based escalation, distillation, budgets that never stop L0–L3. `SAF-20`…`SAF-30`, E2E `SAF-E1`…`SAF-E10` |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -6398,6 +6609,21 @@ provider sandboxes where a provider is involved.
 | LIF-E5 | `global_kill` fired | Capability off immediately, log immutable, expires at 24h without ratification, affected creators notified, not billed (§20.6.1) |
 | LIF-E6 | Attempt to create a registry row gating a durable record | Rejected by the registry (CTL-14) |
 
+#### 37.3.9 Safety pipeline
+
+| # | Scenario | Passes when |
+|---|---|---|
+| SAF-E1 | The same slur in Devanagari, Latin transliteration, code-mixed, with repeated characters, with zero-width joiners, and in homoglyphs | All six resolve to one term and one verdict |
+| SAF-E2 | A message containing a phone number | Detected, not spoken, handled per policy — **and no cache entry is written** |
+| SAF-E3 | A ₹5,000 tip with a borderline message | Payment recorded, receipt issued, alert displayed per policy, TTS decision independent of all three |
+| SAF-E4 | The AI layer is unavailable for ten minutes | L0–L3 still run · TTS fails closed · payments unaffected · the creator sees the degraded state and the audience does not |
+| SAF-E5 | The AI budget is exhausted mid-stream | Escalation stops, deterministic layers continue, degradation is visible |
+| SAF-E6 | A novel slur is caught by L4, reviewed, and promoted | The next message containing it is decided at L1 with no provider call |
+| SAF-E7 | The corpus is updated | Every affected cache entry is invalidated by the `policy_version` key change, with no purge step |
+| SAF-E8 | A copypasta raid — 500 identical messages in 30 seconds | One classification, 499 cache hits, and the measured cost reflects it |
+| SAF-E9 | A Free creator and a Studio creator send identical borderline messages | Identical verdicts, identical layers, identical latency (SAF-17) |
+| SAF-E10 | An automated block is appealed | The appeal path works, the reversal is audited, and both appear in the Activity Log |
+
 ### 37.4 Performance numbers — the table that gets measured
 
 **The reference environment, specified concretely.** A performance number measured
@@ -6548,4 +6774,6 @@ rollback** — the same rule the master release authority already applies.
 | STO, MED | INT-E4 · asset-serving suite · one rehearsed takedown drill (§18.3) |
 | CUS (gating model) | DSH-E1..E5 · role-boundary suite |
 | CST (customisation depth) | OVL-E1..E12 · HUB-E1..E5 · accessibility and localisation suites · +40% expansion |
+| SAF | SAF-E1..E10 · the shared-corpus test with TTS and the bot · cost-per-thousand-messages measured, not asserted |
+| DSH | DSH-E1..E12 · isolation and role-boundary suites |
 | SOC, RTE, Enterprise | Not scheduled — phase R or blocked. No suite required until a gate closes |
