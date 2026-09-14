@@ -5075,6 +5075,15 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CTL-06 | Staged effective-time changes | v1 | A | P1 |
 | CTL-07 | Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents | v1 | A | P1 |
 | CTL-08 | One-action revert to previous version | v1 | A | P1 |
+| ENV-01 | Cloud Run at the production configuration in a non-production project — same concurrency cap, instance settings, one region | v1 | A | **P0** |
+| ENV-02 | Database seeded to §37.4 size (500 channels · 2M payments · 5M alert events · 200k identities) with production index definitions | v1 | A | **P0** |
+| ENV-03 | Razorpay sandbox wired end to end in that environment | v1·G | A | **P0** |
+| ENV-04 | OBS harness: pinned OBS on a mid-range Windows machine, plus headless Chromium for CI trend-tracking | v1 | A | **P0** |
+| ENV-05 | Device lab: one named mid-range Android and one iPhone at the supported floors | v1 | A | **P0** |
+| ENV-06 | Network shaping for the 4G and 3G profiles in §37.4 | v1 | A | P1 |
+| ENV-07 | Pass/fail artefact pipeline emitting the §37.4 JSON document per run | v1 | A | **P0** |
+| ENV-08 | Exit: one full §37.5 target-concurrency run completes and emits a valid artefact, before any Phase 0.5 row claims an exit number | v1 | A | **P0** |
+| ENV-09 | **Owner for the environment lane — unassigned** | v1 | A | **P0** |
 | CTL-09 | Layer 1 correctness dimensions rejected from this panel | v1 | A | P0 |
 | CTL-14 | **Registry rejects any capability whose subject is a durable creator record (§12.6)** — no row may be created that gates storing, viewing, searching, fetching or exporting one. Enforced in the registry, not by review | v1 | A | **P0** |
 | CTL-15 | Retention is a single platform-wide value, not a per-tier limit; the schema offers no per-tier retention field to set | v1 | A | **P0** |
@@ -5353,7 +5362,10 @@ outbound webhooks, finance/audit exports, SLA support.
 | Creator media upload in public product | Every row of the §18.3 gate built and one end-to-end takedown drill rehearsed |
 | "Shared goal" money language in Co-Stream | Named beneficiary before checkout and on the receipt, refund policy, tax review, recorded creator agreement, legal review of the wording (§22.5) |
 | Delegated payment routes (PhonePe Supervisor, HDFC Cashier, Paytm, Google Pay Business) | Four gates, all open: written provider permission · counsel sign-off · security design review · a provider sandbox route. Phase **R** until then |
-| Everything production | Google OAuth verification · YouTube quota · legal sign-off · Razorpay Route enquiry — **all four still unfiled** |
+| **v1 release** (Alerts + Companion) | Razorpay Technology Partner approval for the **creator-direct** flow · legal sign-off (terms, privacy, DPDP, refunds) · CA/tax conclusion · store declarations · public host, SSL and support mailbox. **Google OAuth verification** belongs here too, because Google Sign-In is v1 authentication — but only the sign-in consent screen, not YouTube data scopes |
+| **YouTube capability only, post-v1** | YouTube data scopes · **quota grant** · chat-write scope. *Corrected 2026-09-14: these were previously grouped under "everything production", which would have delayed the Alerts and Companion launch behind Phase 4 work. The external register has always scoped them correctly* |
+| **Enterprise only, post-v1** | Razorpay **Route** enquiry — the five written answers in the Enterprise row above. Not a v1 gate |
+| Non-production measurement environment | **Not blocked** — see `07_BUILD_BOOTSTRAP_AUTHORITY.md` §3. The "Deployment" row above is about production; a production-shaped staging environment needs none of it, and conflating them is what made the Phase 0.5 exit criteria unreachable |
 
 ---
 
@@ -5416,6 +5428,9 @@ outbound webhooks, finance/audit exports, SLA support.
 | **StreamElements** | Configuration migration only. An event bridge is **phase R** until a confirmed API or partner position exists. Never scrape a dashboard, import a browser-source secret, or execute copied widget code. |
 | **Package marketplace** | **Slowed deliberately.** First-party curated packages and private creator packages only. Third-party **paid** publishing is phase R: it is a second money flow with author payouts, GST on third-party digital goods, content review at scale, takedowns, disputes, and a "verified" badge we would have to defend. Nothing else in the interop layer depends on it. |
 | **BharatStudio Bot** | **An automation product, not another dashboard** (§36). Six areas and no more. First release is six things done well: commands with aliases/cooldowns/roles, scheduled messages, English/Hindi/Hinglish, deterministic spam and link controls, a simple import wizard, and one event action. Multilingual is **deterministic first** — transliteration-matched aliases and per-language blocked terms — with AI as an optional, quota'd layer that **recommends or soft-actions and never bans**. The blocked-term corpus is **one list shared with §12.2 TTS safety**, never a second. Never imports scripts, raw JS, shell commands or third-party credentials. P2 at the earliest, blocked on the Google chat-write scope and on YouTube being post-v1. |
+| **Bootstrap exemption** | **Steps −1 and 0 are exempt from the §31.0 ten-field precondition**, narrowly and by name, under `07_BUILD_BOOTSTRAP_AUTHORITY.md` §1 — they are the steps that produce those records, so requiring one first was a deadlock, not a standard. The exemption covers no capability row and sets no precedent, and each exempt step carries its own ten-field record written *as* the step. |
+| **The environment is its own lane** | **A non-production measurement environment is not blocked; production deployment is** (bootstrap authority §3). Conflating them made the Phase 0.5 exit criteria unreachable. Step 0.25 provisions Cloud Run at production configuration, a database seeded to §37.4 size, provider sandboxes, the OBS harness, the device lab, network shaping and the pass/fail artefact pipeline — **before** any Phase 0.5 row claims an exit number. Owner unassigned. |
+| **Freeze checkpoint** | Before any schema freeze, public copy freeze or store submission, five areas are reviewed against current assumptions with a written go/no-go each: payment boundary · deletion and retention · mobile purchase boundary · tax representation · consent wording. **A freeze without this review is not approved.** This is what makes "file external gates after the build" a managed risk rather than an unbounded one. |
 | **External filings sequencing** | **Owner decision 2026-09-14: none of the external gates blocks development, and all are filed after the build works.** Razorpay Technology Partner approval, legal counsel, the CA/tax review and Google OAuth verification are **release gates, not build gates** (§1.9 phase **G**), and the owner has chosen to file them once the decided scope is built and working, accepting that minor changes may follow from their feedback. Two obligations follow and are not optional: (a) **build to best practice as if each review had already happened** — DPDP-shaped data handling, GST-inclusive pricing arithmetic, terms and refund wording drafted to be reviewable rather than rewritten; and (b) **make no claim that depends on a filing that has not happened** — no "Razorpay partner", no tax representation beyond the GST-inclusive arithmetic already published, no verified-OAuth claim. The launch date moves with the filing cycle, not with the code. |
 | **Client-side scraping and InnerTube** | **Never build** (CON-39). "Just fetching" is accurate for one request and inaccurate for a scheduled client: the ToS prohibits automated access outside the API, and the API's quota *is* the permitted path. Moving the traffic to the creator's browser and IP does not change what the terms permit — it moves the consequence onto **their** channel, for our product's benefit. The valuable data (chat, Super Chat, members) is not reachable by public fetching at all; it needs InnerTube, which requires impersonating the official client. And what *is* publicly reachable — viewer count, likes — costs 1 unit, so the trade is bad before ethics enter it. **The permitted client-side path is the IFrame Player API and the official chat embed** (CON-32, CON-33), which are free and cover presence, playback and chat *display*. |
 | **Demand-driven fetching** | **A YouTube call happens only while a human is looking at something that needs it** (§4.4). Reference-counted subscriptions per `(channel, datum)`, driven by the same RT-02 subscriber map; visibility-based unsubscribe with hysteresis; cross-channel and cross-field batching; tip-page live player and chat behind an explicit click, as zero-quota embeds; chat ingestion subscribed **by feature in use**, never by liveness; and a budget manager that degrades globally and visibly rather than starving one creator. A creator with no YouTube-derived widget costs zero quota all day. Traffic never multiplies quota — only distinct channels and datums do. |
@@ -5499,7 +5514,10 @@ outbound webhooks, finance/audit exports, SLA support.
     "YouTube channel/data ingestion" and §34 says no YouTube surface before Phase 4. It is
     currently phased **P2, conservatively**. Reversing it to `v1` would need the launch
     authority amended to say the exclusion covers data and scopes, not embeds.
-14. Whether iOS link-outs to a purchase surface are safely permitted in India for this
+14. **Owners for Step 0, Step 0.25 and every external-evidence row.** Three of these are
+    named gaps rather than open questions — the work cannot start without a person
+    attached, and the evidence register currently lists roles, not people.
+15. Whether iOS link-outs to a purchase surface are safely permitted in India for this
    category — currently answered conservatively as no (§5.6.1) and revisited only on
    evidence.
 
@@ -5531,6 +5549,46 @@ safety, mobile handler wiring, TipForm as the interaction surface,
 schedules on, account activation, quarantine UI, the reachability CI checks, and the
 performance budgets that will police everything after.
 
+### 34.0 The executable sequence
+
+Everything below runs in this order. Steps −1 and 0 are governance work and are the only
+ones exempt from the §31.0 ten-field precondition, under
+[`active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md`](./active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md)
+§1 — they are the steps that *produce* those records, so requiring one first was a
+deadlock.
+
+```text
+Step −1  Approve and link the external-evidence register        (governance)
+Step  0  Register ↔ L-track mapping + active/ records           (governance)
+Step  0.25  Provision the production-shaped NON-production
+            measurement environment                            (infrastructure)
+Phase 0 + 0.5  Foundation and runtime remediation,
+               with measured exit criteria
+Phase 1–2      Surfaces, then E2E / load / OBS / device rehearsal
+Then           External filings · staging evidence · release decision
+```
+
+**Step −1 exists because the register that governs external evidence does not yet
+govern.** `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` says of itself: *Proposed
+operational authority* and *Not effective until approved and linked from the master
+release authority*. Every plan that names it as the home of external evidence — including
+§37.8 — is citing a file with no force until it is approved, linked from
+`01_MASTER_RELEASE_AUTHORITY.md`, and given a named owner per row rather than a role name.
+
+**Step 0.25 resolves a circularity.** Phase 0.5 blocks Phase 1 and needs OBS and load
+evidence; §37.4 requires a production-shaped environment to produce it; §32 lists
+deployment as blocked. The resolution is that **a non-production environment is not
+blocked — production deployment is**, and the environment is its own scheduled lane with
+its own owner rather than a by-product of Phase 0.5. Deliverables and exit criteria are
+in the bootstrap authority §3. **Its owner is currently unassigned, and that is the first
+named gap in this plan.**
+
+**A freeze checkpoint sits before anything irreversible.** Filing external gates after the
+build is an accepted schedule risk; it is only safe with a review before any schema
+freeze, public copy freeze or store submission, covering the payment boundary, deletion
+and retention, the mobile purchase boundary, tax representation and consent wording.
+Bootstrap authority §4 carries the checklist and requires a written go/no-go per area.
+
 **Step 0 — join the two ID systems, before any lane starts.** This repository already
 holds 62 task records, 62 test records and 72 reviews, keyed on the **L-track** system;
 the §31 register is keyed on area prefixes, and almost nothing references both
@@ -5544,9 +5602,15 @@ fields only where none does. Two consequences, both load-bearing:
 - **Until the mapping exists, §34 below is a proposed roadmap, not a schedulable plan**,
   and the §31.0 ten-field contract is satisfied by zero rows.
 
-The two checks that are **Blocked** in §35.3 — missing row metadata and phase-label
-integrity — become implementable as part of this, and should land with it rather than
-after it.
+The two checks that are **Blocked** in §35.3 — missing row metadata and reading the phase
+from the `active/` record rather than only the register column — become implementable as
+part of this, and should land with it rather than after it.
+
+Step 0 has a task record with all ten fields:
+[`active/tasks/STEP-0-register-mapping.md`](./active/tasks/STEP-0-register-mapping.md).
+**Its owner is unassigned**, which is the second named gap. It is deliberately *not*
+scoped to fill ten fields for every row — that would be documentation theatre. Rows are
+recorded when a lane takes them; the mapping exists so taking one is cheap.
 
 **Phase 0.5 — runtime remediation, and it blocks Phase 1.** RT-01 to RT-13. These are
 corrections to code that already runs in front of real payments, and every one of them
@@ -5711,6 +5775,11 @@ corrected — not the other way round.
 | **`VID-11` reported a DPDP deletion capability as usable** while §33.1 blocks deletion and §32 lists it as unblocked-by-legal-only | State corrected to **B**, with the row stating that the split logic exists in code, no flow ships or is promised, and deactivation is what ships. `VID-21` archival deletion corrected the same way — an engineering preference is not an approved policy |
 | **`HUB-13`, a no-API YouTube embed, was phased `v1`** | Phased **P2 conservatively** and raised as §33.2 item 13: whether the launch authority's exclusion covers embeds or only data and scopes is a question for the authority, not for this document to assume |
 | **The v1-scope scan checked only Phase 0** while §1.9 makes Phases 0–2 v1 | Widened |
+| **§34 Step 0 was mandatory "before any lane starts" and had no authority, owner, record or acceptance** — the plan's own first gate was unstartable under its own rules | `active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md` defines a narrow bootstrap exemption for Steps −1 and 0, and `active/tasks/STEP-0-register-mapping.md` carries all ten fields. Owner still unassigned, and now named as a gap rather than hidden |
+| **Performance validation was circular** — Phase 0.5 needed OBS and load evidence, §37.4 needed a production-shaped environment, §32 listed deployment as blocked | Resolved by distinguishing **non-production measurement from production deployment**. Step 0.25 is a scheduled infrastructure lane with named deliverables and an exit criterion |
+| **§32 grouped YouTube OAuth, YouTube quota and the Razorpay Route enquiry under "everything production"** — which would have held the Alerts and Companion launch behind Phase 4 and Enterprise work | Split into three rows: v1 release gates, YouTube-capability-only gates, and Enterprise-only gates. The external register had always scoped them correctly |
+| **The plan relied on an evidence register that declares itself not effective** until approved and linked from the master release authority | **Step −1** added: approve it, link it from `01`, and give each row a named owner rather than a role name |
+| **"File external gates after the build" had no checkpoint** before irreversible schema or copy freeze | Freeze checkpoint added, with five named areas and a required written go/no-go |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |

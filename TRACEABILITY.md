@@ -17,10 +17,10 @@ which is not the same as no work existing. See the finding below.
 | `tests/` test records | 62 |
 | `reviews/` reviews | 72 |
 | `done/` legacy evidence | 3 |
-| `active/` authority and task records | 5 |
-| `active/launch/` external evidence register | 5 |
+| `active/` authority and task records | 7 |
+| `active/launch/` external evidence register | 6 |
 
-**634 requirement rows in the register.**
+**643 requirement rows in the register.**
 
 ## The finding: two ID systems that do not meet
 
@@ -30,15 +30,15 @@ identifiers). The register in §31 is keyed on **area prefixes** (`PAY-`, `CMP-`
 …). Almost nothing references both, so the two bodies of work cannot currently be
 joined.
 
-| Register rows with a … | Count | Of 634 |
+| Register rows with a … | Count | Of 643 |
 |---|---:|---:|
-| task record naming the ID | 2 | 634 |
-| test record naming the ID | 0 | 634 |
-| review naming the ID | 0 | 634 |
-| `done/` legacy evidence naming the ID | 0 | 634 |
-| external evidence register naming the ID | 0 | 634 |
-| `active/` record naming the ID | 0 | 634 |
-| an explicit L-track pointer in its text | 1 | 634 |
+| task record naming the ID | 2 | 643 |
+| test record naming the ID | 0 | 643 |
+| review naming the ID | 0 | 643 |
+| `done/` legacy evidence naming the ID | 0 | 643 |
+| external evidence register naming the ID | 1 | 643 |
+| `active/` record naming the ID | 1 | 643 |
+| an explicit L-track pointer in its text | 1 | 643 |
 
 **So the gap is a missing mapping, not (only) missing work.** Building that mapping —
 register ID → L-track record where one exists, and a new `active/` record where one
@@ -46,7 +46,7 @@ does not — is the first task in §34's Step 0, and until it exists §34 is a p
 roadmap rather than a schedulable plan.
 
 The §31.0 contract still holds independently: a row is schedulable only when its
-`active/` record carries all ten fields. That is true of **0** rows today.
+`active/` record carries all ten fields. That is true of **1** rows today.
 
 ## Rows
 
@@ -276,7 +276,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | CMP-75 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-76 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-77 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-78 | §31.8 Companion | v1·G | B | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-78 | §31.8 Companion | v1·G | B | **P0** |  |  |  | active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-79 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-80 | §31.8 Companion | v1·G | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-81 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
@@ -499,6 +499,15 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | CTL-06 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
 | CTL-07 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
 | CTL-08 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| ENV-01 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
+| ENV-02 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
+| ENV-03 | §31.19 Control plane and admin | v1·G | A | **P0** |  |  |  |  |  | — | release |
+| ENV-04 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
+| ENV-05 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
+| ENV-06 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | — | release |
+| ENV-07 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
+| ENV-08 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
+| ENV-09 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
 | CTL-09 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
 | CTL-14 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | LIF-E4..E6 · isolation | release |
 | CTL-15 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | LIF-E4..E6 · isolation | release |
@@ -697,8 +706,8 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | P3 | 83 |
 | P3·G | 6 |
 | R | 17 |
-| v1 | 363 |
-| v1·G | 42 |
+| v1 | 371 |
+| v1·G | 43 |
 
 ## Areas
 
@@ -717,6 +726,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | CUS | 6 |
 | ENG | 24 |
 | ENT | 9 |
+| ENV | 9 |
 | GIV | 7 |
 | HUB | 23 |
 | INT | 20 |
