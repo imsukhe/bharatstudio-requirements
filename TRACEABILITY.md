@@ -128,8 +128,8 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | VID-08 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
 | VID-09 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
 | VID-10 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
-| VID-11 | §31.5 Viewer identity, history, trust | v1·G | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-21 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-11 | §31.5 Viewer identity, history, trust | v1·G | B | — |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-21 | §31.5 Viewer identity, history, trust | v1·G | B | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
 | VID-22 | §31.5 Viewer identity, history, trust | v1·G | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
 | VID-12 | §31.5 Viewer identity, history, trust | v1·G | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
 | VID-13 | §31.5 Viewer identity, history, trust | v1·G | X | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
@@ -138,8 +138,8 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | VID-16 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
 | VID-17 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
 | VID-18 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-19 | §31.5 Viewer identity, history, trust | v1 | A | P0 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-20 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-19 | §31.5 Viewer identity, history, trust | P2 | A | P0 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-20 | §31.5 Viewer identity, history, trust | P2 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
 | ENG-01 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | ENG-02 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | ENG-03 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
@@ -155,7 +155,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | ENG-13 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | X | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | ENG-14 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | X | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | ENG-15 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-16 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-16 | §31.6 Engagement — interactions, widgets, goals, challenges | P2 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
 | ENG-17 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | X | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | ENG-18 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | ENG-19 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
@@ -383,11 +383,11 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | HUB-06 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-07 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-08 | §31.13 Live Support Hub | v1 | P | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-09 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-09 | §31.13 Live Support Hub | P2 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-10 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-11 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-12 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
-| HUB-13 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
+| HUB-13 | §31.13 Live Support Hub | P2 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
 | HUB-14 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-15 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
 | HUB-16 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
@@ -403,7 +403,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | CUS-03 | §31.14 Customisation and gating | v1 | P | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
 | CUS-04 | §31.14 Customisation and gating | v1 | P | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
 | CUS-05 | §31.14 Customisation and gating | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | none |
-| CUS-06 | §31.14 Customisation and gating | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
+| CUS-06 | §31.14 Customisation and gating | P2 | A | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
 | LOB-01 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
 | LOB-02 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
 | LOB-03 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
@@ -692,13 +692,13 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | Phase | Count |
 |---|---:|
 | N | 14 |
-| P2 | 91 |
+| P2 | 97 |
 | P2·G | 12 |
 | P3 | 83 |
 | P3·G | 6 |
 | R | 17 |
-| v1 | 370 |
-| v1·G | 41 |
+| v1 | 363 |
+| v1·G | 42 |
 
 ## Areas
 

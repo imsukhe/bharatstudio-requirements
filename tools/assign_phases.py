@@ -25,6 +25,13 @@ PREFIX_PHASE = {
     "RTE": "R",
 }
 
+# Content rules run BEFORE prefix defaults. A prefix classifier cannot see that a
+# VID- or HUB- row is really YouTube work; these rules can, and every one of them
+# is a scope rule taken from a binding authority rather than a guess.
+CONTENT_PHASE = [
+    (re.compile(r"youtube|super ?chat|membership|chat-write|livechat|streamlist", re.I), "P2"),
+]
+
 ROW_OVERRIDE = {
     "INT-17": "R", "INT-18": "R",
     # Enterprise rows live in the entitlements section but are governance-blocked
@@ -63,7 +70,9 @@ for line in lines:
     elif rid in ROW_OVERRIDE:
         phase = ROW_OVERRIDE[rid]
     else:
-        phase = PREFIX_PHASE.get(prefix, "P3")
+        phase = next((ph for pat, ph in CONTENT_PHASE if pat.search(item)), None)
+        if phase is None:
+            phase = PREFIX_PHASE.get(prefix, "P3")
     if phase not in ("R", "N") and GATE.search(item):
         phase += "·G"
     stats[phase] += 1

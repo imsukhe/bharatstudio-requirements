@@ -231,16 +231,17 @@ POST_V1_TERMS = ["YouTube ingestion", "Enterprise workspace", "compatibility rou
 
 
 def check_v1_sections() -> None:
-    in_phase0 = False
+    # §1.9: Phases 0-2 are v1. The earlier version scanned only Phase 0.
+    in_v1 = False
     for n, line in enumerate(lines, 1):
-        if line.startswith("**Phase 0"):
-            in_phase0 = True
-        elif line.startswith("**Phase ") and not line.startswith("**Phase 0"):
-            in_phase0 = False
-        if in_phase0:
+        if re.match(r"\*\*Phase (0|0\.5|1|2)\b", line):
+            in_v1 = True
+        elif line.startswith("**Phase "):
+            in_v1 = False
+        if in_v1:
             for term in POST_V1_TERMS:
                 if term.lower() in line.lower():
-                    err("v1-scope-drift", f"line {n}: Phase 0 text references post-v1 '{term}'")
+                    err("v1-scope-drift", f"line {n}: v1 phase text (Phases 0-2) references post-v1 '{term}'")
 
 
 # 9 ── orphan corrections ---------------------------------------------------------
@@ -255,6 +256,46 @@ def check_orphan_corrections() -> None:
     logged = sum(1 for l in lines[start:end] if l.startswith("| ") and not l.startswith("|---"))
     if inline > logged + 12:
         warn("orphan-correction", f"{inline} inline 'Corrected' markers vs {logged} rows in §35.2 — check for unlogged corrections")
+
+
+# ── scope semantics: a phase must agree with the binding scope rules ─────────────
+# A prefix classifier cannot see that a VID- or HUB- row is really YouTube work.
+# These rules encode the authority, not a naming convention.
+SCOPE_RULES = [
+    (
+        "youtube-in-v1",
+        re.compile(r"youtube|super ?chat|chat-write|livechat|streamlist", re.I),
+        lambda phase: phase.startswith("v1"),
+        "YouTube capability phased v1 — the launch authority excludes YouTube from v1 "
+        "and §34 places every YouTube surface in Phase 4",
+    ),
+    (
+        "deletion-usable",
+        re.compile(r"\bdeletion\b|\bhard delete|erased-vs-retained", re.I),
+        lambda phase: False,  # phase-independent; the state check below applies
+        "",
+    ),
+]
+
+
+def check_scope_semantics() -> None:
+    yt_exempt = re.compile(r"never|excluded|post-v1|phase 4|not a v1|prohibit", re.I)
+    for n, line in enumerate(lines, 1):
+        if not ROW_ID.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) != 5:
+            continue
+        rid, item, phase, state_cell, _pri = cells
+        state = re.sub(r"[^A-Z]", "", state_cell.upper())[-1:]
+        # YouTube work may not be phased v1
+        if SCOPE_RULES[0][1].search(item) and phase.startswith("v1") and not yt_exempt.search(item):
+            err("scope-semantics", f"line {n}: {rid} — {SCOPE_RULES[0][3]}")
+        # a deletion flow may not be reported usable while §33.1 blocks deletion
+        if SCOPE_RULES[1][1].search(item) and state == "U":
+            err("scope-semantics",
+                f"line {n}: {rid} — a deletion capability is marked usable while §33.1 "
+                "blocks deletion: no flow ships or is promised")
 
 
 # 10 ── prose must not restate generated counts -----------------------------------
@@ -275,6 +316,7 @@ CHECKS = [
     check_register_rows, check_list_gaps, check_superseded,
     check_authority_values, check_v1_sections, check_orphan_corrections,
     check_restated_counts, check_phase_integrity, check_table_shape,
+    check_scope_semantics,
 ]
 
 for fn in CHECKS:

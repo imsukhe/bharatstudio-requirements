@@ -4611,8 +4611,8 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-08 | Opt-in searchable profiles, viewer profile and search pages | v1 | U | — |
 | VID-09 | Dashboard bounded to newest 100 relations, deterministic tie-break | v1 | U | — |
 | VID-10 | Sessions capped at newest 100; password reset 30-min single-use, enumeration-safe | v1 | U | — |
-| VID-11 | DPDP deletion (erased-vs-retained split) | v1·G | U | — |
-| VID-21 | Archival deletion: no hard deletes, identity fields moved aside, returner treated as new | v1 | A | P1 |
+| VID-11 | DPDP erased-vs-retained split — **the logic exists in code; no deletion flow ships or is promised** (§33.1, §32). Deactivation is what ships. State is B, not U: a capability nobody may reach is not usable | v1·G | B | — |
+| VID-21 | Archival deletion: no hard deletes, identity fields moved aside, returner treated as new. **Engineering preference, not approved policy** — blocked on the privacy/legal gate (§32) | v1·G | B | P1 |
 | VID-22 | Irreversible hashing of archived identity (legal-gated) | v1·G | A | P1 |
 | VID-12 | DPDP data export | v1·G | A | P1 |
 | VID-13 | Reputation: verdict-only (3 keys), score never stored, 180-day window | v1·G | X | P1 |
@@ -4621,8 +4621,8 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-16 | Flag / report a supporter | v1 | A | P1 |
 | VID-17 | Block a supporter | v1 | A | P1 |
 | VID-18 | Anonymous non-platform tip claim path | v1 | A | P1 |
-| VID-19 | YouTube identity attribution carried onto payments | v1 | A | P0 |
-| VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§12.3 identity rules) | v1 | A | P1 |
+| VID-19 | YouTube identity attribution carried onto payments | P2 | A | P0 |
+| VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§12.3 identity rules) | P2 | A | P1 |
 
 ### 31.6 Engagement — interactions, widgets, goals, challenges
 
@@ -4643,7 +4643,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ENG-13 | Hype mode start control | v1 | X | P1 |
 | ENG-14 | Widget privacy-scope control | v1·G | X | P1 |
 | ENG-15 | Widget preview / sample data for all widget types | v1 | P | P2 |
-| ENG-16 | External contribution aggregation (Super Chat → goals), INR-only, include/exclude per source, no multipliers | v1 | U | — |
+| ENG-16 | External contribution aggregation (Super Chat → goals), INR-only, include/exclude per source, no multipliers. The aggregation mechanism is source-agnostic and usable; the **Super Chat source itself is Phase 4** with the rest of YouTube | P2 | U | — |
 | ENG-17 | Contribution-source toggles wired into Challenges panel | v1 | X | P1 |
 | ENG-18 | Priority Question "Unanswered" tab + Mark Answered (§10.6) | v1 | A | P1 |
 | ENG-19 | Community boss battle | v1 | A | P2 |
@@ -4922,11 +4922,11 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | HUB-06 | Live supporter wall with opt-in names | v1 | A | P1 |
 | HUB-07 | Free reactions, rate-limited and sampled | v1 | A | P1 |
 | HUB-08 | Community goal ladder with milestone tiers | v1 | P | P1 |
-| HUB-09 | Goal source labels (tips / Super Chats / memberships in or out) | v1 | A | P1 |
+| HUB-09 | Goal source labels. The tips label is v1; **Super Chat and membership labels are Phase 4** and must not render a source that cannot yet exist | P2 | A | P1 |
 | HUB-10 | Pick-a-side vote with published rules and close time | v1 | A | P1 |
 | HUB-11 | Stream mission card | v1 | A | P1 |
 | HUB-12 | Live "what changed" feed | v1 | A | P2 |
-| HUB-13 | Embedded YouTube player, correct `origin`, responsive | v1 | A | P2 |
+| HUB-13 | Embedded YouTube player (IFrame Player API — no data scopes, no quota, §4.2). **Phased P2 conservatively**: the launch authority excludes YouTube capabilities and §34 says no YouTube surface before Phase 4; whether a no-API embed is inside that exclusion is open (§33.2) | P2 | A | P2 |
 | HUB-14 | Free lane: one free vote, check-in streak, challenge proposal, cheer card | v1 | A | P1 |
 | HUB-15 | "Where does my support go?" creator explainer | v1 | A | P1 |
 | HUB-16 | Payment-retry recovery screen | v1 | A | P1 |
@@ -4947,7 +4947,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | CUS-03 | Locked capabilities shown with the unlocking tier, never hidden or dead | v1 | P | P1 |
 | CUS-04 | Downgrade preserves configuration; over-limit items read-only | v1 | P | P1 |
 | CUS-05 | Preset bundles that are fully editable afterwards | v1 | A | P2 |
-| CUS-06 | Per-source alert styling (Super Chat distinct from UPI tip) | v1 | A | P1 |
+| CUS-06 | Per-source alert styling. UPI-tip styling is v1; a **Super Chat style is Phase 4**, since there is no such source in v1 | P2 | A | P1 |
 
 ### 31.15 Lobby Engine
 
@@ -5494,7 +5494,12 @@ outbound webhooks, finance/audit exports, SLA support.
     loosen that gate. Recorded only so the reasoning is not re-derived: its audience is
     creators who *cannot* use Razorpay, so Creator ₹399 may be the wrong home if it ever
     ships. Decide when the four gates close, not before.
-13. Whether iOS link-outs to a purchase surface are safely permitted in India for this
+13. **Is a no-API YouTube embed inside the v1 exclusion?** `HUB-13` is the IFrame Player
+    API — no data scopes, no OAuth, no quota (§4.2) — but the launch authority excludes
+    "YouTube channel/data ingestion" and §34 says no YouTube surface before Phase 4. It is
+    currently phased **P2, conservatively**. Reversing it to `v1` would need the launch
+    authority amended to say the exclusion covers data and scopes, not embeds.
+14. Whether iOS link-outs to a purchase surface are safely permitted in India for this
    category — currently answered conservatively as no (§5.6.1) and revisited only on
    evidence.
 
@@ -5702,6 +5707,10 @@ corrected — not the other way round.
 | **§31.0's scope-phase field omitted the G state** that §1.9 had just defined | Field rewritten to `v1 · P2 · P3 · R · N` with the `·G` release-gated suffix, and it names the register column as the machine-checkable home |
 | **The traceability generator looked for evidence only in `done/`**, while §35.4 names `active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` as the authority — so a closed provider or legal row would still have read as empty | The generator now scans `active/launch/` as an evidence corpus and reports it as its own column |
 | **§35.3 carried a duplicate, malformed "Stale external claim" row** with no status cell, inside the table that promises every row states its status | Duplicate removed, and a **Table shape** check added — every row in a table must match that table's column count. It immediately found five more malformed rows elsewhere |
+| **The phase classifier was prefix-only, so it phased every `VID-` and `HUB-` row `v1`** — including YouTube identity attribution, YouTube namespaces and the embedded player | Content rules now run **before** prefix defaults in `tools/assign_phases.py`, and a **Scope semantics** check enforces the same rule independently. Five rows were mis-phased; the audit found two, the check found three more (`ENG-16` Super Chat aggregation, `HUB-09` Super Chat goal labels, `CUS-06` Super Chat styling) |
+| **`VID-11` reported a DPDP deletion capability as usable** while §33.1 blocks deletion and §32 lists it as unblocked-by-legal-only | State corrected to **B**, with the row stating that the split logic exists in code, no flow ships or is promised, and deactivation is what ships. `VID-21` archival deletion corrected the same way — an engineering preference is not an approved policy |
+| **`HUB-13`, a no-API YouTube embed, was phased `v1`** | Phased **P2 conservatively** and raised as §33.2 item 13: whether the launch authority's exclusion covers embeds or only data and scopes is a question for the authority, not for this document to assume |
+| **The v1-scope scan checked only Phase 0** while §1.9 makes Phases 0–2 v1 | Widened |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -5779,7 +5788,8 @@ the build:
 | **Ordered-list gaps** | A numbered list skips a number — the signal that a log entry was deleted rather than superseded | **Running** |
 | **Authority conflict** | This document states a value differing from `active/launch/*`, or an authority carries a superseded value with no marker within 15 lines | **Running**, for the two known values (queue ladder, `bytea`). A general value-diff across documents is not implemented |
 | **Stale superseded wording** | A decision appears as a live instruction after its §33.1 row says blocked, never or proposed | **Partial.** A curated rule list covers Amazon Pay, the pack launch set, the queue ladder, deletion, branding, the ₹357 figure and the raid-night phrase. It is not a general duplicate-outcome detector — that needs every decidable statement to carry a decision key, which does not exist yet |
-| **Post-v1 references in v1 sections** | A Phase 0 entry references a post-v1 capability | **Partial.** Keyword list only |
+| **Post-v1 references in v1 sections** | A **Phase 0, 0.5, 1 or 2** entry references a post-v1 capability | **Partial.** Keyword list. *Corrected 2026-09-14 — it previously scanned Phase 0 only, while §1.9 makes Phases 0–2 v1* |
+| **Scope semantics** | A row whose text names a YouTube capability (YouTube, Super Chat, chat-write, live chat, `streamList`) carries a `v1` phase · a deletion capability is marked usable while §33.1 blocks deletion | **Running.** This is the check that phase *syntax* validation cannot do: a prefix classifier cannot see that a `VID-`, `ENG-`, `HUB-` or `CUS-` row is really YouTube work. It found five such rows on its first run, three of which no reviewer had spotted |
 | **Orphan corrections** | A correction is logged while its superseded text survives in the body | **Warn.** Heuristic — it compares inline correction markers against §35.2 rows and cannot locate the surviving text |
 | **Missing row metadata** | A register row lacks any of the ten §31.0 fields in its `active/` record | **Blocked.** No per-row `active/` records exist yet; this check is the second half of §34 Step 0 and lands with them |
 | **Phase-label integrity** | A row has no phase label, carries one outside the values defined in §1.9, or a row labelled R or N is scheduled in a §34 build phase | **Running.** The register gained a Phase column on 2026-09-14; `tools/assign_phases.py` records how each value was derived |
