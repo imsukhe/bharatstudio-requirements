@@ -1,0 +1,212 @@
+#!/usr/bin/env python3
+"""Consistency checks for FULL-PRODUCT-DEFINITION.md and the active launch authorities.
+
+Implements the checks §35.3 requires. Exit code 1 on any ERROR; WARNs do not fail.
+Run:  python3 tools/doc_consistency.py
+"""
+from __future__ import annotations
+import re, sys, pathlib, collections
+
+ROOT = pathlib.Path(__file__).resolve().parent.parent
+DOC = ROOT / "FULL-PRODUCT-DEFINITION.md"
+AUTH = sorted((ROOT / "active" / "launch").glob("*.md"))
+TASKS = sorted((ROOT / "tasks").glob("*.md")) if (ROOT / "tasks").is_dir() else []
+
+errors: list[str] = []
+warns: list[str] = []
+
+
+def err(check: str, msg: str) -> None:
+    errors.append(f"ERROR [{check}] {msg}")
+
+
+def warn(check: str, msg: str) -> None:
+    warns.append(f"WARN  [{check}] {msg}")
+
+
+text = DOC.read_text(encoding="utf-8")
+lines = text.splitlines()
+
+ROW_ID = re.compile(r"^\|\s*([A-Z]{2,4}-\d{1,3})\s*\|")
+HEADING = re.compile(r"^(#{2,4})\s+(\d+(?:\.\d+){0,3})[.\s]")
+
+
+# 1 ── duplicate requirement IDs -------------------------------------------------
+def check_duplicate_ids() -> None:
+    seen: dict[str, list[int]] = collections.defaultdict(list)
+    for n, line in enumerate(lines, 1):
+        m = ROW_ID.match(line)
+        if m:
+            seen[m.group(1)].append(n)
+    for rid, where in sorted(seen.items()):
+        if len(where) > 1:
+            err("duplicate-id", f"{rid} defined {len(where)} times at lines {where}")
+
+
+# 2 ── duplicate section numbers -------------------------------------------------
+def check_duplicate_sections() -> None:
+    seen: dict[str, list[int]] = collections.defaultdict(list)
+    for n, line in enumerate(lines, 1):
+        m = HEADING.match(line)
+        if m:
+            seen[m.group(2)].append(n)
+    for num, where in sorted(seen.items()):
+        if len(where) > 1:
+            err("duplicate-section", f"§{num} used {len(where)} times at lines {where}")
+
+
+# 3 ── cross-reference validity --------------------------------------------------
+def check_cross_refs() -> None:
+    defined = set()
+    for line in lines:
+        m = HEADING.match(line)
+        if m:
+            defined.add(m.group(2))
+    # a reference to §12.6 is satisfied by a heading 12.6 or by 12 existing with subsections
+    for n, line in enumerate(lines, 1):
+        for ref in re.findall(r"§(\d+(?:\.\d+){0,3})", line):
+            if ref in defined:
+                continue
+            # allow a reference to a parent section that exists
+            if any(d == ref or d.startswith(ref + ".") for d in defined):
+                continue
+            err("bad-xref", f"line {n} references §{ref}, which is not a heading")
+
+
+# 4 ── register rows must carry a state letter and a priority --------------------
+STATES = {"U", "X", "P", "A", "B", "N"}
+
+
+def check_register_rows() -> None:
+    for n, line in enumerate(lines, 1):
+        if not ROW_ID.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) < 4:
+            err("row-shape", f"line {n}: {cells[0]} has {len(cells)} cells, expected 4")
+            continue
+        state = re.sub(r"[^A-Z]", "", cells[2].upper())
+        state = state[-1:] if state else ""
+        if state not in STATES:
+            err("row-state", f"line {n}: {cells[0]} state '{cells[2]}' not in {sorted(STATES)}")
+        if not cells[3]:
+            err("row-priority", f"line {n}: {cells[0]} has an empty priority cell")
+
+
+# 5 ── ordered-list gaps (decision log completeness) -----------------------------
+def check_list_gaps() -> None:
+    run: list[tuple[int, int]] = []
+
+    def flush() -> None:
+        if len(run) > 1:
+            nums = [k for k, _ in run]
+            expect = list(range(nums[0], nums[0] + len(nums)))
+            if nums != expect:
+                err("list-gap", f"ordered list near line {run[0][1]} numbers {nums}, expected {expect}")
+        run.clear()
+
+    for n, line in enumerate(lines, 1):
+        m = re.match(r"^(\d+)\.\s", line)
+        if m:
+            run.append((int(m.group(1)), n))
+        elif line.strip() == "" or line.startswith(("   ", "\t", "    ")):
+            continue
+        else:
+            flush()
+    flush()
+
+
+# 6 ── curated superseded-decision rules -----------------------------------------
+# Each rule: a decision key, the phrase that must NOT appear as a live instruction,
+# and phrases that mark a legitimate mention (a correction log or a prohibition).
+SUPERSEDED = [
+    ("amazon-pay", r"build under C1[–-]C7", ["never", "rejected", "corrected", "wrong", "previously"]),
+    ("pack-launch", r"[Ff]our visible at first", ["corrected", "previously", "rejected", "no fixed"]),
+    ("queue-ladder", r"1\s*/\s*3\s*/\s*5\s*/\s*10", ["supersed", "corrected", "previously", "not the approved"]),
+    ("deletion", r"[Dd]eletion is archival, never destructive\s*—\s*decided", []),
+    ("branding", r"[Zz]ero branding on every paid tier, everywhere", ["corrected", "previously"]),
+    ("marketing-357", r"₹357", ["never", "rejected", "double-count", "corrected"]),
+    ("raid-guarantee", r"raid-night guarantee", ["not usable", "never", "rejected"]),
+]
+
+
+def check_superseded() -> None:
+    for name, pattern, allow in SUPERSEDED:
+        for n, line in enumerate(lines, 1):
+            if re.search(pattern, line):
+                low = line.lower()
+                if any(a in low for a in allow):
+                    continue
+                err("stale-decision", f"line {n}: '{name}' appears as a live statement — {line.strip()[:110]}")
+
+
+# 7 ── authority conflict on values the authorities also carry -------------------
+def check_authority_values() -> None:
+    for path in AUTH:
+        atext = path.read_text(encoding="utf-8")
+        alines = atext.splitlines()
+        for n, line in enumerate(alines, 1):
+            if re.search(r"1\s*/\s*3\s*/\s*5\s*/\s*10", line):
+                window = "\n".join(alines[max(0, n - 16): n]).lower()
+                if "supersed" not in window:
+                    err("authority-conflict", f"{path.name}:{n} carries the 1/3/5/10 ladder with no superseded marker within 15 lines")
+        for n, line in enumerate(alines, 1):
+            if re.match(r"^\|\s*Pro\s*\|\s*3\s*\|", line):
+                window = "\n".join(alines[max(0, n - 20): n]).lower()
+                if "supersed" not in window:
+                    err("authority-conflict", f"{path.name}:{n} carries a queueCount table row 'Pro | 3' with no superseded marker")
+        if re.search(r"store uploaded Lottie animations as `bytea`", atext):
+            # must be marked superseded within the preceding 12 lines
+            alines = atext.splitlines()
+            idx = next(i for i, l in enumerate(alines) if "store uploaded Lottie animations as `bytea`" in l)
+            window = "\n".join(alines[max(0, idx - 12): idx + 1]).lower()
+            if "supersed" not in window:
+                err("authority-conflict", f"{path.name}: the bytea decision is not marked superseded")
+
+
+# 8 ── post-v1 references inside v1 sections -------------------------------------
+POST_V1_TERMS = ["YouTube ingestion", "Enterprise workspace", "compatibility routing", "marketplace publishing"]
+
+
+def check_v1_sections() -> None:
+    in_phase0 = False
+    for n, line in enumerate(lines, 1):
+        if line.startswith("**Phase 0"):
+            in_phase0 = True
+        elif line.startswith("**Phase ") and not line.startswith("**Phase 0"):
+            in_phase0 = False
+        if in_phase0:
+            for term in POST_V1_TERMS:
+                if term.lower() in line.lower():
+                    err("v1-scope-drift", f"line {n}: Phase 0 text references post-v1 '{term}'")
+
+
+# 9 ── orphan corrections ---------------------------------------------------------
+def check_orphan_corrections() -> None:
+    inline = sum(1 for l in lines if re.search(r"[Cc]orrected 20\d\d-\d\d-\d\d", l))
+    try:
+        start = next(i for i, l in enumerate(lines) if l.startswith("### 35.2 Corrections applied"))
+    except StopIteration:
+        err("orphan-correction", "§35.2 corrections table is missing")
+        return
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("### ")), len(lines))
+    logged = sum(1 for l in lines[start:end] if l.startswith("| ") and not l.startswith("|---"))
+    if inline > logged + 12:
+        warn("orphan-correction", f"{inline} inline 'Corrected' markers vs {logged} rows in §35.2 — check for unlogged corrections")
+
+
+CHECKS = [
+    check_duplicate_ids, check_duplicate_sections, check_cross_refs,
+    check_register_rows, check_list_gaps, check_superseded,
+    check_authority_values, check_v1_sections, check_orphan_corrections,
+]
+
+for fn in CHECKS:
+    fn()
+
+for line in warns:
+    print(line)
+for line in errors:
+    print(line)
+print(f"\n{len(CHECKS)} checks run · {len(errors)} errors · {len(warns)} warnings")
+sys.exit(1 if errors else 0)

@@ -99,6 +99,15 @@ rather than opening a new track number.
 
 ### Entitlement values addendum — 2026-08-16
 
+> **SUPERSEDED IN PART, 2026-09-14 — the `queueCount` table below is not the approved
+> ladder.** The approved values are **Free 1 · Pro 2 · Creator 3 · Studio 5**, per the
+> dated amendment in `00_LAUNCH_SCOPE_AUTHORITY.md` and `FULL-PRODUCT-DEFINITION.md`
+> §30.2. The 1/3/5/10 figures below are the original 2026-08-16 direction and are kept
+> only as the record of what was first approved; they must not be implemented, quoted,
+> billed against or carried into any task. Everything else in this addendum — that
+> `queueCount` needs concrete values, and that downgrade enforcement needs something to
+> enforce against — still stands.
+
 L03's task record (`tasks/L03-alerts-web-and-creator-api.md`) shipped
 server-side enforcement for the `queueCount` entitlement key but left its
 per-tier values unset, recording explicitly: "Other tier dimensions remain
@@ -114,14 +123,18 @@ values, carrying over BharatStudio Alerts legacy's FRD-011-cited figures
 the v1 basis, since the queue-based alert model these figures were written
 against is unchanged in the rebuild:
 
-| Tier    | queueCount |
-|---------|-----------:|
-| Free    | 1          |
-| Pro     | 3          |
-| Creator | 5          |
-| Studio  | 10         |
+| Tier    | queueCount (SUPERSEDED) | queueCount (approved 2026-09-14) |
+|---------|------------------------:|---------------------------------:|
+| Free    | 1                       | **1** |
+| Pro     | 3                       | **2** |
+| Creator | 5                       | **3** |
+| Studio  | 10                      | **5** |
 
-This is the single source of truth for `queueCount` (implemented as
+**The right-hand column is the approved ladder.** The left-hand column is the original
+2026-08-16 direction, superseded 2026-09-14 and kept only as the record of what was first
+approved. It must not be implemented, quoted or billed against.
+
+The approved column is the single source of truth for `queueCount` (implemented as
 `app_private.tier_queue_count(tier)` in the database, not duplicated
 elsewhere). Every other `configFeatures` dimension the entitlement
 validator already supports in code (`allowedQueueModes`, `maxVisibleItems`,
@@ -241,7 +254,14 @@ gates (Razorpay, Neon/Cloud Run, OIDC/IAM, staging proofs, store signing,
 legal review) — the clause was describing the anticipated obvious
 approach (S3/GCS), not mandating it as the only one.
 
-**Decision: store uploaded Lottie animations as `bytea` in Postgres,
+> **SUPERSEDED 2026-09-14 — see the "Amendment — 2026-09-14 — uploaded media storage"
+> section near the top of this document.** The approved storage design is **GCS behind
+> the CDN**, with Postgres holding metadata, moderation state and the rights attestation
+> only. The `bytea` decision recorded below is kept as the record of what was originally
+> approved and as the description of the **legacy path that remains the rollback route
+> until backfill completes**. It must not be used as the design for new media.
+
+**Decision (superseded): store uploaded Lottie animations as `bytea` in Postgres,
 mirroring the already-approved `alert_tts_audio` pattern**
 (`packages/db/migrations/0067_v1_l03_tts_event_enrichment.sql`) exactly —
 zero-grant table, RLS enabled, all access through `security definer`

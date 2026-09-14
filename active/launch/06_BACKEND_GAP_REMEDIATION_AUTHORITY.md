@@ -102,7 +102,7 @@ per the launch task's instruction). This section records, not re-derives, those 
 | TTS quota, chars/month | 0 | 20,000 | 40,000 | 60,000 |
 | Moderator seats | 0 | 0 | 2 | 5 |
 
-`queueCount` was retiered from 1/3/5/10 by migration
+`queueCount` was retiered from the now-**superseded** 1/3/5/10 figures by migration
 `0080_v1_l03_entitlement_retier_and_dimensions.sql`, which also re-runs
 `app_private.enforce_queue_count_entitlement` for every existing channel so the
 retier pauses excess queues rather than deleting them (confirmed at

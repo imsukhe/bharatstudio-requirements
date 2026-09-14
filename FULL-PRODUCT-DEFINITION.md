@@ -1758,9 +1758,22 @@ section wins and the other section is a defect.
 Per-tier retention windows are removed. A Free creator's payment history, audit trail
 and moderation history are kept exactly as long as a Studio creator's.
 
-The window itself is set by the privacy/legal gate (§32) alongside statutory retention
-for payment records — it is a legal number, not a pricing number, and it is published
-with an effective date and honoured for everyone.
+**Uniform across tiers does not mean one number for every kind of data.** Retention is a
+**schedule by data class**, published with effective dates, and every class applies
+identically to Free and Studio:
+
+| Data class | Schedule set by |
+|---|---|
+| Payment, receipt, refund and audit records | Statutory retention — the longest, and not ours to shorten |
+| Supporter relationships and event history | The privacy/legal gate |
+| Moderation history and its evidence | The privacy/legal gate, balanced against appeal windows |
+| Configurations, layouts, presets | Retained while the account exists |
+| Raw chat logs and other high-volume, low-value streams | The shortest class, and a product decision about what we ingest and index at all |
+
+**The tier is never an input to any row of that schedule.** A class may have a shorter
+window than another class; a creator may never have a shorter window than another
+creator. Each window is a legal or product number, not a pricing one, and is published
+with an effective date.
 
 Consequences, so nobody re-derives them:
 
@@ -1835,7 +1848,7 @@ described as smooth.
 
 ## 13. Portability — "I can leave with my data"
 
-A stated switching reason (§1.8), so it is a feature with an owner, not a compliance
+A stated switching reason (§1, "what would make a serious creator switch"), so it is a feature with an owner, not a compliance
 afterthought.
 
 - Export layouts, scene profiles and Master Canvas configuration
@@ -3785,7 +3798,7 @@ Restated because it is the one that would be easiest to erode under upsell press
 Each hidden pack is a capability-registry row (§20), so it becomes visible without a
 release the moment its gate closes.
 
-#### 28.3.1 Where I changed your numbers, and why
+#### 28.3.3 Where I changed your numbers, and why
 
 Two changes to the proposed menu, both to make its own stated logic actually hold.
 
@@ -3807,7 +3820,7 @@ seats, approvals, tournaments or pooled AI. It is the sharpest possible steer to
 Studio and it costs us nothing. **Do not "fix" it later** without re-reading this
 paragraph.
 
-#### 28.3.2 The pricing rules behind the sheet
+#### 28.3.4 The pricing rules behind the sheet
 
 - **Creator + one focused pack stays below Studio.** A creator with one real need is
   not pushed into a tier they do not need.
@@ -3979,7 +3992,7 @@ existing 500 is what the overlay holds or what the server retains — if the for
 current ladder is already over the bounded-data line and must be cut, not raised.
 
 **Queue count: 1 / 2 / 3 / 5.** Two authorities disagreed — the launch authority carried
-1/3/5/10 while the migration, the remediation authority and this document carried
+the now-superseded 1/3/5/10 while the migration, the remediation authority and this document carried
 1/2/3/5. **Resolved 2026-09-14 by owner decision: 1/2/3/5 stands, and
 `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` is amended** rather than overruled from
 here. It matches what is enforced today, so there is no migration, no billing change and
@@ -4313,7 +4326,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-25 | Referral credit = service-time (30-day reward, 14-day hold, 5/30-day cap, 12 banked, same-subnet fraud signal) | U | — |
 | PAY-26 | Top-up purchase, ledger and balances (§10.2) | A | P1 |
 | PAY-27 | Season Passes (§10.4) | A | P1 |
-| PAY-30 | Paid room-code unlocking | **Dropped** | — |
+| PAY-30 | Paid room-code unlocking | N | — |
 | PAY-28 | Paytm / Cashfree / PhonePe | B | — |
 | PAY-29 | Recurring memberships | B | — |
 
@@ -4388,7 +4401,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | VID-17 | Block a supporter | A | P1 |
 | VID-18 | Anonymous non-platform tip claim path | A | P1 |
 | VID-19 | YouTube identity attribution carried onto payments | A | P0 |
-| VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§14.2) | A | P1 |
+| VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§12.3 identity rules) | A | P1 |
 
 ### 31.6 Engagement — interactions, widgets, goals, challenges
 
@@ -4587,7 +4600,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-18 | Twitch EventSub | B | — |
 | CON-19 | Kick | B | — |
 | CON-20 | Optional YouTube `/live` support page | A | P3 |
-| CON-21 | YouTube identity/trust model and namespaces (§14.2) | A | P1 |
+| CON-21 | YouTube identity/trust model and namespaces (§12.3 identity rules) | A | P1 |
 
 ### 31.10 Entitlements, billing, admin, ops
 
@@ -4596,7 +4609,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ENT-01 | Eight entitlement dimensions, closed set, all enforced | U | — |
 | ENT-02 | Moderator seats 0/0/2/5, new grants only, existing grandfathered | U | — |
 | ENT-03 | Moderator seat management UI | X | P1 |
-| ENT-04 | Internal ceilings: pending visuals 20/50/150/500 · bindings 3/5/10/20 · presets 1/2/4/8 · read-only sessions 2/3/5/8 · control sessions 1/1/2/4 | P | P1 |
+| ENT-04 | Internal ceilings: pending visuals 20/50/150/500 (500 pending §12.7 verification) · bindings 3/5/10/**50** · presets 1/2/4/**20** · read-only sessions 2/3/5/8 (held pending load evidence) · control sessions 1/1/2/4. *Updated 2026-09-14 to match §30.2.* | P | P1 |
 | ENT-05 | Grandfathering 12 months + 30-day renewal grace | U | — |
 | ENT-06 | Referral engine with fraud signal | U | — |
 | ENT-07 | Billing panel, upgrade/downgrade/reactivate/payment-method | U | — |
@@ -4722,7 +4735,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | LOB-20 | Cross-creator combined queues | A | P3 |
 | LOB-21 | Recurring community nights with reminders | A | P2 |
 | LOB-22 | Screened Guest Queue (audio-only, time-boxed) | A | P3 |
-| LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | **Never** | — |
+| LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | N | — |
 
 ### 31.16 Giveaways and tournaments
 
@@ -4757,7 +4770,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | AUD-08 | Upload audit record, immediate disable, takedown handling | A | P1 |
 | AUD-09 | Duration, size and format caps; scan pipeline applied | A | P1 |
 | AUD-10 | Asset storage quota enforcement (MED-13 dependency) | A | P1 |
-| AUD-11 | Shared or discoverable music library | **Never** | — |
+| AUD-11 | Shared or discoverable music library | N | — |
 
 ### 31.18 Performance
 
@@ -4806,7 +4819,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | WMK-02 | Reserved safe-zone corner the Canvas editor refuses to place modules over | A | **P0** |
 | WMK-03 | Watermark on a standalone widget only when it is the channel's only active overlay source | A | P1 |
 | WMK-04 | Tip-page attribution line on Free only (MKT-05) | A | P1 |
-| WMK-05 | Zero branding on every paid tier, everywhere — overlay, tip page, receipts, emails, end-cards, TTS | A | **P0** |
+| WMK-05 | Zero **marketing attribution** on every paid tier, everywhere — overlay, tip page, end-cards, QR, TTS, and every promotional line in mail. The **narrow legal and transactional issuer-identity carve-out in §30.6.4** is the one exception and is not branding. *Corrected 2026-09-14 — this row previously said zero branding on receipts and emails, contradicting §30.6.4.* | A | **P0** |
 | WMK-06 | Branding never injected mid-stream on lapse; Free fallback mark appears only on the next clean overlay reload after pause | A | **P0** |
 | WMK-07 | No external-layer detection, scene inspection or covering-check telemetry — ever | N | — |
 
@@ -4860,7 +4873,7 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | COS-12 | Instant revoke; page degrades to single or ended state | A | P1 |
 | COS-13 | Explicit "feeds are not frame-synced" UI treatment | A | P1 |
 | COS-14 | Clip handoff consent | A | P2 |
-| COS-15 | Silent payment splitting | **Never** | — |
+| COS-15 | Silent payment splitting | N | — |
 
 ### 31.22 Sound Moments and Rules Engine
 
@@ -4904,12 +4917,12 @@ outbound webhooks, finance/audit exports, SLA support.
 | RTE-06 | Explicit in-product acceptance of the Beta terms on enabling a route | A | P1 |
 | RTE-07 | Duplicate/false-signal detection disabling auto-alerts | A | P1 |
 | RTE-08 | Migration prompt when a Direct integration becomes available | A | P2 |
-| RTE-09 | Paytm Business route | **Gated on §25.6 signal mechanism** | P2 |
-| RTE-10 | Google Pay Business route (assisted activation) | **Gated on §25.6** | P3 |
-| RTE-11 | PhonePe Supervisor route | **Consent-gated on C1–C7** | P2 |
-| RTE-12 | HDFC Cashier route | **Consent-gated on C1–C7** | P2 |
-| RTE-13 | Amazon Pay consumer-credential route | **N — never build (§25.5, §33.1)** | — |
-| RTE-14 | Generic QR fallback / "mark as paid" | **Never** | — |
+| RTE-09 | Paytm Business route — **Gated on §25.6 signal mechanism** | B | P2 |
+| RTE-10 | Google Pay Business route (assisted activation) — **Gated on §25.6** | B | P3 |
+| RTE-11 | PhonePe Supervisor route — **Consent-gated on C1–C7** | B | P2 |
+| RTE-12 | HDFC Cashier route — **Consent-gated on C1–C7** | B | P2 |
+| RTE-13 | Amazon Pay consumer-credential route | N | — |
+| RTE-14 | Generic QR fallback / "mark as paid" | N | — |
 | RTE-15 | Consent flow: explicit, unbundled, revocable, re-confirmed on scope change | A | P2 |
 | RTE-16 | KMS/HSM envelope encryption for any delegated secret, no human read path | A | P2 |
 | RTE-17 | Credential-compromise incident procedure, rehearsed | A | P2 |
@@ -4948,8 +4961,8 @@ outbound webhooks, finance/audit exports, SLA support.
 | SOC-13 | Telegram bot channel alerts | A | P3 |
 | SOC-14 | Upload-forced-private disclosure until Google audits the project | A | P2 |
 | SOC-15 | Lapse: manual share kept, auto-send stopped, no message to the audience | A | P2 |
-| SOC-16 | Auto-posting every tip/follower/alert anywhere | **Never** | — |
-| SOC-17 | YouTube Community posts, IG personal accounts, unsolicited DMs, WhatsApp groups, Snapchat background posting | **Never** | — |
+| SOC-16 | Auto-posting every tip/follower/alert anywhere | N | — |
+| SOC-17 | YouTube Community posts, IG personal accounts, unsolicited DMs, WhatsApp groups, Snapchat background posting | N | — |
 
 ### 31.27 Packs and creator-ops
 
@@ -4962,7 +4975,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | PCK-05 | Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) | A | P2 |
 | PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **Nearest to ready**; needs MED-13/AUD-10 enforcement first | A | P2 |
 | PCK-07 | Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists | A | P2 |
-| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. Target initial set, but **last of the four to be ready**: blocked on the tenant-isolation suite (§37.6). The ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.1) | A | P3 |
+| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. Target initial set, but **last of the four to be ready**: blocked on the tenant-isolation suite (§37.6). The ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.3) | A | P3 |
 | PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation. Hidden until the CA/tax evidence row closes; sells the *prepared statement*, never access to the underlying records | A | **P1** |
 | PCK-10 | Pack attach-rate reporting to inform future tier composition | A | P3 |
 | PCK-11 | Hidden packs exist as registry rows so they become visible without a release | A | P2 |
@@ -4979,8 +4992,8 @@ outbound webhooks, finance/audit exports, SLA support.
 | JOB-07 | Shareable gear/setup profile | A | P3 |
 | JOB-08 | Collab record | A | P3 |
 | JOB-09 | Community FAQ auto-answers in chat | A | P3 |
-| JOB-10 | Editor payouts / staff revenue splitting | **Never** | — |
-| JOB-11 | Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio | **Never** | — |
+| JOB-10 | Editor payouts / staff revenue splitting | N | — |
+| JOB-11 | Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio | N | — |
 
 ### 31.28 Interop, packages and bridges (§9)
 
@@ -5002,45 +5015,47 @@ outbound webhooks, finance/audit exports, SLA support.
 | INT-14 | SAMMI local adapter, same shape | A | P3 |
 | INT-15 | Mix It Up local adapter, same shape | A | P3 |
 | INT-16 | StreamElements configuration migration only | A | P3 |
-| INT-17 | StreamElements event bridge | **R** — confirmed API/partner position | — |
-| INT-18 | Third-party paid marketplace publishing | **R** — author payouts, GST on third-party digital goods, content review at scale, takedown and dispute handling, defensible "verified" badge | — |
+| INT-17 | StreamElements event bridge — **gate:** confirmed API/partner position | B | — |
+| INT-18 | Third-party paid marketplace publishing — **gate:** author payouts, GST on third-party digital goods, content review at scale, takedown and dispute handling, defensible "verified" badge | B | — |
 | INT-19 | Never embed a third-party browser-source URL, HTML, JS, CSS or iframe in the Canvas — enforced by the package validator, not by review | A | **P0** |
 | INT-20 | Never scrape a competitor dashboard, import a browser-source secret, or execute copied widget code | N | — |
 
-### 31.29 Customisation (§15.4)
+### 31.29 Customisation depth by tier (§15.4)
+
+*IDs use the **CST-** prefix. §31.14 already owns **CUS-** for the gating model (four switches, locked-capability display, downgrade preservation); these are a different concern and must not share a namespace.*
 
 | ID | Item | State | Pri |
 |---|---|---|---|
-| CUS-01 | Three-level model (0 presets / 1 safe presentation / 2 advanced / 3 brand and team) as registry rows, retierable without a release | A | P1 |
-| CUS-02 | **Protected string class enforced by the customisation system** — payment, legal, consent, security and error text are never exposed for override | A | **P0** |
-| CUS-03 | Overlay level 1: free colour, our fonts, position and anchor, show/hide, z-order, opacity, radius, animation, reduced-motion variant, performance mode | A | P1 |
-| CUS-04 | Amount / name / message rendering controls incl. hidden amounts and bracket-name-only | A | P1 |
-| CUS-05 | **Indic script fallback order per text role** | A | P1 |
-| CUS-06 | Overlay level 2: font per role, per-bracket and per-source styling, burst behaviour, do-not-interrupt windows | A | P2 |
-| CUS-07 | Per-scene-profile placement and theming; overlay theme follows the OBS scene | A | P2 |
-| CUS-08 | Per-aspect-ratio variants (16:9 / 9:16 / 4:3) of one canvas | A | P2 |
-| CUS-09 | **Conditional themes** — festival date ranges, time of day | A | P2 |
-| CUS-10 | **Sponsor-safe mode** — swap to a neutral theme for a segment and back | A | P2 |
-| CUS-11 | **Adversarial preview** — long Indic name, 500-char message, emoji flood | A | P1 |
-| CUS-12 | **Brand kit** — palette, type, logo saved once, applied across every surface | A | P3 |
-| CUS-13 | Multi-surface templates and package authoring with team approval | A | P3 |
-| CUS-14 | Tip page level 1: cover image, avatar shape, tagline, lane order, labelled amount presets, privacy display | A | P1 |
-| CUS-15 | Tip page level 2: message settings, pack selection, event layouts, campaign and referral pages, multilingual copy sets | A | P2 |
-| CUS-16 | Tip page level 3: full theme with background media, multiple campaign pages with own goal, copy, countdown and schedule | A | P3 |
-| CUS-17 | Per-page OG image, title and description | A | P2 |
-| CUS-18 | Dashboard: theme, accent, density, landing tab, notification and locale preferences | A | P1 |
-| CUS-19 | Dashboard: pinned cards, **named saved views**, saved export column sets, shortcut map | A | P2 |
-| CUS-20 | Dashboard: logo and brand accent, per-role default views. **No background images at any tier** | A | P3 |
-| CUS-21 | Moderator **preferences** — layout, columns, density, quick-action order | A | P2 |
-| CUS-22 | Moderator **policies** — blocked terms per language, link allow/deny, auto-hold, escalation, canned responses, handover notes | A | P2 |
-| CUS-23 | Team-managed policy libraries, approval workflows, centrally set moderator layouts | A | P3 |
-| CUS-24 | **Permission classes are never customisable** — presets and libraries only inside owner/admin/operator/moderator/viewer | A | **P0 rule** |
-| CUS-25 | Companion: top-strip stats, health signals shown, saved deck presets | A | P2 |
-| CUS-26 | Companion accessibility at level 0 — one-hand mode, colour-blind palette, haptics, language override | A | P1 |
-| CUS-27 | Companion team decks pushed to every operator | A | P3 |
-| CUS-28 | Receipts and transactional mail: creator logo, accent, thank-you copy per language, reply-to, brand kit — inside §30.6.4 | A | P2 |
-| CUS-29 | No customisation increases what a live surface loads (§12.7); themes are data the renderer already holds | A | **P0 rule** |
-| CUS-30 | Every theme passes contrast and +40% text-expansion checks (§37.7) — a failing theme is a defect, not a taste question | A | P1 |
+| CST-01 | Three-level model (0 presets / 1 safe presentation / 2 advanced / 3 brand and team) as registry rows, retierable without a release | A | P1 |
+| CST-02 | **Protected string class enforced by the customisation system** — payment, legal, consent, security and error text are never exposed for override | A | **P0** |
+| CST-03 | Overlay level 1: free colour, our fonts, position and anchor, show/hide, z-order, opacity, radius, animation, reduced-motion variant, performance mode | A | P1 |
+| CST-04 | Amount / name / message rendering controls incl. hidden amounts and bracket-name-only | A | P1 |
+| CST-05 | **Indic script fallback order per text role** | A | P1 |
+| CST-06 | Overlay level 2: font per role, per-bracket and per-source styling, burst behaviour, do-not-interrupt windows | A | P2 |
+| CST-07 | Per-scene-profile placement and theming; overlay theme follows the OBS scene | A | P2 |
+| CST-08 | Per-aspect-ratio variants (16:9 / 9:16 / 4:3) of one canvas | A | P2 |
+| CST-09 | **Conditional themes** — festival date ranges, time of day | A | P2 |
+| CST-10 | **Sponsor-safe mode** — swap to a neutral theme for a segment and back | A | P2 |
+| CST-11 | **Adversarial preview** — long Indic name, 500-char message, emoji flood | A | P1 |
+| CST-12 | **Brand kit** — palette, type, logo saved once, applied across every surface | A | P3 |
+| CST-13 | Multi-surface templates and package authoring with team approval | A | P3 |
+| CST-14 | Tip page level 1: cover image, avatar shape, tagline, lane order, labelled amount presets, privacy display | A | P1 |
+| CST-15 | Tip page level 2: message settings, pack selection, event layouts, campaign and referral pages, multilingual copy sets | A | P2 |
+| CST-16 | Tip page level 3: full theme with background media, multiple campaign pages with own goal, copy, countdown and schedule | A | P3 |
+| CST-17 | Per-page OG image, title and description | A | P2 |
+| CST-18 | Dashboard: theme, accent, density, landing tab, notification and locale preferences | A | P1 |
+| CST-19 | Dashboard: pinned cards, **named saved views**, saved export column sets, shortcut map | A | P2 |
+| CST-20 | Dashboard: logo and brand accent, per-role default views. **No background images at any tier** | A | P3 |
+| CST-21 | Moderator **preferences** — layout, columns, density, quick-action order | A | P2 |
+| CST-22 | Moderator **policies** — blocked terms per language, link allow/deny, auto-hold, escalation, canned responses, handover notes | A | P2 |
+| CST-23 | Team-managed policy libraries, approval workflows, centrally set moderator layouts | A | P3 |
+| CST-24 | **Permission classes are never customisable** — presets and libraries only inside owner/admin/operator/moderator/viewer | A | **P0 rule** |
+| CST-25 | Companion: top-strip stats, health signals shown, saved deck presets | A | P2 |
+| CST-26 | Companion accessibility at level 0 — one-hand mode, colour-blind palette, haptics, language override | A | P1 |
+| CST-27 | Companion team decks pushed to every operator | A | P3 |
+| CST-28 | Receipts and transactional mail: creator logo, accent, thank-you copy per language, reply-to, brand kit — inside §30.6.4 | A | P2 |
+| CST-29 | No customisation increases what a live surface loads (§12.7); themes are data the renderer already holds | A | **P0 rule** |
+| CST-30 | Every theme passes contrast and +40% text-expansion checks (§37.7) — a failing theme is a defect, not a taste question | A | P1 |
 
 ### 31.30 BharatStudio Bot (§36)
 
@@ -5142,7 +5157,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Document repair sequencing** | **Fix every contradiction in the single file first; split into six documents second** (§35.5). Splitting a document that still contradicts itself copies the conflicts into six files. The split proceeds once the §35.3 CI checks pass clean. |
 | **Studio positioning** | Line becomes **"Brand and scale"**. Copy change; no capability moves. |
 | **Customisation by tier** | **§15.4, three levels**: 0 presets (Free) · 1 safe presentation (Pro) · 2 advanced creator control (Creator) · 3 brand and team (Studio), across six surfaces — overlay, tip page, dashboard, moderator view, Companion, receipts. **Customisation depth, not relocated features, is how Studio earns its price**, because it takes nothing from Creator and costs almost nothing to run. Accessibility settings sit at level 0 on purpose. |
-| **Protected strings** | A creator may **never** override payment, legal, security, consent or error text. "Every string overridable" was proposed and **rejected** — it is a consumer-protection and DPDP exposure. Enforced by the customisation system, not by review (CUS-02). |
+| **Protected strings** | A creator may **never** override payment, legal, security, consent or error text. "Every string overridable" was proposed and **rejected** — it is a consumer-protection and DPDP exposure. Enforced by the customisation system, not by review (CST-02). |
 | **Dashboard backgrounds** | **Never, at any tier.** Logo and accent only. A background image breaks the §37.7 contrast floor on the surface where people read numbers. |
 | **Studio ceilings** | Event bindings 20 → **50**, saved presets 8 → **20** — stored configuration, no bounded-data or connection impact. **Read-only sessions stay 8** pending load evidence. **Pending visuals stay 500**, and whether even that is a client-held figure needs checking against §12.7. |
 | **TTS exhaustion** | Ladder held at 20K/40K/60K. **No grace buffer, and none may be added** — it is an ungranted spend with no ledger entry type and it silently redefines the cap. Immediate browser-voice fallback with a Companion and dashboard notice (§11.11, TTS-17). |
@@ -5173,7 +5188,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Export vs. automation** | Owning the data is free; us doing scheduled work with it is a service. A one-off export of everything, any size, open format, is free at every tier. **Scheduled delivery** into Sheets, Tally or a webhook is an active connector and stays Creator+. |
 | **Voice routing** | **Creator-owned deterministic rules, default off.** Amount, message length, Indic script (Unicode range check, no model), supporter relationship and event class decide browser voice versus Sarvam. No AI classifier in the live path — it would cost credits to save credits and be unexplainable. Safety runs identically before both routes; the chosen route and its reason are recorded per alert. Routing is a cost control, never sold and never a paywall. |
 | **Pack prices** | **Proposed 2026-09-14, GST-inclusive:** AI Credits ₹49/₹149/₹399 · Storage ₹49 · Socials ₹129 · Events ₹129 · Team Seats ₹129 · Sponsor ₹149 · Finance ₹79 · Multi-Channel ₹199. The three ₹99 packs were raised to ₹129 so that Creator plus two feature packs actually exceeds Studio — at ₹99 it did not (₹597 against ₹599). Multi-Channel stays ₹199 and the resulting ₹598-vs-₹599 comparison is a deliberate steer, not an accident. |
-| **Pack launch set** | **Four visible at first: AI Credits, Storage, Socials, Multi-Channel.** Events, Team Seats, Sponsor and Finance stay hidden registry rows until their underlying features are real and, for Finance, until the CA/tax evidence row closes. No pack ships in v1 at all — packs are a P3 slice (§1.9). |
+| **Pack launch set** | **The pack system launches with whatever is ready — there is no fixed set of four.** Arrival order **Storage → AI Credits → Socials → Multi-Channel** (§28.3.3, PCK-13): Socials cannot precede Social Relay, and Multi-Channel is blocked on the §37.6 tenant-isolation suite. Events, Team Seats, Sponsor and Finance stay hidden registry rows until their underlying features are real and, for Finance, until the CA/tax evidence row closes. No pack ships in v1 at all — packs are a P3 slice (§1.9). *Corrected 2026-09-14: this row previously promised "four visible at first", contradicting §28.3.* |
 | **AI credit top-ups** | **Paid tiers only.** Free keeps its trial allowance; prepaid balances sit on accounts with an existing payment relationship. |
 | **Companion packaging** | **Bundled now, unbundlable later — and modelled that way from the start.** Buying any Alerts tier *automatically grants a separate Companion membership record* rather than Companion being implied by the Alerts tier. Free gets Companion too, with controls limited per tier. |
 
@@ -5215,26 +5230,26 @@ outbound webhooks, finance/audit exports, SLA support.
 8. **In-app account deletion vs. the blocked deletion policy** (CMP-78). Both stores
    require a route; legal has not approved one. Needs a decision before submission, not
    during review.
-10. **Studio allowances instead of pack bundling** — define concrete numbers rather than
+9. **Studio allowances instead of pack bundling** — define concrete numbers rather than
     bundling packs: moderator and operator seats, sponsor campaign slots, scheduled
     finance-export capacity, approval workflows, pooled AI capacity. **Each exposed only
     after its own feature and evidence gate closes**, so none of it is an advance promise.
-11. **Pro moderator path** — one limited **non-financial** seat, or a tightly scoped
+10. **Pro moderator path** — one limited **non-financial** seat, or a tightly scoped
     moderator add-on purchasable from Pro. Never exposes payment amounts or financial
     records. Requires role projection, RLS, audit and the §37.6 tenant-isolation suite to
     pass first — the same dependency as the Multi-Channel Pack, so one piece of work
     unlocks two revenue items. Probably the strongest single pricing improvement
     available.
-12. **A5 split rather than move** — basic campaign and referral links, and basic
+11. **A5 split rather than move** — basic campaign and referral links, and basic
     Thumbnail / Channel DNA, stay at Creator; Studio takes multi-campaign management,
     approvals, analytics, batch generation and team review. Moving entry-level
     capabilities upward makes Creator feel artificially crippled. Deferred until usage
     data shows which half people actually want.
-13. **Compatibility Routing tier placement** — it is phase R and tier placement cannot
+12. **Compatibility Routing tier placement** — it is phase R and tier placement cannot
     loosen that gate. Recorded only so the reasoning is not re-derived: its audience is
     creators who *cannot* use Razorpay, so Creator ₹399 may be the wrong home if it ever
     ships. Decide when the four gates close, not before.
-14. Whether iOS link-outs to a purchase surface are safely permitted in India for this
+13. Whether iOS link-outs to a purchase surface are safely permitted in India for this
    category — currently answered conservatively as no (§5.6.1) and revisited only on
    evidence.
 
@@ -5404,10 +5419,22 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| **`CUS-01`–`CUS-06` were defined twice** — once for the gating model, once for the new customisation-depth block | The depth block is renumbered **`CST-01`–`CST-30`**; one prefix, one owner, and `tools/doc_consistency.py` now fails the build on any duplicate ID |
+| **`01_MASTER_RELEASE_AUTHORITY.md` still carried the superseded 1/3/5/10 ladder and the superseded `bytea` decision** below their own amendments | Both blocks now carry an explicit SUPERSEDED banner; the queue table shows the old and approved columns side by side; the checker fails if either marker disappears |
+| **L15 said "YouTube ships in v1" throughout its body** after only its opening was corrected | Rewritten end to end as Phase 4 / post-v1, including the scope, deliverables and `CON-01`–`CON-07` phase note |
+| **`ENT-04` carried the old Studio ceilings** (bindings 20, presets 8) | Updated to 50 and 20, with the held rows named |
+| **`WMK-05` said zero branding on receipts and emails**, contradicting the §30.6.4 issuer-identity carve-out | Rewritten as zero *marketing attribution*, with the carve-out named |
+| **The pack-launch decision row previously promised "four visible at first"** against §28.3's "whatever is ready" | Row rewritten to the arrival order, with the correction dated |
+| **§28.3.1 and §28.3.2 were each used twice** | Renumbered to 28.3.3 and 28.3.4; the checker fails on any duplicate section number |
+| **§33.2 skipped item 9** | Renumbered; the checker fails on any ordered-list gap |
+| **Nine CI checks were claimed but nothing executable existed** | `tools/doc_consistency.py` and `.github/workflows/doc-consistency.yml` — implemented, running, and it found 20 further defects on its first run, all now fixed |
+| **§35.4 gave a traceability schema with no populated rows** | `TRACEABILITY.md`, generated by `tools/traceability.py`, regenerated in CI, stale-checked. It shows 614 rows, 2 with a task file, 0 with acceptance, review or evidence |
+| **"One uniform retention window" conflated tiers with data classes** | §12.6.2 is now a **schedule by data class** — payment and audit on statutory retention, chat logs shortest — with the tier never an input to any row |
+| **Register state cells carried gates instead of state letters** (`**Never**`, `**Consent-gated on C1–C7**`, `**R**`) | Normalised to U/X/P/A/B/N with the gate moved into the item text; enforced by the checker |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
-| "Studio includes ₹357 of packs" double-counted capabilities already Studio-only, and would have advertised two hidden packs | Rejected; replaced by concrete gated allowances (§33.2 item 10) |
+| "Studio includes ₹357 of packs" double-counted capabilities already Studio-only, and would have advertised two hidden packs | Rejected; replaced by concrete gated allowances (§33.2 item 9) |
 | "Every string overridable" would have exposed payment, legal, consent, security and error text | §15.4.2 protected string class, enforced by the system |
 | No boundary check existed on tier or pricing proposals | §35.1 rule 8 |
 | **Amazon Pay carried three live outcomes** — "never build" in the §25.5 table, "build under C1–C7" in the conditions section, and "never build" again in §33.1 | The §25.5 conditions paragraph is **deleted**, not annotated. C1–C7 are stated to cover delegated sub-users only and never to reach a consumer credential |
@@ -5449,6 +5476,11 @@ corrected — not the other way round.
 
 ### 35.3 CI checks on this document itself
 
+**These checks are implemented and running.** `tools/doc_consistency.py` in this
+repository, wired into `.github/workflows/doc-consistency.yml` on every push and pull
+request. It exits non-zero on any error, and the workflow also regenerates the §35.4
+index and fails if it is stale. Run it locally with `python3 tools/doc_consistency.py`.
+
 The structural failure this file keeps producing is that a correction is recorded in
 §33.1 while the stale text survives in the body — which is how Amazon Pay carried three
 live outcomes, deletion carried two, and the pack launch set carried two. §35.1 rule 7
@@ -5464,7 +5496,9 @@ the build:
 | **Post-v1 references in v1 sections** | A v1 section, or a Phase 0–2 entry, references a capability whose phase label is P2, P3, R or N |
 | **Phase-label integrity** | A register row has no phase label, or a row labelled R has an implementation task |
 | **Cross-reference validity** | A `§n.n` reference points at a section that does not exist, or at one whose title does not match the citation's subject. Three of the wrong-reference defects in §35.2 were this |
-| **Authority conflict** | This document states a value that differs from `active/launch/*` without a dated amendment in the authority file itself |
+| **Authority conflict** | This document states a value that differs from `active/launch/*` without a dated amendment in the authority file itself, or an authority carries a superseded value with no marker within 15 lines |
+| **Register row shape** | A register row lacks four cells, carries a state letter outside U/X/P/A/B/N, or has an empty priority. A gate belongs in the item text, never in the state column |
+| **Ordered-list gaps** | A numbered list skips a number — the signal that a decision-log entry was deleted rather than superseded |
 | **Stale external claim** | A platform-map row (§27.2) or gateway-fee figure (§12.5.1) older than its freshness window |
 
 ### 35.4 Traceability — one index, six columns
@@ -5488,6 +5522,15 @@ requirement → task → acceptance record → review → evidence → release g
 A row with a gap in any column is not done, whatever its state letter says. The index is
 generated from the register and the task files, not hand-maintained — a hand-maintained
 index drifts exactly the way Part 7 did.
+
+**It exists and is populated:** [`TRACEABILITY.md`](./TRACEABILITY.md), generated by
+`tools/traceability.py` and regenerated in CI, which fails if it is stale.
+
+**What it currently shows, and this is the honest number: 614 requirement rows, 2 with a
+task file, 0 with an acceptance record, 0 with a review, 0 with an evidence artefact.**
+That is correct — no build work has started — and it is exactly the picture the index is
+for. The suite column states what each row will need under §37.11; it is a requirement,
+not a claim that anything has been run.
 
 ### 35.5 Splitting this file — agreed, and deliberately sequenced after the fixes
 
@@ -5882,7 +5925,7 @@ invalidates prior results and is a decision, not a tuning step.
 
 | Suite | Must prove |
 |---|---|
-| **Tenant isolation** | No query, view, cache, export, asset URL, metric label or log line can return one channel's data under another channel's context. **This suite gates the Multi-Channel Pack** (§28.3.1) and every cross-channel feature |
+| **Tenant isolation** | No query, view, cache, export, asset URL, metric label or log line can return one channel's data under another channel's context. **This suite gates the Multi-Channel Pack** (§28.3.3) and every cross-channel feature |
 | **Role boundaries** | Operator and moderator cannot read financial amounts; viewer sees delivery metadata only; enforced by projections and RLS, not by hiding UI |
 | **Payment-secret handling** | No provider secret in a log, metric, trace, error message or crash report; KMS envelope paths have no human read route |
 | **PII in telemetry** | No trace, event, order, payment, account, donor, queue or user ID in a Prometheus label; crash reports scrubbed of amounts, identity and message content |
@@ -5964,4 +6007,6 @@ rollback** — the same rule the master release authority already applies.
 | BOT | BOT-E1..E5 · rate-limit compliance · shared-corpus test with TTS |
 | LIF, PCK | LIF-E1..E3 · DSH-E4 · durable-record access suite |
 | STO, MED | INT-E4 · asset-serving suite · one rehearsed takedown drill (§18.3) |
+| CUS (gating model) | DSH-E1..E5 · role-boundary suite |
+| CST (customisation depth) | OVL-E1..E12 · HUB-E1..E5 · accessibility and localisation suites · +40% expansion |
 | SOC, RTE, Enterprise | Not scheduled — phase R or blocked. No suite required until a gate closes |

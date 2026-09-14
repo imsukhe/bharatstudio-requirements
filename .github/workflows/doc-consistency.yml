@@ -1,0 +1,26 @@
+name: Document consistency
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  consistency:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run §35.3 consistency checks
+        run: python3 tools/doc_consistency.py
+      - name: Regenerate the §35.4 traceability index
+        run: python3 tools/traceability.py
+      - name: Fail if the traceability index is stale
+        run: |
+          if ! git diff --quiet -- TRACEABILITY.md; then
+            echo "TRACEABILITY.md is out of date. Run: python3 tools/traceability.py"
+            git --no-pager diff -- TRACEABILITY.md
+            exit 1
+          fi

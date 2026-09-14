@@ -11,17 +11,17 @@
 
 ## Authority and evidence
 
-Master plan Part 6, "L15 — Live-platform connectors and chat commands" (lines ~802–853); Part 7 §7.8 (connectors/chat commands feature register, phased v1 vs Phase 2); the 2026-09-02 decision recorded there: **YouTube ships in v1, including the chat bot; Twitch and Kick remain Phase 2.** This amends L10's prior "v1 contains no YouTube... capability/claim" for YouTube only.
+Master plan Part 6, "L15 — Live-platform connectors and chat commands" (lines ~802–853); Part 7 §7.8 (connectors/chat commands feature register, phased v1 vs Phase 2); the 2026-09-02 decision recorded there: "YouTube ships in v1, including the chat bot; Twitch and Kick remain Phase 2." **That decision is superseded as of 2026-09-14** — `00_LAUNCH_SCOPE_AUTHORITY.md` excludes YouTube from v1, so L10's original "v1 contains no YouTube capability/claim" **stands unamended**. Everywhere below, read "v1" as **"Phase 4, post-v1"**; the phase labels in the original text describe the build order that was assumed at the time, not the release scope.
 
 ## Objective
 
-Ingest YouTube (v1), and Twitch/Kick (Phase 2) events as canonical LiveEvents, and let a viewer start a tip from chat.
+Ingest YouTube (**Phase 4, post-v1**), and Twitch/Kick (**later, unscheduled**) events as canonical LiveEvents, and let a viewer start a tip from chat. Nothing in this task is a v1 deliverable.
 
 ## Tasks
 
-1. Widen `alert_events.source_type` CHECK from `('payment','manual','companion')` to include `youtube` (v1), `twitch`, `kick` (Phase 2); add `source_event_type` and `source_user_id` columns. One migration; queue/delivery/moderation/overlay layers do not change.
+1. Widen `alert_events.source_type` CHECK from `('payment','manual','companion')` to include `youtube` (**Phase 4**), `twitch`, `kick` (**later**); add `source_event_type` and `source_user_id` columns. One migration; queue/delivery/moderation/overlay layers do not change.
 2. `live_platform_connections` + `oauth_token_metadata`, encrypted tokens in the existing vault reference pattern.
-3. YouTube (v1): OAuth; live status; `streamList` low-latency chat polling (build `services/youtube-poller-go` from scratch — currently empty); text messages; Super Chats; Super Stickers; member events; member milestone chats; gifted memberships; polls where authorised; moderation events; bot text messages.
+3. YouTube (**Phase 4, post-v1**): OAuth; live status; `streamList` low-latency chat polling (build `services/youtube-poller-go` from scratch — currently empty); text messages; Super Chats; Super Stickers; member events; member milestone chats; gifted memberships; polls where authorised; moderation events; bot text messages.
 4. Twitch (Phase 2): EventSub for chat, subs, sub-end, gifts, resubs, Cheers/Bits, Channel Points, follows, stream state.
 5. Kick (Phase 2, label Beta): official OAuth + signed webhooks — chat, follows, subscription new/renewal/gift, channel rewards, stream state, moderation; verify signatures; dedupe on Kick event message IDs.
 6. Normalise natives (Super Chat, Super Sticker, Cheer, Sub, Resub, Gift Sub, Channel Points, Kick subs) into LiveEvent.
@@ -34,9 +34,14 @@ Ingest YouTube (v1), and Twitch/Kick (Phase 2) events as canonical LiveEvents, a
 
 ## Exact implementation boundary
 
-In scope for v1: items 1–3, 6–9, 11–12 for YouTube only, plus the `source_type` widening (which also reserves `twitch`/`kick` values for Phase 2 without building those connectors now).
+In scope **for Phase 4, not v1**: items 1–3, 6–9, 11–12 for YouTube only, plus the `source_type` widening (which also reserves `twitch`/`kick` values without building those connectors now). The widening migration is additive and already shipped; shipping a permissive CHECK constraint is not the same as shipping the feature, and no YouTube surface may be enabled or marketed before Phase 4.
 
-Out of scope for v1: Twitch EventSub connector, Kick connector, `!challenge` (gated on L17 timing), optional YouTube `/live` support page. These are Phase 2 and tracked here as explicitly deferred, not silently dropped.
+Out of scope entirely: Twitch EventSub connector, Kick connector, `!challenge` (gated on L17 timing), optional YouTube `/live` support page. These are later than Phase 4 and tracked here as explicitly deferred, not silently dropped.
+
+**Phase labels for this task's register rows (`CON-01`…`CON-07`), recorded 2026-09-14:**
+every one is **Phase 4 / post-v1**, whatever its state letter says. A row marked `U`
+means the code exists and is reachable — it does not mean the capability is in the launch
+scope, and `FULL-PRODUCT-DEFINITION.md` §1.9 governs.
 
 External, non-code dependencies that gate this task and must be tracked as blocking, not absorbed into engineering estimates: Google OAuth app verification (published privacy policy on the verified domain, demo video, per-scope justification — the chat-write scope for bot acknowledgement is high-sensitivity and can bounce) and the YouTube Data API quota increase. Both should start immediately and in parallel with everything else in this task.
 
