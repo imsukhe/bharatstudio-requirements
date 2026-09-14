@@ -1040,7 +1040,127 @@ Companion is for live operation. The dashboard owns the deeper work.
   StreamElements compatibility relays
 - Post-stream performance review
 
+### 7.1 The screen inventory — what exists, and what was missing
+
+The list above named the dashboard's *jobs*. It never named its **screens**, and the
+register had no dashboard section at all — which is how an audit surface guaranteed by
+§12.6 ended up with nothing rendering it. A job with no screen is how the §2 failure
+begins.
+
+| Screen | What a creator does there |
+|---|---|
+| **Home / Today** | Today's support, goal progress, stream state, queue depth, six health signals, anything needing attention. Pinnable cards |
+| **Activity Log** | Every audited action by anyone — creator, moderator, operator, platform staff, system (§7.5) |
+| **Money → Payments** | The ledger. Row → payment detail with its full timeline |
+| **Money → Receipts** | Every receipt, its token link, its delivery state |
+| **Money → Refunds** | Refund state and its effect on every derived number |
+| **Money → Statements** | Monthly statement, exports, reconciliation view *(Finance pack)* |
+| **Supporters** | Search, filter, and a profile per supporter (§7.4) |
+| **Alerts → Queues** | Queue list, per-queue settings, bindings, priority |
+| **Alerts → History** | Every alert event, its delivery timeline, replay and skip, and **why one did not fire** |
+| **Canvas** | Designer, scene profiles, modules, safe zones, adversarial preview, browser-source URLs and token rotation |
+| **Tip page** | Editor, live preview, campaign pages, QR download, short links, share-card preview |
+| **Moderation** | Live queue, blocked terms per language, policies, appeals, seats and roles, shift handover |
+| **Sounds & Media** | Library, upload, quota, scan state, rights attestation, takedown status, and **where each asset is used** |
+| **Integrations** | Connectors, OBS helper, bridges, packages, migration report, webhooks |
+| **AI** | Credit balance, usage by feature, spend caps, and a log of every AI action with its reason and confidence |
+| **Health & Diagnostics** | Six signals with heartbeat ages, run-full-test with a per-hop report, incident notices, status history |
+| **Insights** | Per-stream recap, comparisons, funnels — never live-pressure numbers |
+| **Settings** | Account · security (sessions, devices, 2FA) · team · notifications · language · billing · **data and privacy** (export, deactivate) · brand kit |
+| **Bot** *(P2)* · **Social** *(P3)* · **Community** *(P3)* | Their own areas, out of v1 |
+
+### 7.2 The detail-view contract — every noun has one, and they all look the same
+
+**Decided 2026-09-14.** A creator should never hit a dead row. Every object has a detail
+view, and every detail view has the same five parts in the same order:
+
+1. **Summary** — what this is, its state, the two or three numbers that matter.
+2. **Timeline** — what happened to it, in order, with timestamps and the trace ID.
+3. **Relations** — what it connects to, each a link: a payment's supporter, receipt,
+   alert event and refund; an asset's modules; a module's data source.
+4. **Actions** — what can be done now; irreversible ones confirmed, reversible ones
+   undoable.
+5. **Audit** — who changed this, when and why, filtered from the same log as §7.5.
+
+The nouns: payment · receipt · refund · alert event · queue · supporter · moderator ·
+asset · module · scene profile · connector · package · campaign page · AI job ·
+notification · lobby · giveaway. One layout, learned once.
+
+### 7.3 One click, from anywhere
+
+| Affordance | Behaviour |
+|---|---|
+| **Copy** | Tip link, short link, overlay URL, QR image, receipt link — one click, with a toast |
+| **"Why this number?"** | Any derived figure — goal total, leaderboard rank, badge, streak — opens an explain panel showing the computation and the rows behind it. **Possible only because §19.6 derives rather than stores**; a stored counter could not explain itself |
+| **"Why didn't this fire?"** | Any alert that did not appear opens a per-hop diagnosis — payment verified? event created? queued? delivered? rendered? acknowledged? — naming the failing hop rather than saying "unknown" |
+| **Trace** | Every payment and alert row exposes its trace ID and a timeline built from it |
+| **Send a test** | A test alert from any screen, not only from settings |
+| **Show me on stream** | Preview any module on the real overlay for a few seconds, then auto-revert |
+| **Replay** | Re-run any alert event, subject to the existing moderation rules |
+| **Undo** | Every reversible action gets an undo toast with a real window, rather than a confirmation dialog beforehand |
+| **Open in Companion** | Deep-link the same object to the phone (`CMP-61`) |
+| **Export this view** | The current filter set, as a background job, never by rendering rows (§12.7) |
+| **Pin to Home** | Any card |
+| **Report a problem** | Attaches a redacted context bundle — §7.6 |
+
+### 7.4 Two screens worth specifying properly
+
+**Supporter profile.** Support history, streak, badges, first and most recent support,
+messages shown and hidden, consent state, creator-private notes, and the controls that
+matter: mute from TTS, block stickers, block entirely, report. **Amounts follow §12.3** —
+never a public lifetime total, and visibility consent governs anything shown on stream.
+
+**Command palette and global search.** One shortcut opens a palette that searches
+supporters, payments, receipts, assets, modules and actions, and runs any action it
+finds. For a creator with a thousand payments, search *is* the navigation.
+
+### 7.5 Activity Log — the surface §12.6 already required
+
+§12.6 makes moderation history a durable record that must be **viewable, searchable and
+exportable at every tier**. Until 2026-09-14 the audit *records* existed — `ALQ-10`,
+`ADM-02`, `ADM-08`, `CTL-01`, `AUD-08`, `LOB-08`, `BOT-14` — and **nothing rendered
+them**. The §2 pattern, forming before any new code was written.
+
+One chronological view over every audited action, not one log per feature.
+
+- **Filters:** actor (me · a named moderator · operator · platform staff · system),
+  action type, time range, affected object.
+- **Each entry:** who, what, when, the target, the reason where one was required, the
+  before-and-after where a setting changed, and a link to the object.
+- **Platform-staff actions appear here too.** A `global_kill` or a retier affecting this
+  channel is visible to the creator afterwards; §20.6.1 already requires telling them
+  within the hour, and this is where they look later.
+- **Role-scoped reading**, enforced by projections and RLS rather than hidden UI:
+  operators and moderators see operational entries without financial amounts.
+- **Free at every tier, uncapped** — it is a durable record (§12.6). Only the *team*
+  dimension is tierable: multi-moderator filtering, saved views, scheduled export.
+- Cursor-paginated, virtualised past 50 rows, exported as a background job.
+
+**Companion gets a different thing, deliberately.** Not this screen — a short,
+session-scoped **Recent Actions** list on the Live Deck: the last few actions anyone took
+on this channel right now, each with one-tap undo where reversible. Mid-stream the
+question is *"did my mod just ban someone, and why"*, not *"show me last Tuesday"*.
+
+### 7.6 Support handoff bundle
+
+One click produces a redacted diagnostic bundle — trace IDs, health signals, recent
+errors, entitlement state, build versions — with **no tip amounts, no supporter
+identities and no message content** (§12.4). It attaches to a support conversation, so a
+creator never has to describe a failure they could not see.
+
+### 7.7 States, not just screens
+
+Every screen ships its **empty**, **loading**, **error** and **denied** states, authored
+rather than defaulted:
+
+- **Empty** says what would fill it and what to do next.
+- **Loading** is a skeleton in the final layout's shape, never a spinner over a blank page.
+- **Error** names the hop that failed and the action that retries it.
+- **Denied** names the tier that unlocks it, or the role that lacks permission — never a
+  dead control, never a silent hide (§15.3).
+
 ---
+
 
 ## 8. The Live Support Hub
 
@@ -4766,6 +4886,9 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CMP-62 | Universal Links + App Links with association files hosted and verified on `bharatstudio.in` | v1 | A | P1 |
 | CMP-63 | First-run flow: sign in → pair → guided Prepare Stream → contextual permissions → first test alert | v1 | A | **P0** |
 | CMP-64 | Every empty state authored (no stream, no tips, no queue, no devices, notifications denied, offline, paused) | v1 | A | P1 |
+| CMP-94 | **Recent Actions on the Live Deck** — session-scoped list of the last actions taken by anyone on this channel, one-tap undo where reversible (§7.5) | v1 | A | P1 |
+| CMP-95 | Object detail on tap follows the §7.2 contract — queue item, tip, supporter, health signal | v1 | A | P1 |
+| CMP-96 | "Why didn't this fire?" from the Companion queue, same per-hop diagnosis as DSH-17 | v1 | A | P2 |
 | CMP-65 | Enforce iOS 15.1 / Android API 26 floors at install | v1 | A | P1 |
 | CMP-66 | Landscape usable; degraded strip and panic control never hidden | v1 | A | P1 |
 | CMP-67 | Tablet = scaled phone layout with max content width | v1 | A | P2 |
@@ -4937,6 +5060,36 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 | HUB-21 | Event-specific layout presets | v1 | A | P2 |
 | HUB-22 | Post-stream supporter recap and receipt export | v1 | A | P2 |
 | HUB-23 | Milestone unlocks framed as a creator promise, never a contract | v1 | A | P1 |
+
+### 31.13.1 Dashboard screens and affordances (§7)
+
+*The register had no dashboard section before 2026-09-14, which is why §7's guaranteed
+surfaces had no rows.*
+
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| DSH-10 | **Screen inventory built as named screens** (§7.1), not jobs | v1 | A | **P0** |
+| DSH-11 | **Detail-view contract** (§7.2): Summary · Timeline · Relations · Actions · Audit, in that order, for every noun | v1 | A | **P0** |
+| DSH-12 | **Activity Log** (§7.5): one chronological view over every audited action, filterable by actor, type, range and object | v1 | A | **P0** |
+| DSH-13 | Platform-staff actions affecting this channel visible to the creator in the Activity Log | v1 | A | P1 |
+| DSH-14 | Activity Log role-scoping by projection and RLS — operational entries without financial amounts | v1 | A | **P0** |
+| DSH-15 | Activity Log free and uncapped at every tier (§12.6); only team filtering, saved views and scheduled export are tierable | v1 | A | **P0** |
+| DSH-16 | **"Why this number?"** explain panel on every derived figure, showing the computation and its rows | v1 | A | P1 |
+| DSH-17 | **"Why didn't this fire?"** per-hop alert diagnosis naming the failing hop, never "unknown" | v1 | A | **P0** |
+| DSH-18 | Trace ID and timeline on every payment and alert row | v1 | A | P1 |
+| DSH-19 | Copy affordances: tip link, short link, overlay URL, QR image, receipt link | v1 | A | P1 |
+| DSH-20 | Send a test alert from any screen | v1 | A | P1 |
+| DSH-21 | **Show me on stream** — brief real-overlay preview with auto-revert | v1 | A | P2 |
+| DSH-22 | Undo toast with a real window on every reversible action | v1 | A | P1 |
+| DSH-23 | Export-this-view as a background job, never by rendering rows (§12.7) | v1 | A | P1 |
+| DSH-24 | Pin any card to Home | v1 | A | P2 |
+| DSH-25 | **Supporter profile** (§7.4): history, streak, badges, shown/hidden messages, consent state, private notes, mute-TTS, block stickers, block, report | v1 | A | **P0** |
+| DSH-26 | Supporter amounts follow §12.3 — no public lifetime total; visibility consent governs anything on stream | v1 | A | **P0** |
+| DSH-27 | **Command palette and global search** across supporters, payments, receipts, assets, modules and actions | v1 | A | P1 |
+| DSH-28 | **Support handoff bundle** — redacted diagnostics, no amounts, identities or message content (§12.4) | v1 | A | P1 |
+| DSH-29 | Asset detail shows **where each asset is used** | v1 | A | P2 |
+| DSH-30 | Empty, loading, error and denied states authored for every screen (§7.7) | v1 | A | **P0** |
+| DSH-31 | Denied states name the unlocking tier or the missing role — never a dead control, never a silent hide (§15.3) | v1 | A | **P0** |
 
 ### 31.14 Customisation and gating
 
@@ -5780,6 +5933,8 @@ corrected — not the other way round.
 | **§32 grouped YouTube OAuth, YouTube quota and the Razorpay Route enquiry under "everything production"** — which would have held the Alerts and Companion launch behind Phase 4 and Enterprise work | Split into three rows: v1 release gates, YouTube-capability-only gates, and Enterprise-only gates. The external register had always scoped them correctly |
 | **The plan relied on an evidence register that declares itself not effective** until approved and linked from the master release authority | **Step −1** added: approve it, link it from `01`, and give each row a named owner rather than a role name |
 | **"File external gates after the build" had no checkpoint** before irreversible schema or copy freeze | Freeze checkpoint added, with five named areas and a required written go/no-go |
+| **§12.6 guaranteed moderation history be viewable and searchable, and nothing rendered it** — audit records existed (`ALQ-10`, `ADM-02`, `ADM-08`, `CTL-01`, `AUD-08`, `LOB-08`, `BOT-14`) with no surface. The §2 pattern forming before new code | §7.5 Activity Log, `DSH-12`…`DSH-15`, Companion Recent Actions (`CMP-94`), E2E `DSH-E6`…`DSH-E8` |
+| **§7 listed the dashboard's jobs and never its screens, and the register had no dashboard section at all** | §7.1 screen inventory · §7.2 detail-view contract · §7.3 one-click affordances · §7.4 supporter profile and command palette · §7.6 support handoff bundle · §7.7 authored states. New register section §31.13.1, `DSH-10`…`DSH-31` |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -6189,6 +6344,13 @@ provider sandboxes where a provider is involved.
 | DSH-E3 | Export of the full history | Runs as a background job, completes, downloads, and never renders rows into the page (PRF-18) |
 | DSH-E4 | Free-tier creator does all of the above | Identical result — no cap, no date limit, no charge (§12.6) |
 | DSH-E5 | Connector revoked upstream | The creator is told, with a reconnect action that works (CON-03) |
+| DSH-E6 | A moderator hides a message, then the creator opens the Activity Log | The action appears with actor, target, reason and timestamp, and the affected object is reachable from it |
+| DSH-E7 | An operator opens the Activity Log | Operational entries visible, financial amounts absent — verified against the projection, not the rendered page |
+| DSH-E8 | A platform admin fires `global_kill` on a capability this channel uses | It appears in the creator's Activity Log, and the §20.6.1 notice was sent the same hour |
+| DSH-E9 | A tip arrives but no alert appears | "Why didn't this fire?" names the failing hop, and Companion gives the same answer |
+| DSH-E10 | A goal total looks wrong after a refund | "Why this number?" shows the computation and the rows, and the refund is among them |
+| DSH-E11 | Every screen with no data yet | Each renders an authored empty state naming what would fill it — no blank panels, no bare spinners |
+| DSH-E12 | A Free creator opens an Activity Log with 50,000 entries | Full history, searchable, exportable, no cap, no charge (§12.6) |
 
 #### 37.3.5 Companion
 

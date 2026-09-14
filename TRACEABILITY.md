@@ -20,7 +20,7 @@ which is not the same as no work existing. See the finding below.
 | `active/` authority and task records | 7 |
 | `active/launch/` external evidence register | 6 |
 
-**643 requirement rows in the register.**
+**668 requirement rows in the register.**
 
 ## The finding: two ID systems that do not meet
 
@@ -30,15 +30,15 @@ identifiers). The register in §31 is keyed on **area prefixes** (`PAY-`, `CMP-`
 …). Almost nothing references both, so the two bodies of work cannot currently be
 joined.
 
-| Register rows with a … | Count | Of 643 |
+| Register rows with a … | Count | Of 668 |
 |---|---:|---:|
-| task record naming the ID | 2 | 643 |
-| test record naming the ID | 0 | 643 |
-| review naming the ID | 0 | 643 |
-| `done/` legacy evidence naming the ID | 0 | 643 |
-| external evidence register naming the ID | 1 | 643 |
-| `active/` record naming the ID | 1 | 643 |
-| an explicit L-track pointer in its text | 1 | 643 |
+| task record naming the ID | 2 | 668 |
+| test record naming the ID | 0 | 668 |
+| review naming the ID | 0 | 668 |
+| `done/` legacy evidence naming the ID | 0 | 668 |
+| external evidence register naming the ID | 1 | 668 |
+| `active/` record naming the ID | 1 | 668 |
+| an explicit L-track pointer in its text | 1 | 668 |
 
 **So the gap is a missing mapping, not (only) missing work.** Building that mapping —
 register ID → L-track record where one exists, and a new `active/` record where one
@@ -263,6 +263,9 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | CMP-62 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-63 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-64 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-94 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-95 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-96 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
 | CMP-65 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-66 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
 | CMP-67 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
@@ -398,6 +401,28 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | HUB-21 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
 | HUB-22 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
 | HUB-23 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| DSH-10 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-11 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-12 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-13 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-14 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-15 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-16 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-17 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-18 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-19 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-20 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-21 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
+| DSH-22 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-23 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-24 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
+| DSH-25 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-26 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-27 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-28 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-29 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
+| DSH-30 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-31 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
 | CUS-01 | §31.14 Customisation and gating | v1 | P | P0 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
 | CUS-02 | §31.14 Customisation and gating | v1 | A | P0 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
 | CUS-03 | §31.14 Customisation and gating | v1 | P | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
@@ -706,7 +731,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | P3 | 83 |
 | P3·G | 6 |
 | R | 17 |
-| v1 | 371 |
+| v1 | 396 |
 | v1·G | 43 |
 
 ## Areas
@@ -718,12 +743,13 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | AUD | 11 |
 | BOT | 17 |
 | CHL | 8 |
-| CMP | 93 |
+| CMP | 96 |
 | CON | 41 |
 | COS | 15 |
 | CST | 30 |
 | CTL | 15 |
 | CUS | 6 |
+| DSH | 22 |
 | ENG | 24 |
 | ENT | 9 |
 | ENV | 9 |
