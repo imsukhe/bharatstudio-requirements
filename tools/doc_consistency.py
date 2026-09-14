@@ -27,7 +27,8 @@ def warn(check: str, msg: str) -> None:
 text = DOC.read_text(encoding="utf-8")
 lines = text.splitlines()
 
-ROW_ID = re.compile(r"^\|\s*([A-Z]{2,4}-\d{1,3})\s*\|")
+ROW_ID = re.compile(r"^\|\s*([A-Z]{2,4}-\d{1,3}[a-z]?)\s*\|")
+PHASES = {"v1", "v1\u00b7G", "P2", "P2\u00b7G", "P3", "P3\u00b7G", "R", "N"}
 HEADING = re.compile(r"^(#{2,4})\s+(\d+(?:\.\d+){0,3})[.\s]")
 
 
@@ -82,15 +83,76 @@ def check_register_rows() -> None:
         if not ROW_ID.match(line):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
-        if len(cells) < 4:
-            err("row-shape", f"line {n}: {cells[0]} has {len(cells)} cells, expected 4")
+        if len(cells) != 5:
+            err("row-shape", f"line {n}: {cells[0]} has {len(cells)} cells, expected 5 (ID, Item, Phase, State, Pri)")
             continue
-        state = re.sub(r"[^A-Z]", "", cells[2].upper())
+        rid, _item, phase, state_cell, pri = cells
+        if phase not in PHASES:
+            err("row-phase", f"line {n}: {rid} phase '{phase}' not in {sorted(PHASES)}")
+        state = re.sub(r"[^A-Z]", "", state_cell.upper())
         state = state[-1:] if state else ""
         if state not in STATES:
-            err("row-state", f"line {n}: {cells[0]} state '{cells[2]}' not in {sorted(STATES)}")
-        if not cells[3]:
-            err("row-priority", f"line {n}: {cells[0]} has an empty priority cell")
+            err("row-state", f"line {n}: {rid} state '{state_cell}' not in {sorted(STATES)}")
+        if not pri:
+            err("row-priority", f"line {n}: {rid} has an empty priority cell")
+
+
+# ── phase-label integrity: an R or N row may not be scheduled in the build order ──
+def check_phase_integrity() -> None:
+    phase_of: dict[str, str] = {}
+    for line in lines:
+        if not ROW_ID.match(line):
+            continue
+        cells = [c.strip() for c in line.strip().strip("|").split("|")]
+        if len(cells) == 5:
+            phase_of[cells[0]] = cells[2]
+    try:
+        start = next(i for i, l in enumerate(lines) if l.startswith("## 34. Build order"))
+    except StopIteration:
+        return
+    end = next((i for i in range(start + 1, len(lines)) if l_starts_section(lines[i])), len(lines))
+    # exclude the paragraphs that exist precisely to name unscheduled work
+    kept, skip = [], False
+    for l in lines[start:end]:
+        if l.startswith("**Research-only track") or l.startswith("**Blocked track"):
+            skip = True
+        elif skip and not l.strip():
+            skip = False
+        if not skip:
+            kept.append(l)
+    body = "\n".join(kept)
+    for rid, phase in phase_of.items():
+        if phase in ("R", "N") and re.search(rf"(?<![A-Za-z0-9-]){re.escape(rid)}(?![0-9])", body):
+            err("phase-integrity", f"§34 build order schedules {rid}, which is phase {phase}")
+
+
+def l_starts_section(line: str) -> bool:
+    return line.startswith("## ")
+
+
+# ── every markdown table has a consistent column count ───────────────────────────
+def check_table_shape() -> None:
+    table: list[tuple[int, int]] = []
+
+    def flush() -> None:
+        if len(table) > 2:
+            widths = {w for _, w in table}
+            if len(widths) > 1:
+                counts: dict[int, int] = {}
+                for _, w in table:
+                    counts[w] = counts.get(w, 0) + 1
+                majority = max(counts, key=lambda k: counts[k])
+                for ln, w in table:
+                    if w != majority:
+                        err("table-shape", f"line {ln}: row has {w} cells, table uses {majority}")
+        table.clear()
+
+    for n, line in enumerate(lines, 1):
+        if line.startswith("|"):
+            table.append((n, len([c for c in line.strip().strip("|").split("|")])))
+        else:
+            flush()
+    flush()
 
 
 # 5 ── ordered-list gaps (decision log completeness) -----------------------------
@@ -197,9 +259,14 @@ def check_orphan_corrections() -> None:
 
 # 10 ── prose must not restate generated counts -----------------------------------
 def check_restated_counts() -> None:
-    pat = re.compile(r"\b\d{3}\s+(?:requirement rows|register rows|rows in the register)", re.I)
+    # a bare count near the words requirement / register / rows, ignoring years,
+    # ISO dates and migration numbers
+    NUM = r"(?<![-\d])(?!19\d\d|20\d\d)\d{3,4}(?![-\d])"
+    near = re.compile(
+        rf"({NUM}[^.|]{{0,45}}?(?:requirement|register|rows\b)"
+        rf"|(?:requirement|register|\brows\b)[^.|]{{0,45}}?{NUM})", re.I)
     for n, line in enumerate(lines, 1):
-        if pat.search(line):
+        if near.search(line):
             err("restated-count", f"line {n}: a register row count is hard-coded in prose — cite TRACEABILITY.md instead")
 
 
@@ -207,7 +274,7 @@ CHECKS = [
     check_duplicate_ids, check_duplicate_sections, check_cross_refs,
     check_register_rows, check_list_gaps, check_superseded,
     check_authority_values, check_v1_sections, check_orphan_corrections,
-    check_restated_counts,
+    check_restated_counts, check_phase_integrity, check_table_shape,
 ]
 
 for fn in CHECKS:

@@ -103,28 +103,33 @@ YouTube data/live ingestion, Super Chat, memberships and catch-up summaries · e
 Enterprise capability · client-owned entitlement decisions · public desktop APIs ·
 client-facing gRPC · **in-app checkout in Companion** (see §5.6.1).
 
-**Phase labels used throughout this document.** Every capability in §31 carries one.
+**Phase labels used throughout this document.** Every row in the §31 register carries one
+**as a column**, added 2026-09-14 — `tools/assign_phases.py` records the rules each value
+was derived from, and `tools/doc_consistency.py` fails the build on a missing or invalid
+phase, or on an R or N row scheduled in a §34 build phase. Before that column existed the
+build/research boundary was unenforceable, because §1.9 described labels the register did
+not carry.
 
 | Label | Meaning |
 |---|---|
 | **v1** | In the frozen launch scope above |
 | **P2** | Post-v1, product-ready, needs only build time |
 | **P3** | Post-v1, needs a product or pricing decision first |
-| **G** | **Release-gated.** Implementation proceeds now; **release** waits on named external evidence. This is the normal state for most of v1 — Razorpay is a provider dependency, the store declarations are a store dependency, the tax position needs a CA. Build it, do not launch it, and never claim the evidence exists |
+| **·G** (suffix) | **Release-gated.** Implementation proceeds now; **release** waits on named external evidence. This is the normal state for most of v1 — Razorpay is a provider dependency, the store declarations are a store dependency, the tax position needs a CA. Build it, do not launch it, and never claim the evidence exists |
 | **R** | **Research only.** No implementation, no schema, no UI, no marketing, at all. Needs written external evidence before it can become P2/P3 |
 | **N** | Never |
 
 **G and R are different states and conflating them breaks v1.** An earlier version of
 this table said any provider or legal dependency becomes phase R, which would have made
 the Razorpay path itself unbuildable. The test: *can we build this correctly today and
-decide later whether to turn it on?* If yes it is **G**. If building it at all requires
+decide later whether to turn it on?* If yes it is **·G**, carried as a suffix on its scope phase — `v1·G`, `P2·G`. If building it at all requires
 someone outside to say yes first — because it would mean holding a credential we are not
 permitted to hold, distributing goods we cannot yet account for, or shipping a surface a
 provider has not approved — it is **R**.
 
 Currently **R**: delegated payment routes (§25) · third-party package marketplace
 (§9.7) · StreamElements event bridge · Enterprise (§24).
-Currently **G**: creator-direct Razorpay · app-store submission · anything touching the
+Currently **·G**: creator-direct Razorpay · app-store submission · anything touching the
 tax, privacy or terms rows in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`.
 
 **Post-v1 slices, in labelled order.** YouTube depth (P2) · AI credits and top-ups (P2)
@@ -4497,7 +4502,7 @@ building" is how the unreachable-code problem in §2 happened.
 
 | Field | Meaning |
 |---|---|
-| **Scope phase** | v1 / P2 / P3 / R / N per §1.9. A row without a phase is not schedulable |
+| **Scope phase** | **v1 · P2 · P3 · R · N** per §1.9, with the suffix **·G** when the row is release-gated (build now, release waits on named external evidence). Carried as a **column in the §31 register itself**, not only in the `active/` record, so the build/research boundary is machine-checkable. A row without a phase fails the build |
 | **Owner** | One named person, not a team |
 | **Tier and gate** | Which tier, which capability-registry row, which of the four switches (§15.1) apply |
 | **Personal-data class** | None / operational / personal / payment / sensitive — and the retention rule that follows from it |
@@ -4513,367 +4518,367 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 
 ### 31.2 Payments and money
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| PAY-01 | Tip order → checkout → webhook → ledger → alert (atomic) | U | — |
-| PAY-02 | HMAC raw-body verification, `x-razorpay-event-id` dedup, case-insensitive | U | — |
-| PAY-03 | ₹10 floor + per-channel minimum, enforced at API and DB trigger | U | — |
-| PAY-04 | 15-minute intent expiry; Razorpay checkout `timeout: 900` | U | — |
-| PAY-05 | Idempotency key contract, 16–128 chars `A-Za-z0-9._:-` | U | — |
-| PAY-06 | `alertConsent=false` skips alert/outbox, keeps ledger entry | U | — |
-| PAY-07 | Reconciliation policy: paid→recovery item, expired→expire, mismatch→quarantine | U | — |
-| PAY-08 | Refunds/disputes as append-only compensating evidence | U | — |
-| PAY-09 | `__channel_default__` reserved binding; exact provider binding wins | U | — |
-| PAY-10 | Donor-safe status projection (UUID, amount, INR, state, updated) | U | — |
-| PAY-11 | Payments ledger + CSV export (explicitly not a CA tax report) — **untiered and uncapped**, §12.6 | U | — |
-| PAY-12 | Provider capability snapshots; features gate on capability, not name | P | P1 |
-| PAY-13 | Razorpay partner OAuth | X | P0 |
-| PAY-14 | Payment account activation | X | P0 |
-| PAY-15 | Reconciliation sweep + refund sweep actually running | X | P0 |
-| PAY-16 | Manual-review quarantine resolution UI | X | P0 |
-| PAY-17 | Dynamic UPI QR on the tip page (server side exists) | P | P1 |
-| PAY-18 | Preferred UPI app memory (browser half) | X | P2 |
-| PAY-19 | Direct UPI intent `upi://pay?pa&pn&tr&am&cu` | A | P2 |
-| PAY-20 | Payout/settlement status visible to creator | A | P1 |
-| PAY-21 | Payment failure classification surfaced to creator | A | P2 |
-| PAY-22 | Subscriptions: annual = 10 months charged / 12 served | U | — |
-| PAY-23 | Past-due 30-day grace preserves price; rejoin at current pricing | U | — |
-| PAY-24 | Downgrade pauses newest queues, never deletes; `paused_reason` distinguishes cause | U | — |
-| PAY-25 | Referral credit = service-time (30-day reward, 14-day hold, 5/30-day cap, 12 banked, same-subnet fraud signal) | U | — |
-| PAY-26 | Top-up purchase, ledger and balances (§10.2) | A | P1 |
-| PAY-27 | Season Passes (§10.4) | A | P1 |
-| PAY-30 | Paid room-code unlocking | N | — |
-| PAY-28 | Paytm / Cashfree / PhonePe | B | — |
-| PAY-29 | Recurring memberships | B | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| PAY-01 | Tip order → checkout → webhook → ledger → alert (atomic) | v1 | U | — |
+| PAY-02 | HMAC raw-body verification, `x-razorpay-event-id` dedup, case-insensitive | v1·G | U | — |
+| PAY-03 | ₹10 floor + per-channel minimum, enforced at API and DB trigger | v1 | U | — |
+| PAY-04 | 15-minute intent expiry; Razorpay checkout `timeout: 900` | v1·G | U | — |
+| PAY-05 | Idempotency key contract, 16–128 chars `A-Za-z0-9._:-` | v1 | U | — |
+| PAY-06 | `alertConsent=false` skips alert/outbox, keeps ledger entry | v1 | U | — |
+| PAY-07 | Reconciliation policy: paid→recovery item, expired→expire, mismatch→quarantine | v1 | U | — |
+| PAY-08 | Refunds/disputes as append-only compensating evidence | v1·G | U | — |
+| PAY-09 | `__channel_default__` reserved binding; exact provider binding wins | v1·G | U | — |
+| PAY-10 | Donor-safe status projection (UUID, amount, INR, state, updated) | v1 | U | — |
+| PAY-11 | Payments ledger + CSV export (explicitly not a CA tax report) — **untiered and uncapped**, §12.6 | v1·G | U | — |
+| PAY-12 | Provider capability snapshots; features gate on capability, not name | v1·G | P | P1 |
+| PAY-13 | Razorpay partner OAuth | v1·G | X | P0 |
+| PAY-14 | Payment account activation | v1 | X | P0 |
+| PAY-15 | Reconciliation sweep + refund sweep actually running | v1 | X | P0 |
+| PAY-16 | Manual-review quarantine resolution UI | v1 | X | P0 |
+| PAY-17 | Dynamic UPI QR on the tip page (server side exists) | v1 | P | P1 |
+| PAY-18 | Preferred UPI app memory (browser half) | v1 | X | P2 |
+| PAY-19 | Direct UPI intent `upi://pay?pa&pn&tr&am&cu` | v1 | A | P2 |
+| PAY-20 | Payout/settlement status visible to creator | v1 | A | P1 |
+| PAY-21 | Payment failure classification surfaced to creator | v1 | A | P2 |
+| PAY-22 | Subscriptions: annual = 10 months charged / 12 served | v1 | U | — |
+| PAY-23 | Past-due 30-day grace preserves price; rejoin at current pricing | v1 | U | — |
+| PAY-24 | Downgrade pauses newest queues, never deletes; `paused_reason` distinguishes cause | v1 | U | — |
+| PAY-25 | Referral credit = service-time (30-day reward, 14-day hold, 5/30-day cap, 12 banked, same-subnet fraud signal) | v1 | U | — |
+| PAY-26 | Top-up purchase, ledger and balances (§10.2) | v1 | A | P1 |
+| PAY-27 | Season Passes (§10.4) | v1 | A | P1 |
+| PAY-30 | Paid room-code unlocking | N | N | — |
+| PAY-28 | Paytm / Cashfree / PhonePe | v1 | B | — |
+| PAY-29 | Recurring memberships | v1 | B | — |
 
 ### 31.3 Alerts, queues, overlay
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| ALQ-01 | Durable queues, outbox, per-queue deliveries, sequence numbers | U | — |
-| ALQ-02 | SSE with `Last-Event-Id`, cursor replay, explicit ack | U | — |
-| ALQ-03 | Cross-replica fan-out via LISTEN/NOTIFY | U | — |
-| ALQ-04 | Overlay listener needs its own `DATABASE_URL_DIRECT` — pooled LISTEN/NOTIFY is best-effort only, never the correctness path (durable cursor replay is) | P | P0 |
-| ALQ-05 | Queue modes FIFO + priority-with-aging (server); stacked/pills/aggregated (presentation only) | U | — |
-| ALQ-06 | Quiet hours, rate controls (delay-only, never drop) | U | — |
-| ALQ-07 | No-drop guarantee on every tier | U | — |
-| ALQ-08 | Multi-queue bindings, immutable per-delivery source/priority snapshot | U | — |
-| ALQ-09 | `allow_duplicates` consent required per binding for duplicate delivery | U | — |
-| ALQ-10 | Moderation approve/hold/suppress/replay + admin replay/discard, audited | U | — |
-| ALQ-11 | Role-scoped financial reads (owner/admin amounts; operator/moderator content; viewer status) | U | — |
-| ALQ-12 | Overlay token in fragment only; per-overlay hash lookup; revoke/rotate | U | — |
-| ALQ-13 | 9 safe anchors, scale/width, reduced motion | U | — |
-| ALQ-14 | Long-message/multiline contract: truncation, continuation, no clipping | U | — |
-| ALQ-15 | Per-item skip action | A | P2 |
-| ALQ-16 | Reconnect burst coalescing after a long gap | A | P1 |
-| ALQ-17 | Time-bounded replay window (the "72-hour buffer" that never existed) | A | P2 |
-| ALQ-18 | Master Canvas single browser source with modules (§6) | A | P0 |
-| ALQ-19 | Vertical / second-output canvas | A | P2 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| ALQ-01 | Durable queues, outbox, per-queue deliveries, sequence numbers | v1 | U | — |
+| ALQ-02 | SSE with `Last-Event-Id`, cursor replay, explicit ack | v1 | U | — |
+| ALQ-03 | Cross-replica fan-out via LISTEN/NOTIFY | v1 | U | — |
+| ALQ-04 | Overlay listener needs its own `DATABASE_URL_DIRECT` — pooled LISTEN/NOTIFY is best-effort only, never the correctness path (durable cursor replay is) | v1 | P | P0 |
+| ALQ-05 | Queue modes FIFO + priority-with-aging (server); stacked/pills/aggregated (presentation only) | v1 | U | — |
+| ALQ-06 | Quiet hours, rate controls (delay-only, never drop) | v1 | U | — |
+| ALQ-07 | No-drop guarantee on every tier | v1 | U | — |
+| ALQ-08 | Multi-queue bindings, immutable per-delivery source/priority snapshot | v1 | U | — |
+| ALQ-09 | `allow_duplicates` consent required per binding for duplicate delivery | v1 | U | — |
+| ALQ-10 | Moderation approve/hold/suppress/replay + admin replay/discard, audited | v1 | U | — |
+| ALQ-11 | Role-scoped financial reads (owner/admin amounts; operator/moderator content; viewer status) | v1 | U | — |
+| ALQ-12 | Overlay token in fragment only; per-overlay hash lookup; revoke/rotate | v1 | U | — |
+| ALQ-13 | 9 safe anchors, scale/width, reduced motion | v1 | U | — |
+| ALQ-14 | Long-message/multiline contract: truncation, continuation, no clipping | v1 | U | — |
+| ALQ-15 | Per-item skip action | v1 | A | P2 |
+| ALQ-16 | Reconnect burst coalescing after a long gap | v1 | A | P1 |
+| ALQ-17 | Time-bounded replay window (the "72-hour buffer" that never existed) | v1 | A | P2 |
+| ALQ-18 | Master Canvas single browser source with modules (§6) | v1 | A | P0 |
+| ALQ-19 | Vertical / second-output canvas | v1 | A | P2 |
 
 ### 31.4 TTS
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| TTS-01 | Sarvam synthesis, 13 locales, SHA-256 content cache, 2MB/60s caps | U | — |
-| TTS-02 | Quota metering, hard stop, quotas 20K/40K/60K by tier | U | — |
-| TTS-03 | Amount-tiered character ladder; `maxCharLimit` shared with Alert Studio (never two limits) | U | — |
-| TTS-04 | Chime fallback on provider failure; browser voice on tier/quota | U | — |
-| TTS-05 | 1.5s playback cap, never blocks visual display or acknowledgement | U | — |
-| TTS-06 | **Content safety suite (§12.2)** | A | **P0** |
-| TTS-07 | Quota bar visible from ~70% consumption | A | P1 |
-| TTS-08 | Upgrade prompt on exhaustion | A | P1 |
-| TTS-09 | Mute / cancel in-flight from dashboard (companion API exists) | P | P1 |
-| TTS-10 | TTS character top-ups | A | P1 |
-| TTS-11 | Voice routing rule set: amount, length, script, supporter, event class (§11.10) | A | P1 |
-| TTS-12 | Unicode-range script detection in the live path — no model, no network call | A | P1 |
-| TTS-13 | Dashboard control with a "what this would have cost last week" preview | A | P1 |
-| TTS-14 | Companion mode display and mid-stream switch, plus timed "premium everything" | A | P2 |
-| TTS-15 | Route and reason recorded per alert and shown in history and the quota view | A | P1 |
-| TTS-16 | Safety suite runs identically before both routes — never skipped on browser voice | A | **P0 with TTS-06** |
-| TTS-17 | Companion and dashboard notice at the moment of fallback; no grace buffer exists and none may be added (§11.11) | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| TTS-01 | Sarvam synthesis, 13 locales, SHA-256 content cache, 2MB/60s caps | v1 | U | — |
+| TTS-02 | Quota metering, hard stop, quotas 20K/40K/60K by tier | v1·G | U | — |
+| TTS-03 | Amount-tiered character ladder; `maxCharLimit` shared with Alert Studio (never two limits) | v1 | U | — |
+| TTS-04 | Chime fallback on provider failure; browser voice on tier/quota | v1·G | U | — |
+| TTS-05 | 1.5s playback cap, never blocks visual display or acknowledgement | v1 | U | — |
+| TTS-06 | **Content safety suite (§12.2)** | v1 | A | **P0** |
+| TTS-07 | Quota bar visible from ~70% consumption | v1·G | A | P1 |
+| TTS-08 | Upgrade prompt on exhaustion | v1 | A | P1 |
+| TTS-09 | Mute / cancel in-flight from dashboard (companion API exists) | v1 | P | P1 |
+| TTS-10 | TTS character top-ups | v1 | A | P1 |
+| TTS-11 | Voice routing rule set: amount, length, script, supporter, event class (§11.10) | v1 | A | P1 |
+| TTS-12 | Unicode-range script detection in the live path — no model, no network call | v1 | A | P1 |
+| TTS-13 | Dashboard control with a "what this would have cost last week" preview | v1 | A | P1 |
+| TTS-14 | Companion mode display and mid-stream switch, plus timed "premium everything" | v1 | A | P2 |
+| TTS-15 | Route and reason recorded per alert and shown in history and the quota view | v1·G | A | P1 |
+| TTS-16 | Safety suite runs identically before both routes — never skipped on browser voice | v1 | A | **P0 with TTS-06** |
+| TTS-17 | Companion and dashboard notice at the moment of fallback; no grace buffer exists and none may be added (§11.11) | v1 | A | P1 |
 
 ### 31.5 Viewer identity, history, trust
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| VID-01 | **`payments.viewer_identity_id` writer** | A | **P0** |
-| VID-02 | `creator_supporter_relations` writer | A | **P0** |
-| VID-03 | Receipt minting from the confirmation page | X | **P0** |
-| VID-04 | Opaque receipt token, SHA-256 fingerprint, reflects live refunds | U | — |
-| VID-05 | Anonymous / platform / account identity levels; tipping never requires login | P | P0 |
-| VID-06 | First-claim-wins idempotent platform claiming, contested handled, audited | X | P1 |
-| VID-07 | Badges (8 named, opt-in, non-financial), streaks | X | P1 |
-| VID-08 | Opt-in searchable profiles, viewer profile and search pages | U | — |
-| VID-09 | Dashboard bounded to newest 100 relations, deterministic tie-break | U | — |
-| VID-10 | Sessions capped at newest 100; password reset 30-min single-use, enumeration-safe | U | — |
-| VID-11 | DPDP deletion (erased-vs-retained split) | U | — |
-| VID-21 | Archival deletion: no hard deletes, identity fields moved aside, returner treated as new | A | P1 |
-| VID-22 | Irreversible hashing of archived identity (legal-gated) | A | P1 |
-| VID-12 | DPDP data export | A | P1 |
-| VID-13 | Reputation: verdict-only (3 keys), score never stored, 180-day window | X | P1 |
-| VID-14 | Reputation write path (chargeback, velocity, moderation strike producers) | A | P1 |
-| VID-15 | Creator-facing reputation display | A | P1 |
-| VID-16 | Flag / report a supporter | A | P1 |
-| VID-17 | Block a supporter | A | P1 |
-| VID-18 | Anonymous non-platform tip claim path | A | P1 |
-| VID-19 | YouTube identity attribution carried onto payments | A | P0 |
-| VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§12.3 identity rules) | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| VID-01 | **`payments.viewer_identity_id` writer** | v1 | A | **P0** |
+| VID-02 | `creator_supporter_relations` writer | v1 | A | **P0** |
+| VID-03 | Receipt minting from the confirmation page | v1 | X | **P0** |
+| VID-04 | Opaque receipt token, SHA-256 fingerprint, reflects live refunds | v1 | U | — |
+| VID-05 | Anonymous / platform / account identity levels; tipping never requires login | v1 | P | P0 |
+| VID-06 | First-claim-wins idempotent platform claiming, contested handled, audited | v1 | X | P1 |
+| VID-07 | Badges (8 named, opt-in, non-financial), streaks | v1 | X | P1 |
+| VID-08 | Opt-in searchable profiles, viewer profile and search pages | v1 | U | — |
+| VID-09 | Dashboard bounded to newest 100 relations, deterministic tie-break | v1 | U | — |
+| VID-10 | Sessions capped at newest 100; password reset 30-min single-use, enumeration-safe | v1 | U | — |
+| VID-11 | DPDP deletion (erased-vs-retained split) | v1·G | U | — |
+| VID-21 | Archival deletion: no hard deletes, identity fields moved aside, returner treated as new | v1 | A | P1 |
+| VID-22 | Irreversible hashing of archived identity (legal-gated) | v1·G | A | P1 |
+| VID-12 | DPDP data export | v1·G | A | P1 |
+| VID-13 | Reputation: verdict-only (3 keys), score never stored, 180-day window | v1·G | X | P1 |
+| VID-14 | Reputation write path (chargeback, velocity, moderation strike producers) | v1 | A | P1 |
+| VID-15 | Creator-facing reputation display | v1 | A | P1 |
+| VID-16 | Flag / report a supporter | v1 | A | P1 |
+| VID-17 | Block a supporter | v1 | A | P1 |
+| VID-18 | Anonymous non-platform tip claim path | v1 | A | P1 |
+| VID-19 | YouTube identity attribution carried onto payments | v1 | A | P0 |
+| VID-20 | YouTube handle-vs-channel-ID trust model and namespaces (§12.3 identity rules) | v1 | A | P1 |
 
 ### 31.6 Engagement — interactions, widgets, goals, challenges
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| ENG-01 | 8 interaction types (tip, TTS tip, sticker, mega alert, priority question, support vote, community goal, hype mode), tier counts 3/6/8/8 | P | P0 |
-| ENG-02 | 7 widget types, tier counts 1/3/7/7 | P | P1 |
-| ENG-03 | Support goals, progress computed live, clamped ≥0, windows stream/daily/monthly/open | U | — |
-| ENG-04 | Recent tips, top supporters, ticker, mega-tip banner widgets | U | — |
-| ENG-05 | Leaderboard returns rank + coarse tier bucket only, never exact amount, single channel | U | — |
-| ENG-06 | Widgets reuse the overlay fragment-token/SSE path — a second delivery mechanism is a rejected design | U | — |
-| ENG-07 | Paid votes bind one confirmed payment to one option; tally money-derived with refund effect | P | P1 |
-| ENG-08 | Vote options capped at 16, serialized in the creating procedure | U | — |
-| ENG-09 | **Viewer interaction menu** | A | **P0** |
-| ENG-10 | Support-vote creator UI (create options) | A | P0 |
-| ENG-11 | Support-vote viewer UI (cast) | A | P0 |
-| ENG-12 | Mega alert + priority question viewer trigger | A | P0 |
-| ENG-13 | Hype mode start control | X | P1 |
-| ENG-14 | Widget privacy-scope control | X | P1 |
-| ENG-15 | Widget preview / sample data for all widget types | P | P2 |
-| ENG-16 | External contribution aggregation (Super Chat → goals), INR-only, include/exclude per source, no multipliers | U | — |
-| ENG-17 | Contribution-source toggles wired into Challenges panel | X | P1 |
-| ENG-18 | Priority Question "Unanswered" tab + Mark Answered (§10.6) | A | P1 |
-| ENG-19 | Community boss battle | A | P2 |
-| ENG-20 | Team / squad goals | A | P2 |
-| ENG-21 | Milestone queue (prepare thank-you / sponsor reveal / transition) | A | P1 |
-| ENG-22 | Stream streaks (daily/weekly) | A | P2 |
-| ENG-23 | Like goal, member goal, chat goal, watch-time goal | A | P1 |
-| ENG-24 | Prediction widget, no gambling mechanic | A | P2 |
-| CHL-01 | Creator-published challenge, state machine, live progress, OBS widget | U | — |
-| CHL-02 | Locked refund copy: "Refund automatically initiated through the creator's connected payment provider" | U | — |
-| CHL-03 | Viewer-proposed challenges (plan calls this the better default) | A | P1 |
-| CHL-04 | Completion evidence submission | A | P1 |
-| CHL-05 | Dispute record | A | P1 |
-| CHL-06 | Public standalone challenge board page | A | P2 |
-| CHL-07 | `!challenge` chat command | A | P2 |
-| CHL-08 | Refundable multi-contributor challenges | B | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| ENG-01 | 8 interaction types (tip, TTS tip, sticker, mega alert, priority question, support vote, community goal, hype mode), tier counts 3/6/8/8 | v1 | P | P0 |
+| ENG-02 | 7 widget types, tier counts 1/3/7/7 | v1 | P | P1 |
+| ENG-03 | Support goals, progress computed live, clamped ≥0, windows stream/daily/monthly/open | v1 | U | — |
+| ENG-04 | Recent tips, top supporters, ticker, mega-tip banner widgets | v1 | U | — |
+| ENG-05 | Leaderboard returns rank + coarse tier bucket only, never exact amount, single channel | v1 | U | — |
+| ENG-06 | Widgets reuse the overlay fragment-token/SSE path — a second delivery mechanism is a rejected design | v1 | U | — |
+| ENG-07 | Paid votes bind one confirmed payment to one option; tally money-derived with refund effect | v1 | P | P1 |
+| ENG-08 | Vote options capped at 16, serialized in the creating procedure | v1 | U | — |
+| ENG-09 | **Viewer interaction menu** | v1 | A | **P0** |
+| ENG-10 | Support-vote creator UI (create options) | v1 | A | P0 |
+| ENG-11 | Support-vote viewer UI (cast) | v1 | A | P0 |
+| ENG-12 | Mega alert + priority question viewer trigger | v1 | A | P0 |
+| ENG-13 | Hype mode start control | v1 | X | P1 |
+| ENG-14 | Widget privacy-scope control | v1·G | X | P1 |
+| ENG-15 | Widget preview / sample data for all widget types | v1 | P | P2 |
+| ENG-16 | External contribution aggregation (Super Chat → goals), INR-only, include/exclude per source, no multipliers | v1 | U | — |
+| ENG-17 | Contribution-source toggles wired into Challenges panel | v1 | X | P1 |
+| ENG-18 | Priority Question "Unanswered" tab + Mark Answered (§10.6) | v1 | A | P1 |
+| ENG-19 | Community boss battle | v1 | A | P2 |
+| ENG-20 | Team / squad goals | v1 | A | P2 |
+| ENG-21 | Milestone queue (prepare thank-you / sponsor reveal / transition) | v1 | A | P1 |
+| ENG-22 | Stream streaks (daily/weekly) | v1 | A | P2 |
+| ENG-23 | Like goal, member goal, chat goal, watch-time goal | v1 | A | P1 |
+| ENG-24 | Prediction widget, no gambling mechanic | v1 | A | P2 |
+| CHL-01 | Creator-published challenge, state machine, live progress, OBS widget | v1 | U | — |
+| CHL-02 | Locked refund copy: "Refund automatically initiated through the creator's connected payment provider" | v1·G | U | — |
+| CHL-03 | Viewer-proposed challenges (plan calls this the better default) | v1 | A | P1 |
+| CHL-04 | Completion evidence submission | v1·G | A | P1 |
+| CHL-05 | Dispute record | v1 | A | P1 |
+| CHL-06 | Public standalone challenge board page | v1 | A | P2 |
+| CHL-07 | `!challenge` chat command | v1 | A | P2 |
+| CHL-08 | Refundable multi-contributor challenges | v1 | B | — |
 
 ### 31.7 Stickers, media, Alert Studio
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| MED-01 | Curated catalogue exposing only id/name/category; selection re-validated server-side | U | — |
-| MED-02 | Creator packs, tier quotas 10/25/50 (implementation choice, needs sign-off) | U | — |
-| MED-03 | Moderation ladder: Pro structural scan, Creator +attestation, Studio `pending_review` | U | — |
-| MED-04 | Staff review gate on `is_platform_admin` | P | P1 |
-| MED-05 | Staff review admin UI | X | P1 |
-| MED-06 | **Viewer sticker / GIF picker on the tip page** | X | **P0** |
-| MED-07 | No route ever accepts viewer-supplied media bytes — catalogue IDs only | U | — |
-| MED-08 | Template import rejects inline script / non-schema content outright | U | — |
-| MED-09 | Template catalogue frontend | X | P1 |
-| MED-10 | 359 of 600 runtime packages missing; individual authoring required, no mass-copy | A | P1 |
-| MED-11 | Raw-HTML template shape forbidden at every tier | U | — |
-| MED-12 | `render_bytes` capped at 2,000,000 | U | — |
-| MED-13 | Asset storage quotas Free none / Pro 100MB / Creator 250MB / Studio 1GB | A | P1 |
-| MED-14 | Malware scan stage 2 | A | P1 |
-| MED-15 | Custom sound upload — **stays off until the whole §18.3 gate closes** | A | P2 |
-| MED-22 | Quarantine on upload; unscanned bytes never served, failure state is quarantined | A | P2 |
-| MED-23 | Immutable provenance record per asset (uploader, time, IP, client, filename, hash, attestation version, every transition) | A | P2 |
-| MED-24 | Takedown workflow: intake route, response target, one-action CDN disable, counter-notice, retained evidence | A | P2 |
-| MED-25 | Repeat-infringement policy written before the first complaint, up to upload suspension | A | P2 |
-| MED-26 | Impersonation and voice-imitation prohibition in terms and attestation, same takedown route | A | P2 |
-| MED-27 | One rehearsed end-to-end takedown drill before the flag opens for anyone | A | P2 |
-| MED-16 | Built-in themes / theme packs | A | P2 |
-| MED-17 | Per-event styling beyond `displayStyle` brackets | P | P2 |
-| MED-18 | Drag/resize/layer tools (numeric config exists) | P | P2 |
-| MED-19 | Media and sound libraries | A | P2 |
-| MED-20 | Curated meme/media queue module | A | P2 |
-| MED-21 | Lottie + custom branding upload, Studio-tier, live gate. **`bytea` storage is legacy** — new writes go to GCS per §19.1; the `bytea` path stays as the rollback route until backfill completes | U | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| MED-01 | Curated catalogue exposing only id/name/category; selection re-validated server-side | v1 | U | — |
+| MED-02 | Creator packs, tier quotas 10/25/50 (implementation choice, needs sign-off) | v1·G | U | — |
+| MED-03 | Moderation ladder: Pro structural scan, Creator +attestation, Studio `pending_review` | v1 | U | — |
+| MED-04 | Staff review gate on `is_platform_admin` | v1 | P | P1 |
+| MED-05 | Staff review admin UI | v1 | X | P1 |
+| MED-06 | **Viewer sticker / GIF picker on the tip page** | v1 | X | **P0** |
+| MED-07 | No route ever accepts viewer-supplied media bytes — catalogue IDs only | v1 | U | — |
+| MED-08 | Template import rejects inline script / non-schema content outright | v1 | U | — |
+| MED-09 | Template catalogue frontend | v1 | X | P1 |
+| MED-10 | 359 of 600 runtime packages missing; individual authoring required, no mass-copy | v1 | A | P1 |
+| MED-11 | Raw-HTML template shape forbidden at every tier | v1 | U | — |
+| MED-12 | `render_bytes` capped at 2,000,000 | v1 | U | — |
+| MED-13 | Asset storage quotas Free none / Pro 100MB / Creator 250MB / Studio 1GB | v1·G | A | P1 |
+| MED-14 | Malware scan stage 2 | v1 | A | P1 |
+| MED-15 | Custom sound upload — **stays off until the whole §18.3 gate closes** | v1 | A | P2 |
+| MED-22 | Quarantine on upload; unscanned bytes never served, failure state is quarantined | v1 | A | P2 |
+| MED-23 | Immutable provenance record per asset (uploader, time, IP, client, filename, hash, attestation version, every transition) | v1 | A | P2 |
+| MED-24 | Takedown workflow: intake route, response target, one-action CDN disable, counter-notice, retained evidence | v1·G | A | P2 |
+| MED-25 | Repeat-infringement policy written before the first complaint, up to upload suspension | v1 | A | P2 |
+| MED-26 | Impersonation and voice-imitation prohibition in terms and attestation, same takedown route | v1·G | A | P2 |
+| MED-27 | One rehearsed end-to-end takedown drill before the flag opens for anyone | v1 | A | P2 |
+| MED-16 | Built-in themes / theme packs | v1 | A | P2 |
+| MED-17 | Per-event styling beyond `displayStyle` brackets | v1 | P | P2 |
+| MED-18 | Drag/resize/layer tools (numeric config exists) | v1 | P | P2 |
+| MED-19 | Media and sound libraries | v1 | A | P2 |
+| MED-20 | Curated meme/media queue module | v1 | A | P2 |
+| MED-21 | Lottie + custom branding upload, Studio-tier, live gate. **`bytea` storage is legacy** — new writes go to GCS per §19.1; the `bytea` path stays as the rollback route until backfill completes | v1 | U | — |
 
 ### 31.8 Companion
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| CMP-01 | Control-session lease; Free exactly one active lease | U | — |
-| CMP-02 | Companion state / layout read and patch | U | — |
-| CMP-03 | Layout slots 8/16/32/64 by tier; page sizes 4/8/16 | U | — |
-| CMP-04 | 17-action catalogue, 4 groups, two-layer gate (entitlement AND activation) | U | — |
-| CMP-05 | Server rejects `obs_*` sent directly, bypassing the client picker | U | — |
-| CMP-06 | Device-code pairing | U | — |
-| CMP-07 | **Mobile handler wiring in `App.tsx`** | X | **P0** |
-| CMP-08 | macOS OBS control | U | — |
-| CMP-09 | Windows OBS control | B | — |
-| CMP-10 | Mirror actions (start/stop/screenshot) | B | — |
-| CMP-11 | Stream actions (go live / end) | B | — |
-| CMP-12 | Implicit channel provisioning for Companion-only signup | A | P1 |
-| CMP-36 | Issue a distinct Companion grant row on Alerts subscription (`0100` mechanism) | A | P1 |
-| CMP-37 | Companion available on Free with tier-limited controls (§30.4) | P | P1 |
-| CMP-13 | Stream health panel (all six signals, heartbeat ages) | P | P0 |
-| CMP-14 | Prepare Stream / go-live checklist (§5.1) | A | P0 |
-| CMP-15 | Run full test with per-hop report | P | P0 |
-| CMP-16 | Live Deck top strip + degraded-mode strip (§5.2) | A | P0 |
-| CMP-17 | Panic / Clutch Mode | A | P0 |
-| CMP-18 | Current and next queue item, live | A | P1 |
-| CMP-19 | Per-item replay / skip | A | P1 |
-| CMP-20 | Scene presets | A | P1 |
-| CMP-21 | Goal controls from Companion | A | P1 |
-| CMP-22 | Quick note / stream markers | A | P1 |
-| CMP-23 | Recent tips, payment status, refund status in Companion (API exists, no web caller) | P | P1 |
-| CMP-24 | Six monetisation push notification types | A | P1 |
-| CMP-25 | Per-notification-type preferences (3 coarse toggles today) | P | P1 |
-| CMP-26 | Session/device list with revoke | U | — |
-| CMP-27 | Offline queue-of-intent | A | P2 |
-| CMP-28 | Helper diagnostics (port, OBS version, ws auth state) | A | P2 |
-| CMP-29 | Disabled-slot explanations naming the failing layer | P | P1 |
-| CMP-30 | Wrap Stream post-stream workflow (§5.5) | A | P1 |
-| CMP-31 | Companion rename before any standalone store listing | A | P1 |
-| CMP-32 | Notification payloads never carry tip/donor/payment content | U | — |
-| CMP-33 | Mobile secure storage `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, no plaintext fallback | U | — |
-| CMP-34 | Push tokens stored as fingerprint + ciphertext, raw never returned | U | — |
-| CMP-35 | Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them | A | P2 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| CMP-01 | Control-session lease; Free exactly one active lease | v1 | U | — |
+| CMP-02 | Companion state / layout read and patch | v1 | U | — |
+| CMP-03 | Layout slots 8/16/32/64 by tier; page sizes 4/8/16 | v1 | U | — |
+| CMP-04 | 17-action catalogue, 4 groups, two-layer gate (entitlement AND activation) | v1 | U | — |
+| CMP-05 | Server rejects `obs_*` sent directly, bypassing the client picker | v1 | U | — |
+| CMP-06 | Device-code pairing | v1 | U | — |
+| CMP-07 | **Mobile handler wiring in `App.tsx`** | v1 | X | **P0** |
+| CMP-08 | macOS OBS control | v1 | U | — |
+| CMP-09 | Windows OBS control | v1 | B | — |
+| CMP-10 | Mirror actions (start/stop/screenshot) | v1 | B | — |
+| CMP-11 | Stream actions (go live / end) | v1 | B | — |
+| CMP-12 | Implicit channel provisioning for Companion-only signup | v1 | A | P1 |
+| CMP-36 | Issue a distinct Companion grant row on Alerts subscription (`0100` mechanism) | v1 | A | P1 |
+| CMP-37 | Companion available on Free with tier-limited controls (§30.4) | v1 | P | P1 |
+| CMP-13 | Stream health panel (all six signals, heartbeat ages) | v1 | P | P0 |
+| CMP-14 | Prepare Stream / go-live checklist (§5.1) | v1 | A | P0 |
+| CMP-15 | Run full test with per-hop report | v1 | P | P0 |
+| CMP-16 | Live Deck top strip + degraded-mode strip (§5.2) | v1 | A | P0 |
+| CMP-17 | Panic / Clutch Mode | v1 | A | P0 |
+| CMP-18 | Current and next queue item, live | v1 | A | P1 |
+| CMP-19 | Per-item replay / skip | v1 | A | P1 |
+| CMP-20 | Scene presets | v1 | A | P1 |
+| CMP-21 | Goal controls from Companion | v1 | A | P1 |
+| CMP-22 | Quick note / stream markers | v1 | A | P1 |
+| CMP-23 | Recent tips, payment status, refund status in Companion (API exists, no web caller) | v1 | P | P1 |
+| CMP-24 | Six monetisation push notification types | v1 | A | P1 |
+| CMP-25 | Per-notification-type preferences (3 coarse toggles today) | v1 | P | P1 |
+| CMP-26 | Session/device list with revoke | v1 | U | — |
+| CMP-27 | Offline queue-of-intent | v1 | A | P2 |
+| CMP-28 | Helper diagnostics (port, OBS version, ws auth state) | v1 | A | P2 |
+| CMP-29 | Disabled-slot explanations naming the failing layer | v1 | P | P1 |
+| CMP-30 | Wrap Stream post-stream workflow (§5.5) | v1 | A | P1 |
+| CMP-31 | Companion rename before any standalone store listing | v1·G | A | P1 |
+| CMP-32 | Notification payloads never carry tip/donor/payment content | v1 | U | — |
+| CMP-33 | Mobile secure storage `WHEN_UNLOCKED_THIS_DEVICE_ONLY`, no plaintext fallback | v1 | U | — |
+| CMP-34 | Push tokens stored as fingerprint + ciphertext, raw never returned | v1·G | U | — |
+| CMP-35 | Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them | v1 | A | P2 |
 
 #### 31.8.1 Shipping the app (§5.6) — absent from version 1.0 of this register
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| CMP-38 | **No purchase surface of any kind in either build** — no price, no upgrade CTA, no iOS link-out; enforced by a CI string/route check, not by review | A | **P0** |
-| CMP-39 | Localisation framework: zero hardcoded user-visible strings (CI-enforced), ICU MessageFormat, no fragment concatenation | A | **P0** |
-| CMP-40 | Hindi as a complete UI language at launch, native-speaker reviewed against a fixed product glossary | A | **P0** |
-| CMP-41 | `Intl` for every number, currency, date and duration — Indian 2,2,3 rupee grouping | A | **P0** |
-| CMP-42 | Locale as device default with in-app override, persisted and sent on every API call | A | P1 |
-| CMP-43 | Server-side localisation of API errors, health text and push bodies from request/device locale | A | P1 |
-| CMP-44 | Pseudo-locale CI build and +40% text-expansion layout tests | A | P1 |
-| CMP-45 | Bundled Indic fonts with conjunct/matra rendering verified on both platforms | A | P1 |
-| CMP-46 | Wave-two languages behind registry rows: Marathi, Bengali, Telugu, Tamil, Kannada | A | P2 |
-| CMP-47 | Wave-three languages: Gujarati, Malayalam, Punjabi, Odia, Assamese | A | P3 |
-| CMP-48 | RTL/Urdu — separate layout track, not a translation task | A | P3 |
-| CMP-49 | APNs + FCM token lifecycle: register, rotate, restore, revoke on sign-out, prune on feedback | A | **P0** |
-| CMP-50 | Two priority classes only (live health failure, payment/delivery failure); everything else normal priority | A | P1 |
-| CMP-51 | Android notification channels per type | A | P1 |
-| CMP-52 | Contextual permission prompt (never at launch); denied-permission is a supported state with a settings deep link | A | P1 |
-| CMP-53 | Foreground reconciliation — no correctness depends on a push arriving | A | **P0** |
-| CMP-54 | Quiet hours with high-priority override | A | P2 |
-| CMP-55 | **Sign in with Apple** alongside Google Sign-In, with account linking and private-relay addresses handled | A | **P0** |
-| CMP-56 | Optional biometric app lock | A | P1 |
-| CMP-57 | Session-expiry re-auth sheet returning to the same screen; distinct messaging from control-lease expiry | A | P1 |
-| CMP-58 | "Hide sensitive values" toggle honoured app-wide | A | P1 |
-| CMP-59 | Sign-out clears token, cache, push registration, biometric enrolment and revokes the lease server-side | A | P1 |
-| CMP-60 | Five-tab IA (Live / Prepare / Queue / Money / More) with the degraded strip persistent across all tabs | A | **P0** |
-| CMP-61 | Deep links resolve to a stateful screen, cold start included | A | P1 |
-| CMP-62 | Universal Links + App Links with association files hosted and verified on `bharatstudio.in` | A | P1 |
-| CMP-63 | First-run flow: sign in → pair → guided Prepare Stream → contextual permissions → first test alert | A | **P0** |
-| CMP-64 | Every empty state authored (no stream, no tips, no queue, no devices, notifications denied, offline, paused) | A | P1 |
-| CMP-65 | Enforce iOS 15.1 / Android API 26 floors at install | A | P1 |
-| CMP-66 | Landscape usable; degraded strip and panic control never hidden | A | P1 |
-| CMP-67 | Tablet = scaled phone layout with max content width | A | P2 |
-| CMP-68 | Dynamic Type / font scaling to largest sizes with no truncation or sub-minimum targets | A | P1 |
-| CMP-69 | Screen-reader labels on every control in the selected language | A | P1 |
-| CMP-70 | Colour never the only health signal; reduced-motion honoured | A | P1 |
-| CMP-71 | Dark default, complete light mode, full safe-area handling | A | P1 |
-| CMP-72 | Release channels: internal → TestFlight/Play internal → staged rollout with crash-rate halt | A | **P0** |
-| CMP-73 | App-version + build-number scheme recorded against commit and API contract version | A | P1 |
-| CMP-74 | API back-compatibility for old builds; breaking an old build is a dated, deliberate act | A | **P0** |
-| CMP-75 | Server-driven forced-upgrade floor (security/protocol only) plus dismissible soft prompt, never mid-stream | A | P1 |
-| CMP-76 | OTA JS-bundle policy: signed, versioned, staged, rollback-able; never features, monetisation or reviewed behaviour | A | P1 |
-| CMP-77 | Per-release rollback plan; local-state migrations additive or reversible | A | P1 |
-| CMP-78 | **Reconcile in-app account deletion (store requirement) with the blocked deletion policy — before submission** | B | **P0** |
-| CMP-79 | Permission purpose strings, specific, in every shipped language | A | **P0** |
-| CMP-80 | Data-safety / privacy-nutrition declarations matching the published policy exactly | A | **P0** |
-| CMP-81 | UGC obligations documented for review: report, block, moderate | A | P1 |
-| CMP-82 | Reviewer demo account with seeded data reaching a live-looking Live Deck | A | **P0** |
-| CMP-83 | Age rating and content descriptors set from moderation reality | A | P1 |
-| CMP-84 | Offline as a first-class state showing last-known values with their age | A | P1 |
-| CMP-85 | Offline queue reconciliation per action; irreversible and financial actions refused offline, never queued | A | P1 |
-| CMP-86 | Exponential reconnect with jitter, always reconciling rather than assuming continuity | A | P1 |
-| CMP-87 | Battery and metered-data discipline over a three-hour stream | A | P2 |
-| CMP-88 | Crash reporting with release tagging, CI symbol upload, crash-free-sessions gate; payloads scrubbed of money, identity and message content | A | **P0** |
-| CMP-89 | Privacy-respecting product analytics with working opt-out | A | P1 |
-| CMP-90 | §19.4 budgets measured per release on the reference mid-range Android | A | P1 |
-| CMP-91 | End-to-end tests both platforms: sign in, pair, prepare, test alert, Clutch, queue action, offline reconcile | A | **P0** |
-| CMP-92 | CI builds both platforms every merge, producing installable artifacts | A | **P0** |
-| CMP-93 | Store release checklist: localised screenshots and descriptions, demo account, declarations | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| CMP-38 | **No purchase surface of any kind in either build** — no price, no upgrade CTA, no iOS link-out; enforced by a CI string/route check, not by review | v1 | A | **P0** |
+| CMP-39 | Localisation framework: zero hardcoded user-visible strings (CI-enforced), ICU MessageFormat, no fragment concatenation | v1 | A | **P0** |
+| CMP-40 | Hindi as a complete UI language at launch, native-speaker reviewed against a fixed product glossary | v1 | A | **P0** |
+| CMP-41 | `Intl` for every number, currency, date and duration — Indian 2,2,3 rupee grouping | v1 | A | **P0** |
+| CMP-42 | Locale as device default with in-app override, persisted and sent on every API call | v1 | A | P1 |
+| CMP-43 | Server-side localisation of API errors, health text and push bodies from request/device locale | v1 | A | P1 |
+| CMP-44 | Pseudo-locale CI build and +40% text-expansion layout tests | v1 | A | P1 |
+| CMP-45 | Bundled Indic fonts with conjunct/matra rendering verified on both platforms | v1 | A | P1 |
+| CMP-46 | Wave-two languages behind registry rows: Marathi, Bengali, Telugu, Tamil, Kannada | v1 | A | P2 |
+| CMP-47 | Wave-three languages: Gujarati, Malayalam, Punjabi, Odia, Assamese | v1 | A | P3 |
+| CMP-48 | RTL/Urdu — separate layout track, not a translation task | v1 | A | P3 |
+| CMP-49 | APNs + FCM token lifecycle: register, rotate, restore, revoke on sign-out, prune on feedback | v1·G | A | **P0** |
+| CMP-50 | Two priority classes only (live health failure, payment/delivery failure); everything else normal priority | v1 | A | P1 |
+| CMP-51 | Android notification channels per type | v1 | A | P1 |
+| CMP-52 | Contextual permission prompt (never at launch); denied-permission is a supported state with a settings deep link | v1 | A | P1 |
+| CMP-53 | Foreground reconciliation — no correctness depends on a push arriving | v1 | A | **P0** |
+| CMP-54 | Quiet hours with high-priority override | v1 | A | P2 |
+| CMP-55 | **Sign in with Apple** alongside Google Sign-In, with account linking and private-relay addresses handled | v1·G | A | **P0** |
+| CMP-56 | Optional biometric app lock | v1 | A | P1 |
+| CMP-57 | Session-expiry re-auth sheet returning to the same screen; distinct messaging from control-lease expiry | v1 | A | P1 |
+| CMP-58 | "Hide sensitive values" toggle honoured app-wide | v1 | A | P1 |
+| CMP-59 | Sign-out clears token, cache, push registration, biometric enrolment and revokes the lease server-side | v1 | A | P1 |
+| CMP-60 | Five-tab IA (Live / Prepare / Queue / Money / More) with the degraded strip persistent across all tabs | v1 | A | **P0** |
+| CMP-61 | Deep links resolve to a stateful screen, cold start included | v1 | A | P1 |
+| CMP-62 | Universal Links + App Links with association files hosted and verified on `bharatstudio.in` | v1 | A | P1 |
+| CMP-63 | First-run flow: sign in → pair → guided Prepare Stream → contextual permissions → first test alert | v1 | A | **P0** |
+| CMP-64 | Every empty state authored (no stream, no tips, no queue, no devices, notifications denied, offline, paused) | v1 | A | P1 |
+| CMP-65 | Enforce iOS 15.1 / Android API 26 floors at install | v1 | A | P1 |
+| CMP-66 | Landscape usable; degraded strip and panic control never hidden | v1 | A | P1 |
+| CMP-67 | Tablet = scaled phone layout with max content width | v1 | A | P2 |
+| CMP-68 | Dynamic Type / font scaling to largest sizes with no truncation or sub-minimum targets | v1 | A | P1 |
+| CMP-69 | Screen-reader labels on every control in the selected language | v1 | A | P1 |
+| CMP-70 | Colour never the only health signal; reduced-motion honoured | v1 | A | P1 |
+| CMP-71 | Dark default, complete light mode, full safe-area handling | v1 | A | P1 |
+| CMP-72 | Release channels: internal → TestFlight/Play internal → staged rollout with crash-rate halt | v1 | A | **P0** |
+| CMP-73 | App-version + build-number scheme recorded against commit and API contract version | v1 | A | P1 |
+| CMP-74 | API back-compatibility for old builds; breaking an old build is a dated, deliberate act | v1 | A | **P0** |
+| CMP-75 | Server-driven forced-upgrade floor (security/protocol only) plus dismissible soft prompt, never mid-stream | v1 | A | P1 |
+| CMP-76 | OTA JS-bundle policy: signed, versioned, staged, rollback-able; never features, monetisation or reviewed behaviour | v1 | A | P1 |
+| CMP-77 | Per-release rollback plan; local-state migrations additive or reversible | v1 | A | P1 |
+| CMP-78 | **Reconcile in-app account deletion (store requirement) with the blocked deletion policy — before submission** | v1·G | B | **P0** |
+| CMP-79 | Permission purpose strings, specific, in every shipped language | v1 | A | **P0** |
+| CMP-80 | Data-safety / privacy-nutrition declarations matching the published policy exactly | v1·G | A | **P0** |
+| CMP-81 | UGC obligations documented for review: report, block, moderate | v1 | A | P1 |
+| CMP-82 | Reviewer demo account with seeded data reaching a live-looking Live Deck | v1 | A | **P0** |
+| CMP-83 | Age rating and content descriptors set from moderation reality | v1 | A | P1 |
+| CMP-84 | Offline as a first-class state showing last-known values with their age | v1 | A | P1 |
+| CMP-85 | Offline queue reconciliation per action; irreversible and financial actions refused offline, never queued | v1 | A | P1 |
+| CMP-86 | Exponential reconnect with jitter, always reconciling rather than assuming continuity | v1 | A | P1 |
+| CMP-87 | Battery and metered-data discipline over a three-hour stream | v1 | A | P2 |
+| CMP-88 | Crash reporting with release tagging, CI symbol upload, crash-free-sessions gate; payloads scrubbed of money, identity and message content | v1 | A | **P0** |
+| CMP-89 | Privacy-respecting product analytics with working opt-out | v1·G | A | P1 |
+| CMP-90 | §19.4 budgets measured per release on the reference mid-range Android | v1 | A | P1 |
+| CMP-91 | End-to-end tests both platforms: sign in, pair, prepare, test alert, Clutch, queue action, offline reconcile | v1 | A | **P0** |
+| CMP-92 | CI builds both platforms every merge, producing installable artifacts | v1 | A | **P0** |
+| CMP-93 | Store release checklist: localised screenshots and descriptions, demo account, declarations | v1·G | A | P1 |
 
 ### 31.9 Connectors and chat
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| CON-01 | YouTube OAuth token storage, refresh, encryption | U | — |
-| CON-02 | **Connect / disconnect UI** | X | **P0** |
-| CON-03 | **Revoked-auth detection + creator prompt** | A | **P0** |
-| CON-04 | Live status discovery, `streamList` polling, 3-failure fallback with reset | U | — |
-| CON-05 | Quota budget, fair share, day-exhaust on 403 | U | — |
-| CON-06 | Super Chat / Super Sticker / member / milestone / gifted normalisation | U | — |
-| CON-07 | `!tip`, `!tip 100`, `!tip 100 message` → opaque short link | U | — |
-| CON-22 | Bare `!tip` replies with the short link and no amount; viewer chooses on the page | A | P1 |
-| CON-08 | Bot chat acknowledgement (flag default off) | B | — |
-| CON-09 | Connector entitlement counts 0/1/2/3 | U | — |
-| CON-10 | Connector count / limit shown in UI | A | P1 |
-| CON-11 | Ingest-failure admin surface UI | X | P1 |
-| CON-12 | Financial truth never derived from a platform event — webhook only | U | — |
-| CON-13 | Member reconciliation via `members.list` (never chat as truth) | A | P1 |
-| CON-14 | Like goals via `videos.list` (cadence measured, not assumed) | A | P1 |
-| CON-15 | Controlled broadcast lifecycle: create/bind → verify ingest `active` → testing → live | A | P1 |
-| CON-16 | Assisted gifting as reminder/deep link only | A | P2 |
-| CON-17 | Chat display and filtering — tierable. **Retention is not** (§12.6.2): what we ingest and index is a uniform product decision, identical on every tier | A | P1 |
-| CON-18 | Twitch EventSub | B | — |
-| CON-19 | Kick | B | — |
-| CON-20 | Optional YouTube `/live` support page | A | P3 |
-| CON-21 | YouTube identity/trust model and namespaces (§12.3 identity rules) | A | P1 |
-| CON-31 | **One fetch, many surfaces** — no surface calls YouTube; the server polls once per channel and fans out over the channel-keyed SSE (§4.2) | A | **P0 rule for Phase 4** |
-| CON-32 | IFrame Player API for overlay and dashboard presence and playback — client-side, official, zero quota | A | P2 |
-| CON-33 | Official YouTube live-chat **embed** for the creator to read chat in the dashboard and Companion — zero quota, display only, never a data source | A | P2 |
-| CON-34 | Stream health from the desktop helper / OBS WebSocket, never from a YouTube call | A | P1 |
-| CON-35 | Cadence as a budget: poll only while live, back off when idle, tier by creator size, defined degradation (slow → pause, always with a visible reason) | A | P1 |
-| CON-36 | **Per-call, per-endpoint, per-channel quota instrumentation**, exported as a histogram (RT-06). Ships with the connector — the quota application is worthless without it | A | **P0 for Phase 4** |
-| CON-37 | Measure `streamList` against a real Google project: units per hour, per channel, per message volume, and behaviour during a chat burst | A | **P0 for Phase 4** |
-| CON-38 | Derive the supported concurrent-creator ceiling at the free allowance and at each increase tier, then file the quota application with measured numbers | A | P2 |
-| CON-40 | **Subscription registry with reference counting** — a datum is polled only while refcount > 0; reuses the RT-02 channel-keyed subscriber map rather than a second registry | A | **P0 for Phase 4** |
-| CON-41 | Visibility-driven subscribe and unsubscribe: hidden module, inactive scene, background tab, backgrounded Companion | A | P1 |
-| CON-42 | Unsubscribe hysteresis (~60s grace) so scene flicking does not thrash subscriptions | A | P1 |
-| CON-43 | **Cross-channel batching** — one global poller, chunked IDs, one call per chunk instead of one per channel | A | **P0 for Phase 4** |
-| CON-44 | Field batching — request the parts needed together in one call, never two calls for one screen | A | P1 |
-| CON-45 | Tip page: live player and chat are click-to-load embeds; a live badge subscribes only while the page has a visitor and drops after idle | A | P1 |
-| CON-46 | Chat ingestion subscribed **by feature in use**, never by liveness; a tips-and-overlay creator opens no chat connection | A | **P0 for Phase 4** |
-| CON-47 | Budget manager: per-datum priority, global degradation rather than per-creator starvation, visible slowdown, negative caching for offline channels | A | **P0 for Phase 4** |
-| CON-48 | Cold subscriber gets last-known value with its age immediately; a render never waits on an upstream call | A | P1 |
-| CON-49 | Anti-pattern enforcement (§4.4.6) — no client calls, no per-surface fetch, no offline polling, no fixed global timer, no per-visitor subscription | A | P1 |
-| CON-39 | Page scraping and InnerTube — **never build.** ToS-prohibited automated access, no contract, no stability, unverifiable financial provenance, and it moves the consequence onto the creator's channel (§4) | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| CON-01 | YouTube OAuth token storage, refresh, encryption | P2·G | U | — |
+| CON-02 | **Connect / disconnect UI** | P2 | X | **P0** |
+| CON-03 | **Revoked-auth detection + creator prompt** | P2 | A | **P0** |
+| CON-04 | Live status discovery, `streamList` polling, 3-failure fallback with reset | P2 | U | — |
+| CON-05 | Quota budget, fair share, day-exhaust on 403 | P2·G | U | — |
+| CON-06 | Super Chat / Super Sticker / member / milestone / gifted normalisation | P2 | U | — |
+| CON-07 | `!tip`, `!tip 100`, `!tip 100 message` → opaque short link | P2 | U | — |
+| CON-22 | Bare `!tip` replies with the short link and no amount; viewer chooses on the page | P2 | A | P1 |
+| CON-08 | Bot chat acknowledgement (flag default off) | P2 | B | — |
+| CON-09 | Connector entitlement counts 0/1/2/3 | P2 | U | — |
+| CON-10 | Connector count / limit shown in UI | P2 | A | P1 |
+| CON-11 | Ingest-failure admin surface UI | P2 | X | P1 |
+| CON-12 | Financial truth never derived from a platform event — webhook only | P2 | U | — |
+| CON-13 | Member reconciliation via `members.list` (never chat as truth) | P2 | A | P1 |
+| CON-14 | Like goals via `videos.list` (cadence measured, not assumed) | P2 | A | P1 |
+| CON-15 | Controlled broadcast lifecycle: create/bind → verify ingest `active` → testing → live | P2 | A | P1 |
+| CON-16 | Assisted gifting as reminder/deep link only | P2 | A | P2 |
+| CON-17 | Chat display and filtering — tierable. **Retention is not** (§12.6.2): what we ingest and index is a uniform product decision, identical on every tier | P2 | A | P1 |
+| CON-18 | Twitch EventSub | P2 | B | — |
+| CON-19 | Kick | P2 | B | — |
+| CON-20 | Optional YouTube `/live` support page | P2 | A | P3 |
+| CON-21 | YouTube identity/trust model and namespaces (§12.3 identity rules) | P2 | A | P1 |
+| CON-31 | **One fetch, many surfaces** — no surface calls YouTube; the server polls once per channel and fans out over the channel-keyed SSE (§4.2) | P2 | A | **P0 rule for Phase 4** |
+| CON-32 | IFrame Player API for overlay and dashboard presence and playback — client-side, official, zero quota | P2·G | A | P2 |
+| CON-33 | Official YouTube live-chat **embed** for the creator to read chat in the dashboard and Companion — zero quota, display only, never a data source | P2·G | A | P2 |
+| CON-34 | Stream health from the desktop helper / OBS WebSocket, never from a YouTube call | P2 | A | P1 |
+| CON-35 | Cadence as a budget: poll only while live, back off when idle, tier by creator size, defined degradation (slow → pause, always with a visible reason) | P2 | A | P1 |
+| CON-36 | **Per-call, per-endpoint, per-channel quota instrumentation**, exported as a histogram (RT-06). Ships with the connector — the quota application is worthless without it | P2·G | A | **P0 for Phase 4** |
+| CON-37 | Measure `streamList` against a real Google project: units per hour, per channel, per message volume, and behaviour during a chat burst | P2·G | A | **P0 for Phase 4** |
+| CON-38 | Derive the supported concurrent-creator ceiling at the free allowance and at each increase tier, then file the quota application with measured numbers | P2·G | A | P2 |
+| CON-40 | **Subscription registry with reference counting** — a datum is polled only while refcount > 0; reuses the RT-02 channel-keyed subscriber map rather than a second registry | P2 | A | **P0 for Phase 4** |
+| CON-41 | Visibility-driven subscribe and unsubscribe: hidden module, inactive scene, background tab, backgrounded Companion | P2 | A | P1 |
+| CON-42 | Unsubscribe hysteresis (~60s grace) so scene flicking does not thrash subscriptions | P2 | A | P1 |
+| CON-43 | **Cross-channel batching** — one global poller, chunked IDs, one call per chunk instead of one per channel | P2 | A | **P0 for Phase 4** |
+| CON-44 | Field batching — request the parts needed together in one call, never two calls for one screen | P2 | A | P1 |
+| CON-45 | Tip page: live player and chat are click-to-load embeds; a live badge subscribes only while the page has a visitor and drops after idle | P2 | A | P1 |
+| CON-46 | Chat ingestion subscribed **by feature in use**, never by liveness; a tips-and-overlay creator opens no chat connection | P2 | A | **P0 for Phase 4** |
+| CON-47 | Budget manager: per-datum priority, global degradation rather than per-creator starvation, visible slowdown, negative caching for offline channels | P2 | A | **P0 for Phase 4** |
+| CON-48 | Cold subscriber gets last-known value with its age immediately; a render never waits on an upstream call | P2 | A | P1 |
+| CON-49 | Anti-pattern enforcement (§4.4.6) — no client calls, no per-surface fetch, no offline polling, no fixed global timer, no per-visitor subscription | P2 | A | P1 |
+| CON-39 | Page scraping and InnerTube — **never build.** ToS-prohibited automated access, no contract, no stability, unverifiable financial provenance, and it moves the consequence onto the creator's channel (§4) | N | N | — |
 
 ### 31.10 Entitlements, billing, admin, ops
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| ENT-01 | Eight entitlement dimensions, closed set, all enforced | U | — |
-| ENT-02 | Moderator seats 0/0/2/5, new grants only, existing grandfathered | U | — |
-| ENT-03 | Moderator seat management UI | X | P1 |
-| ENT-04 | Internal ceilings: pending visuals 20/50/150/500 (500 pending §12.7 verification) · bindings 3/5/10/**50** · presets 1/2/4/**20** · read-only sessions 2/3/5/8 (held pending load evidence) · control sessions 1/1/2/4. *Updated 2026-09-14 to match §30.2.* | P | P1 |
-| ENT-05 | Grandfathering 12 months + 30-day renewal grace | U | — |
-| ENT-06 | Referral engine with fraud signal | U | — |
-| ENT-07 | Billing panel, upgrade/downgrade/reactivate/payment-method | U | — |
-| ENT-08 | Top-up entitlement additivity, ledger, spend caps | A | P1 |
-| ENT-09 | AI credit ledger, classes, reservations (§11.7) | A | P1 |
-| ADM-01 | Admin console separate from creator dashboard, consumes platform-admin API only | U | — |
-| ADM-02 | DLQ inspection, controlled replay/discard, audited, reason required | U | — |
-| ADM-03 | Entitlement + channel-capacity management | U | — |
-| ADM-04 | DB-backed billing plan catalogue with append-only history | P | P2 |
-| ADM-05 | Reconciliation quarantine review UI | X | P0 |
-| ADM-06 | Featured-creator curation writer | X | P1 |
-| ADM-07 | Admin OIDC + MFA, durable admin registry (vs allowlist) | A | P0 |
-| ADM-08 | Redaction by default; destructive ops need confirmation + reason + audit ref | U | — |
-| ADM-09 | Admin console responsive at 320px/iPad/desktop, keyboard nav | U | — |
-| OPS-01 | Six schedules defined with owner, OIDC, retry/DLQ, idempotency, monitoring, rollback | U | — |
-| OPS-02 | **Schedules actually enabled** | X | **P0** |
-| OPS-03 | Idempotency key `schedule:<id>:<window>`; receipt ≠ business completion | U | — |
-| OPS-04 | Archive schedules stay disabled pending legal approval | B | — |
-| OPS-05 | Email outbox with Resend; invoice, subscription, DPDP export, overlay-expiry mails | U | — |
-| OPS-06 | Runbooks per critical alert | U | — |
-| OPS-07 | On-call rotation | A | P0 |
-| OPS-08 | Activation instrumentation (payout + OBS + first alert) | A | P0 |
-| OPS-09 | Reliability metrics: captured-without-LiveEvent, duplicate LiveEvent, lost delivery, replay success, webhook lag, refund failures, TTS failures | P | P0 |
-| OPS-10 | Creator activation funnel and viewer funnel instrumentation | A | P0 |
-| OPS-11 | Revenue KPIs: tips/viewer-hour, average tip, repeat-supporter rate, TTS-driven tips, threshold uplift, goal-driven tips, `!tip` conversion, challenge and vote revenue | A | P0 |
-| OPS-12 | Trace-ID discipline (§12.4) | U | — |
-| OPS-13 | Metrics require service identity; no IDs in labels or paths | U | — |
-| OPS-14 | Deployment manifest is `not-deployable` until placeholders resolved | B | — |
-| OPS-15 | Static build publishes checked-in `_headers` CSP/framing/referrer/permissions | U | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| ENT-01 | Eight entitlement dimensions, closed set, all enforced | v1 | U | — |
+| ENT-02 | Moderator seats 0/0/2/5, new grants only, existing grandfathered | v1 | U | — |
+| ENT-03 | Moderator seat management UI | v1 | X | P1 |
+| ENT-04 | Internal ceilings: pending visuals 20/50/150/500 (500 pending §12.7 verification) · bindings 3/5/10/**50** · presets 1/2/4/**20** · read-only sessions 2/3/5/8 (held pending load evidence) · control sessions 1/1/2/4. *Updated 2026-09-14 to match §30.2.* | v1·G | P | P1 |
+| ENT-05 | Grandfathering 12 months + 30-day renewal grace | v1 | U | — |
+| ENT-06 | Referral engine with fraud signal | v1 | U | — |
+| ENT-07 | Billing panel, upgrade/downgrade/reactivate/payment-method | v1 | U | — |
+| ENT-08 | Top-up entitlement additivity, ledger, spend caps | v1 | A | P1 |
+| ENT-09 | AI credit ledger, classes, reservations (§11.7) | v1 | A | P1 |
+| ADM-01 | Admin console separate from creator dashboard, consumes platform-admin API only | v1 | U | — |
+| ADM-02 | DLQ inspection, controlled replay/discard, audited, reason required | v1 | U | — |
+| ADM-03 | Entitlement + channel-capacity management | v1 | U | — |
+| ADM-04 | DB-backed billing plan catalogue with append-only history | v1 | P | P2 |
+| ADM-05 | Reconciliation quarantine review UI | v1 | X | P0 |
+| ADM-06 | Featured-creator curation writer | v1 | X | P1 |
+| ADM-07 | Admin OIDC + MFA, durable admin registry (vs allowlist) | v1 | A | P0 |
+| ADM-08 | Redaction by default; destructive ops need confirmation + reason + audit ref | v1 | U | — |
+| ADM-09 | Admin console responsive at 320px/iPad/desktop, keyboard nav | v1 | U | — |
+| OPS-01 | Six schedules defined with owner, OIDC, retry/DLQ, idempotency, monitoring, rollback | v1 | U | — |
+| OPS-02 | **Schedules actually enabled** | v1 | X | **P0** |
+| OPS-03 | Idempotency key `schedule:<id>:<window>`; receipt ≠ business completion | v1 | U | — |
+| OPS-04 | Archive schedules stay disabled pending legal approval | v1·G | B | — |
+| OPS-05 | Email outbox with Resend; invoice, subscription, DPDP export, overlay-expiry mails | v1·G | U | — |
+| OPS-06 | Runbooks per critical alert | v1 | U | — |
+| OPS-07 | On-call rotation | v1 | A | P0 |
+| OPS-08 | Activation instrumentation (payout + OBS + first alert) | v1 | A | P0 |
+| OPS-09 | Reliability metrics: captured-without-LiveEvent, duplicate LiveEvent, lost delivery, replay success, webhook lag, refund failures, TTS failures | v1 | P | P0 |
+| OPS-10 | Creator activation funnel and viewer funnel instrumentation | v1 | A | P0 |
+| OPS-11 | Revenue KPIs: tips/viewer-hour, average tip, repeat-supporter rate, TTS-driven tips, threshold uplift, goal-driven tips, `!tip` conversion, challenge and vote revenue | v1 | A | P0 |
+| OPS-12 | Trace-ID discipline (§12.4) | v1 | U | — |
+| OPS-13 | Metrics require service identity; no IDs in labels or paths | v1 | U | — |
+| OPS-14 | Deployment manifest is `not-deployable` until placeholders resolved | v1 | B | — |
+| OPS-15 | Static build publishes checked-in `_headers` CSP/framing/referrer/permissions | v1 | U | — |
 
 **OPS-11 deserves emphasis.** These are the numbers that decide whether the business
 works, they must be instrumented from the first cohort, and they **cannot be
@@ -4882,17 +4887,17 @@ raised a creator's income.
 
 ### 31.11 Marketing, legal, support
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| MKT-01 | Product-per-page IA (/alerts, /mirror, /stream) with 301s | U | — |
-| MKT-02 | Commission calculator with provider fees shown on both sides | U | — |
-| MKT-03 | No competitor names in rendered HTML | U | — |
-| MKT-04 | No Enterprise tier, CTA or contact-sales flow until L10 amended | U | — |
-| MKT-05 | Watermark claim vs reality — the pricing page says tip page + overlay, and only the overlay has one. §30.6 settles it as correct: build the tip-page line rather than weaken the claim | A | P1 |
-| MKT-06 | `/features` frames Alerts and Companion as co-equal; Companion is bundled | A | P2 |
-| MKT-07 | Legal sign-off: pricing/feature claims, DPDP deletion, plaintext reset URL in email | B | — |
-| MKT-08 | Support surface and staffing | A | P0 |
-| MKT-09 | Public copy matches versioned decisions with dated history | U | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| MKT-01 | Product-per-page IA (/alerts, /mirror, /stream) with 301s | v1 | U | — |
+| MKT-02 | Commission calculator with provider fees shown on both sides | v1·G | U | — |
+| MKT-03 | No competitor names in rendered HTML | v1 | U | — |
+| MKT-04 | No Enterprise tier, CTA or contact-sales flow until L10 amended | v1 | U | — |
+| MKT-05 | Watermark claim vs reality — the pricing page says tip page + overlay, and only the overlay has one. §30.6 settles it as correct: build the tip-page line rather than weaken the claim | v1 | A | P1 |
+| MKT-06 | `/features` frames Alerts and Companion as co-equal; Companion is bundled | v1 | A | P2 |
+| MKT-07 | Legal sign-off: pricing/feature claims, DPDP deletion, plaintext reset URL in email | v1·G | B | — |
+| MKT-08 | Support surface and staffing | v1 | A | P0 |
+| MKT-09 | Public copy matches versioned decisions with dated history | v1 | U | — |
 
 ### 31.12 AI
 
@@ -4907,229 +4912,229 @@ L23 assist (`0121`) is **P** — built and wired, but nav-less and provider-free
 
 ### 31.13 Live Support Hub
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| HUB-01 | Mobile support tray, verified payment state, receipts, QR/UPI | P | P0 |
-| HUB-02 | Amount presets | A | P0 |
-| HUB-03 | Five explicit status states (pending → verified → queued → shown → held) | A | P0 |
-| HUB-04 | Safe message preview before checkout | A | P0 |
-| HUB-05 | Approved sticker / sound picker | X | P0 |
-| HUB-06 | Live supporter wall with opt-in names | A | P1 |
-| HUB-07 | Free reactions, rate-limited and sampled | A | P1 |
-| HUB-08 | Community goal ladder with milestone tiers | P | P1 |
-| HUB-09 | Goal source labels (tips / Super Chats / memberships in or out) | A | P1 |
-| HUB-10 | Pick-a-side vote with published rules and close time | A | P1 |
-| HUB-11 | Stream mission card | A | P1 |
-| HUB-12 | Live "what changed" feed | A | P2 |
-| HUB-13 | Embedded YouTube player, correct `origin`, responsive | A | P2 |
-| HUB-14 | Free lane: one free vote, check-in streak, challenge proposal, cheer card | A | P1 |
-| HUB-15 | "Where does my support go?" creator explainer | A | P1 |
-| HUB-16 | Payment-retry recovery screen | A | P1 |
-| HUB-17 | Low-bandwidth / no-player mode | A | P1 |
-| HUB-18 | Indian language support | P | P1 |
-| HUB-19 | Accessibility: reduced motion, no autoplay sound, SR labels | P | P0 |
-| HUB-20 | Shareable mini-card, campaign links, referral attribution | A | P2 |
-| HUB-21 | Event-specific layout presets | A | P2 |
-| HUB-22 | Post-stream supporter recap and receipt export | A | P2 |
-| HUB-23 | Milestone unlocks framed as a creator promise, never a contract | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| HUB-01 | Mobile support tray, verified payment state, receipts, QR/UPI | v1 | P | P0 |
+| HUB-02 | Amount presets | v1 | A | P0 |
+| HUB-03 | Five explicit status states (pending → verified → queued → shown → held) | v1 | A | P0 |
+| HUB-04 | Safe message preview before checkout | v1 | A | P0 |
+| HUB-05 | Approved sticker / sound picker | v1 | X | P0 |
+| HUB-06 | Live supporter wall with opt-in names | v1 | A | P1 |
+| HUB-07 | Free reactions, rate-limited and sampled | v1 | A | P1 |
+| HUB-08 | Community goal ladder with milestone tiers | v1 | P | P1 |
+| HUB-09 | Goal source labels (tips / Super Chats / memberships in or out) | v1 | A | P1 |
+| HUB-10 | Pick-a-side vote with published rules and close time | v1 | A | P1 |
+| HUB-11 | Stream mission card | v1 | A | P1 |
+| HUB-12 | Live "what changed" feed | v1 | A | P2 |
+| HUB-13 | Embedded YouTube player, correct `origin`, responsive | v1 | A | P2 |
+| HUB-14 | Free lane: one free vote, check-in streak, challenge proposal, cheer card | v1 | A | P1 |
+| HUB-15 | "Where does my support go?" creator explainer | v1 | A | P1 |
+| HUB-16 | Payment-retry recovery screen | v1 | A | P1 |
+| HUB-17 | Low-bandwidth / no-player mode | v1 | A | P1 |
+| HUB-18 | Indian language support | v1 | P | P1 |
+| HUB-19 | Accessibility: reduced motion, no autoplay sound, SR labels | v1 | P | P0 |
+| HUB-20 | Shareable mini-card, campaign links, referral attribution | v1 | A | P2 |
+| HUB-21 | Event-specific layout presets | v1 | A | P2 |
+| HUB-22 | Post-stream supporter recap and receipt export | v1 | A | P2 |
+| HUB-23 | Milestone unlocks framed as a creator promise, never a contract | v1 | A | P1 |
 
 ### 31.14 Customisation and gating
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| CUS-01 | Four-switch model (entitled / enabled / configured / active) applied universally | P | P0 |
-| CUS-02 | Per-widget full config surface (§15.2) | A | P0 |
-| CUS-03 | Locked capabilities shown with the unlocking tier, never hidden or dead | P | P1 |
-| CUS-04 | Downgrade preserves configuration; over-limit items read-only | P | P1 |
-| CUS-05 | Preset bundles that are fully editable afterwards | A | P2 |
-| CUS-06 | Per-source alert styling (Super Chat distinct from UPI tip) | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| CUS-01 | Four-switch model (entitled / enabled / configured / active) applied universally | v1 | P | P0 |
+| CUS-02 | Per-widget full config surface (§15.2) | v1 | A | P0 |
+| CUS-03 | Locked capabilities shown with the unlocking tier, never hidden or dead | v1 | P | P1 |
+| CUS-04 | Downgrade preserves configuration; over-limit items read-only | v1 | P | P1 |
+| CUS-05 | Preset bundles that are fully editable afterwards | v1 | A | P2 |
+| CUS-06 | Per-source alert styling (Super Chat distinct from UPI tip) | v1 | A | P1 |
 
 ### 31.15 Lobby Engine
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| LOB-01 | Session create: game, region, mode, platform, time, seats, reserves, policy | A | P1 |
-| LOB-02 | Public waitlist; code never on stream | A | P1 |
-| LOB-03 | Ready check | A | P1 |
-| LOB-04 | Single-use, short-lived private seat token | A | P1 |
-| LOB-05 | Code revealed only after readiness confirmed | A | P1 |
-| LOB-06 | No-show expiry and automatic reserve promotion | A | P1 |
-| LOB-07 | Six eligibility modes, policy locked and displayed before joining | A | P1 |
-| LOB-08 | Redacted audit log incl. moderator override reason | A | P1 |
-| LOB-09 | Aggregate-only public overlay module | A | P1 |
-| LOB-10 | Companion operator console | A | P1 |
-| LOB-11 | Automatic deletion of temporary lobby data | A | P1 |
-| LOB-12 | Time-bound suspensions with appeal; never keyed on payment identity | A | P1 |
-| LOB-13 | Session templates | A | P2 |
-| LOB-14 | Language / region / platform / accessibility filters | A | P2 |
-| LOB-15 | Voluntary skill bands, friend-group locking | A | P2 |
-| LOB-16 | Creator squads with attributed operator actions | A | P2 |
-| LOB-17 | Lobby reputation, no public shaming | A | P2 |
-| LOB-18 | Post-match pulse with private reporting | A | P2 |
-| LOB-19 | Clip consent before featuring a player | A | P1 |
-| LOB-20 | Cross-creator combined queues | A | P3 |
-| LOB-21 | Recurring community nights with reminders | A | P2 |
-| LOB-22 | Screened Guest Queue (audio-only, time-boxed) | A | P3 |
-| LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| LOB-01 | Session create: game, region, mode, platform, time, seats, reserves, policy | P3 | A | P1 |
+| LOB-02 | Public waitlist; code never on stream | P3 | A | P1 |
+| LOB-03 | Ready check | P3 | A | P1 |
+| LOB-04 | Single-use, short-lived private seat token | P3 | A | P1 |
+| LOB-05 | Code revealed only after readiness confirmed | P3 | A | P1 |
+| LOB-06 | No-show expiry and automatic reserve promotion | P3 | A | P1 |
+| LOB-07 | Six eligibility modes, policy locked and displayed before joining | P3 | A | P1 |
+| LOB-08 | Redacted audit log incl. moderator override reason | P3 | A | P1 |
+| LOB-09 | Aggregate-only public overlay module | P3 | A | P1 |
+| LOB-10 | Companion operator console | P3 | A | P1 |
+| LOB-11 | Automatic deletion of temporary lobby data | P3 | A | P1 |
+| LOB-12 | Time-bound suspensions with appeal; never keyed on payment identity | P3 | A | P1 |
+| LOB-13 | Session templates | P3 | A | P2 |
+| LOB-14 | Language / region / platform / accessibility filters | P3 | A | P2 |
+| LOB-15 | Voluntary skill bands, friend-group locking | P3 | A | P2 |
+| LOB-16 | Creator squads with attributed operator actions | P3 | A | P2 |
+| LOB-17 | Lobby reputation, no public shaming | P3 | A | P2 |
+| LOB-18 | Post-match pulse with private reporting | P3 | A | P2 |
+| LOB-19 | Clip consent before featuring a player | P3 | A | P1 |
+| LOB-20 | Cross-creator combined queues | P3 | A | P3 |
+| LOB-21 | Recurring community nights with reminders | P3 | A | P2 |
+| LOB-22 | Screened Guest Queue (audio-only, time-boxed) | P3 | A | P3 |
+| LOB-23 | Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads | N | N | — |
 
 ### 31.16 Giveaways and tournaments
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| GIV-01 | Creator-defined prize, entry method, window, draw method, published up front | A | P1 |
-| GIV-02 | Free entry route always available; no paid-only entry | A | P1 |
-| GIV-03 | Deterministic seeded draw, seed and entrant count recorded | A | P1 |
-| GIV-04 | Override possible but logged and labelled | A | P1 |
-| GIV-05 | Terms: creator is promoter, responsible for eligibility, tax and delivery | A | P1 |
-| GIV-06 | Overlay: entry count, timer, consented winner, no address on stream | A | P1 |
-| GIV-07 | Legal review before any chance-based format ships in India | A | P1 |
-| TRN-01 | Single-elimination brackets up to 8 (Creator) | A | P2 |
-| TRN-01b | Double elimination, round robin, points, seeding, sponsor slots (Studio) | A | P2 |
-| TRN-02 | Seeding by attendance, creator pick, or published-seed random | A | P2 |
-| TRN-03 | Check-in windows, scheduling, reminders | A | P2 |
-| TRN-04 | Score reporting with dispute note | A | P2 |
-| TRN-05 | Standings overlay module | A | P2 |
-| TRN-06 | Sponsor slot with exposure log | A | P2 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| GIV-01 | Creator-defined prize, entry method, window, draw method, published up front | P3 | A | P1 |
+| GIV-02 | Free entry route always available; no paid-only entry | P3 | A | P1 |
+| GIV-03 | Deterministic seeded draw, seed and entrant count recorded | P3 | A | P1 |
+| GIV-04 | Override possible but logged and labelled | P3 | A | P1 |
+| GIV-05 | Terms: creator is promoter, responsible for eligibility, tax and delivery | P3·G | A | P1 |
+| GIV-06 | Overlay: entry count, timer, consented winner, no address on stream | P3 | A | P1 |
+| GIV-07 | Legal review before any chance-based format ships in India | P3·G | A | P1 |
+| TRN-01 | Single-elimination brackets up to 8 (Creator) | P3 | A | P2 |
+| TRN-01b | Double elimination, round robin, points, seeding, sponsor slots (Studio) | P3 | A | P2 |
+| TRN-02 | Seeding by attendance, creator pick, or published-seed random | P3 | A | P2 |
+| TRN-03 | Check-in windows, scheduling, reminders | P3 | A | P2 |
+| TRN-04 | Score reporting with dispute note | P3 | A | P2 |
+| TRN-05 | Standings overlay module | P3 | A | P2 |
+| TRN-06 | Sponsor slot with exposure log | P3 | A | P2 |
 
 ### 31.17 Custom audio and creator media
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| AUD-01 | Custom alert sounds, tier-gated | A | P1 |
-| AUD-02 | Widget / module / milestone sounds | A | P1 |
-| AUD-03 | Supporter-triggerable soundboard, cooldown and queue | A | P1 |
-| AUD-04 | Per-bracket and per-source sound selection | A | P1 |
-| AUD-05 | BRB / countdown music bed | A | P2 |
-| AUD-06 | Rights attestation checkbox with recorded timestamp | A | P1 |
-| AUD-07 | Terms text placing copyright liability on the creator | A | P1 |
-| AUD-08 | Upload audit record, immediate disable, takedown handling | A | P1 |
-| AUD-09 | Duration, size and format caps; scan pipeline applied | A | P1 |
-| AUD-10 | Asset storage quota enforcement (MED-13 dependency) | A | P1 |
-| AUD-11 | Shared or discoverable music library | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| AUD-01 | Custom alert sounds, tier-gated | v1 | A | P1 |
+| AUD-02 | Widget / module / milestone sounds | v1 | A | P1 |
+| AUD-03 | Supporter-triggerable soundboard, cooldown and queue | v1 | A | P1 |
+| AUD-04 | Per-bracket and per-source sound selection | v1 | A | P1 |
+| AUD-05 | BRB / countdown music bed | v1 | A | P2 |
+| AUD-06 | Rights attestation checkbox with recorded timestamp | v1 | A | P1 |
+| AUD-07 | Terms text placing copyright liability on the creator | v1·G | A | P1 |
+| AUD-08 | Upload audit record, immediate disable, takedown handling | v1 | A | P1 |
+| AUD-09 | Duration, size and format caps; scan pipeline applied | v1 | A | P1 |
+| AUD-10 | Asset storage quota enforcement (MED-13 dependency) | v1·G | A | P1 |
+| AUD-11 | Shared or discoverable music library | N | N | — |
 
 ### 31.18 Performance
 
 #### 31.18.0 Runtime remediation (§19.0) — corrections to shipped code, ahead of Phase 1
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | X | **P0** |
-| RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits | X | **P0** |
-| RT-03 | Two-phase release: visual out immediately, TTS/media as a second event on the same alert; late audio dropped, never played over a different alert | X | **P0** |
-| RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | X | **P0** |
-| RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | X | **P0** |
-| RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget | A | **P0** |
-| RT-07 | Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count | A | **P0** |
-| RT-08 | Enable the cron schedules the dispatcher depends on (`bharatstudio-crons` ships every schedule `"enabled": false`) | X | **P0** |
-| RT-09 | No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | A | **P0** |
-| RT-10 | Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads | A | **P0** |
-| RT-11 | Query timeouts on every read path; a pathological query fails fast rather than holding a connection | A | P1 |
-| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes | A | **P0** |
-| RT-13 | Per-channel live-transport cap counted across Canvas and standalone widgets; over-cap widgets degrade to slow snapshot polling with a visible notice (§21.3) | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | v1 | X | **P0** |
+| RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits | v1 | X | **P0** |
+| RT-03 | Two-phase release: visual out immediately, TTS/media as a second event on the same alert; late audio dropped, never played over a different alert | v1 | X | **P0** |
+| RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | v1 | X | **P0** |
+| RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | v1 | X | **P0** |
+| RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget | v1 | A | **P0** |
+| RT-07 | Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count | v1·G | A | **P0** |
+| RT-08 | Enable the cron schedules the dispatcher depends on (`bharatstudio-crons` ships every schedule `"enabled": false`) | v1 | X | **P0** |
+| RT-09 | No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | v1 | A | **P0** |
+| RT-10 | Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads | v1 | A | **P0** |
+| RT-11 | Query timeouts on every read path; a pathological query fails fast rather than holding a connection | v1 | A | P1 |
+| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes | v1 | A | **P0** |
+| RT-13 | Per-channel live-transport cap counted across Canvas and standalone widgets; over-cap widgets degrade to slow snapshot polling with a visible notice (§21.3) | v1 | A | P1 |
 
 #### 31.18.1 Overlay and read-path performance
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| PRF-01 | CI-enforced budgets (§19.4) — **cannot pass until RT-06 exists**; averages cannot falsify a p99 | A | P0 |
-| PRF-02 | Master Canvas as the runtime: single connection, single rAF loop, modules as pure renderers. **Absent — so "one source replaces twelve" is unmarketable until it lands** | A | P0 |
-| PRF-03 | Composite-only animation; no layout-triggering properties | P | P0 |
-| PRF-04 | Bounded DOM with recycling; flat node count over 8 hours | A | P0 |
-| PRF-05 | Idle modules fully unsubscribed | A | P0 |
-| PRF-06 | Server-side sampling and rate limiting for reactions and chat | A | P0 |
-| PRF-07 | Burst coalescing on long-gap replay | A | P1 |
-| PRF-08 | Read-through cache for derived aggregates, invalidated by event, never a stored counter | A | P0 |
-| PRF-09 | `DATABASE_URL_DIRECT` for the overlay listener | P | P0 |
-| PRF-10 | Universal cursor pagination with bounded pages | P | P1 |
-| PRF-11 | Index coverage for every widget-backing query | P | P0 |
-| PRF-12 | Asset budgets: Lottie complexity, audio length, server-side image pre-scaling | A | P1 |
-| PRF-13 | No third-party scripts in the overlay | U | — |
-| PRF-14 | Per-module error boundaries; twice-failed module stays down with a note | A | P1 |
-| PRF-15 | Companion: optimistic UI, virtualised lists, no re-render storms | P | P1 |
-| PRF-16 | Published one-source-vs-many benchmark, re-run in CI | A | P1 |
-| PRF-17 | Bounded-data rule (§12.7) enforced per surface: dashboard summary-first and virtualised, tip page first-paint-only, overlay bounded queue, widgets server-aggregated and capped | A | **P0** |
-| PRF-18 | Exports run as background jobs, never by rendering rows into a page | A | P1 |
-| PRF-19 | Field projections and strict payload caps on every endpoint — no `select *` behind a live surface | A | P1 |
-| WMK-01 | Watermark as a protected top layer rendered after every module, outside the module system and its error boundaries | A | **P0** |
-| WMK-02 | Reserved safe-zone corner the Canvas editor refuses to place modules over | A | **P0** |
-| WMK-03 | Watermark on a standalone widget only when it is the channel's only active overlay source | A | P1 |
-| WMK-04 | Tip-page attribution line on Free only (MKT-05) | A | P1 |
-| WMK-05 | Zero **marketing attribution** on every paid tier, everywhere — overlay, tip page, end-cards, QR, TTS, and every promotional line in mail. The **narrow legal and transactional issuer-identity carve-out in §30.6.4** is the one exception and is not branding. *Corrected 2026-09-14 — this row previously said zero branding on receipts and emails, contradicting §30.6.4.* | A | **P0** |
-| WMK-06 | Branding never injected mid-stream on lapse; Free fallback mark appears only on the next clean overlay reload after pause | A | **P0** |
-| WMK-07 | No external-layer detection, scene inspection or covering-check telemetry — ever | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| PRF-01 | CI-enforced budgets (§19.4) — **cannot pass until RT-06 exists**; averages cannot falsify a p99 | v1 | A | P0 |
+| PRF-02 | Master Canvas as the runtime: single connection, single rAF loop, modules as pure renderers. **Absent — so "one source replaces twelve" is unmarketable until it lands** | v1 | A | P0 |
+| PRF-03 | Composite-only animation; no layout-triggering properties | v1 | P | P0 |
+| PRF-04 | Bounded DOM with recycling; flat node count over 8 hours | v1 | A | P0 |
+| PRF-05 | Idle modules fully unsubscribed | v1 | A | P0 |
+| PRF-06 | Server-side sampling and rate limiting for reactions and chat | v1 | A | P0 |
+| PRF-07 | Burst coalescing on long-gap replay | v1 | A | P1 |
+| PRF-08 | Read-through cache for derived aggregates, invalidated by event, never a stored counter | v1·G | A | P0 |
+| PRF-09 | `DATABASE_URL_DIRECT` for the overlay listener | v1 | P | P0 |
+| PRF-10 | Universal cursor pagination with bounded pages | v1 | P | P1 |
+| PRF-11 | Index coverage for every widget-backing query | v1 | P | P0 |
+| PRF-12 | Asset budgets: Lottie complexity, audio length, server-side image pre-scaling | v1 | A | P1 |
+| PRF-13 | No third-party scripts in the overlay | v1 | U | — |
+| PRF-14 | Per-module error boundaries; twice-failed module stays down with a note | v1 | A | P1 |
+| PRF-15 | Companion: optimistic UI, virtualised lists, no re-render storms | v1 | P | P1 |
+| PRF-16 | Published one-source-vs-many benchmark, re-run in CI | v1 | A | P1 |
+| PRF-17 | Bounded-data rule (§12.7) enforced per surface: dashboard summary-first and virtualised, tip page first-paint-only, overlay bounded queue, widgets server-aggregated and capped | v1 | A | **P0** |
+| PRF-18 | Exports run as background jobs, never by rendering rows into a page | v1 | A | P1 |
+| PRF-19 | Field projections and strict payload caps on every endpoint — no `select *` behind a live surface | v1 | A | P1 |
+| WMK-01 | Watermark as a protected top layer rendered after every module, outside the module system and its error boundaries | v1 | A | **P0** |
+| WMK-02 | Reserved safe-zone corner the Canvas editor refuses to place modules over | v1 | A | **P0** |
+| WMK-03 | Watermark on a standalone widget only when it is the channel's only active overlay source | v1 | A | P1 |
+| WMK-04 | Tip-page attribution line on Free only (MKT-05) | v1 | A | P1 |
+| WMK-05 | Zero **marketing attribution** on every paid tier, everywhere — overlay, tip page, end-cards, QR, TTS, and every promotional line in mail. The **narrow legal and transactional issuer-identity carve-out in §30.6.4** is the one exception and is not branding. *Corrected 2026-09-14 — this row previously said zero branding on receipts and emails, contradicting §30.6.4.* | v1·G | A | **P0** |
+| WMK-06 | Branding never injected mid-stream on lapse; Free fallback mark appears only on the next clean overlay reload after pause | v1 | A | **P0** |
+| WMK-07 | No external-layer detection, scene inspection or covering-check telemetry — ever | N | N | — |
 
 ### 31.19 Control plane and admin
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| CTL-01 | Capability registry table with versioned, audited rows | A | **P0** |
-| CTL-02 | Resolution order engine (kill → denylist → rollout → tier → override) | A | **P0** |
-| CTL-03 | Per-channel resolved blob, versioned and cached; never per-capability queries | A | P0 |
-| CTL-04 | Admin UI: master switch, retier, edit limits, kill | A | P0 |
-| CTL-05 | Impact preview ("affects 214 channels, 3 live") | A | P1 |
-| CTL-06 | Staged effective-time changes | A | P1 |
-| CTL-07 | Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents | A | P1 |
-| CTL-08 | One-action revert to previous version | A | P1 |
-| CTL-09 | Layer 1 correctness dimensions rejected from this panel | A | P0 |
-| CTL-14 | **Registry rejects any capability whose subject is a durable creator record (§12.6)** — no row may be created that gates storing, viewing, searching, fetching or exporting one. Enforced in the registry, not by review | A | **P0** |
-| CTL-15 | Retention is a single platform-wide value, not a per-tier limit; the schema offers no per-tier retention field to set | A | **P0** |
-| CTL-10 | `GET /v1/public/capability-matrix` published snapshot | A | P0 |
-| CTL-11 | Marketing build reads the snapshot; webhook revalidation | A | P0 |
-| CTL-12 | Marketing sections behind flags (`kind = marketing_section`) | A | P1 |
-| CTL-13 | Admin MFA + durable admin registry (ADM-07 dependency) | A | P0 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| CTL-01 | Capability registry table with versioned, audited rows | v1 | A | **P0** |
+| CTL-02 | Resolution order engine (kill → denylist → rollout → tier → override) | v1 | A | **P0** |
+| CTL-03 | Per-channel resolved blob, versioned and cached; never per-capability queries | v1 | A | P0 |
+| CTL-04 | Admin UI: master switch, retier, edit limits, kill | v1 | A | P0 |
+| CTL-05 | Impact preview ("affects 214 channels, 3 live") | v1 | A | P1 |
+| CTL-06 | Staged effective-time changes | v1 | A | P1 |
+| CTL-07 | Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents | v1 | A | P1 |
+| CTL-08 | One-action revert to previous version | v1 | A | P1 |
+| CTL-09 | Layer 1 correctness dimensions rejected from this panel | v1 | A | P0 |
+| CTL-14 | **Registry rejects any capability whose subject is a durable creator record (§12.6)** — no row may be created that gates storing, viewing, searching, fetching or exporting one. Enforced in the registry, not by review | v1 | A | **P0** |
+| CTL-15 | Retention is a single platform-wide value, not a per-tier limit; the schema offers no per-tier retention field to set | v1 | A | **P0** |
+| CTL-10 | `GET /v1/public/capability-matrix` published snapshot | v1 | A | P0 |
+| CTL-11 | Marketing build reads the snapshot; webhook revalidation | v1 | A | P0 |
+| CTL-12 | Marketing sections behind flags (`kind = marketing_section`) | v1 | A | P1 |
+| CTL-13 | Admin MFA + durable admin registry (ADM-07 dependency) | v1 | A | P0 |
 
 ### 31.20 New widgets
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| WID-01 | Companion tap source (+1 win / +1 loss) | A | P1 |
-| WID-02 | Lobby/tournament auto-fill of results | A | P2 |
-| WID-03 | Wins This Season, Session Record, Win Streak | A | P1 |
-| WID-04 | Personal Best, Rank Progress, Season Objective | A | P2 |
-| WID-05 | Head-to-Head, Scoreboard | A | P2 |
-| WID-06 | Match Countdown, Tournament Standings, Squad Roster | A | P2 |
-| WID-07 | Hours Streamed, Milestone Ticker, Top Clip, Recap Card | A | P2 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| WID-01 | Companion tap source (+1 win / +1 loss) | v1 | A | P1 |
+| WID-02 | Lobby/tournament auto-fill of results | v1 | A | P2 |
+| WID-03 | Wins This Season, Session Record, Win Streak | v1 | A | P1 |
+| WID-04 | Personal Best, Rank Progress, Season Objective | v1 | A | P2 |
+| WID-05 | Head-to-Head, Scoreboard | v1 | A | P2 |
+| WID-06 | Match Countdown, Tournament Standings, Squad Roster | v1 | A | P2 |
+| WID-07 | Hours Streamed, Milestone Ticker, Top Clip, Recap Card | v1 | A | P2 |
 
 ### 31.21 Co-Stream Room
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| COS-01 | Room create, explicit mutual accept, short-lived grants | A | P1 |
-| COS-02 | Public `/live/collab/<id>` page with two IFrame players | A | P1 |
-| COS-03 | Eight layout modes | A | P1 |
-| COS-04 | Switch Window with published range, countdown, override | A | P2 |
-| COS-05 | One audio source at a time, viewer-switchable | A | P1 |
-| COS-06 | Shared event rail, timer, scorecard | A | P1 |
-| COS-07 | Side-assigned supporter alerts | A | P1 |
-| COS-08 | Chat tabs per creator | A | P2 |
-| COS-09 | Companion control room incl. one-tap safe layout | A | P1 |
-| COS-10 | OBS collaboration overlay scene export | A | P2 |
-| COS-11 | Contribution selector (A / B / shared goal) | A | P1 |
-| COS-12 | Instant revoke; page degrades to single or ended state | A | P1 |
-| COS-13 | Explicit "feeds are not frame-synced" UI treatment | A | P1 |
-| COS-14 | Clip handoff consent | A | P2 |
-| COS-15 | Silent payment splitting | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| COS-01 | Room create, explicit mutual accept, short-lived grants | P3 | A | P1 |
+| COS-02 | Public `/live/collab/<id>` page with two IFrame players | P3 | A | P1 |
+| COS-03 | Eight layout modes | P3 | A | P1 |
+| COS-04 | Switch Window with published range, countdown, override | P3 | A | P2 |
+| COS-05 | One audio source at a time, viewer-switchable | P3 | A | P1 |
+| COS-06 | Shared event rail, timer, scorecard | P3 | A | P1 |
+| COS-07 | Side-assigned supporter alerts | P3 | A | P1 |
+| COS-08 | Chat tabs per creator | P3 | A | P2 |
+| COS-09 | Companion control room incl. one-tap safe layout | P3 | A | P1 |
+| COS-10 | OBS collaboration overlay scene export | P3 | A | P2 |
+| COS-11 | Contribution selector (A / B / shared goal) | P3 | A | P1 |
+| COS-12 | Instant revoke; page degrades to single or ended state | P3 | A | P1 |
+| COS-13 | Explicit "feeds are not frame-synced" UI treatment | P3 | A | P1 |
+| COS-14 | Clip handoff consent | P3 | A | P2 |
+| COS-15 | Silent payment splitting | N | N | — |
 
 ### 31.22 Sound Moments and Rules Engine
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| SND-01 | Moment = sound + animation + sticker + TTS style + effect, creator-curated | A | P1 |
-| SND-02 | Amount-tiered moment catalogue | A | P1 |
-| SND-03 | Loudness normalisation and duration caps | A | P1 |
-| SND-04 | Per-sound, per-viewer, stream-wide cooldowns | A | P1 |
-| SND-05 | Themed packs incl. Indic and festival | A | P2 |
-| SND-06 | Companion mute / skip / pause / emergency safe mode | P | P1 |
-| SND-07 | No remote URL execution in the overlay | A | P0 |
-| RUL-01 | Rules engine: thresholds, modes, cooldowns, caps, priority, approval | A | P1 |
-| RUL-02 | Never-interrupt-gameplay mode | A | P1 |
-| RUL-03 | Overlay-offline hold-and-replay | P | P1 |
-| SEC-01 | Short-lived signed overlay capabilities with renewal | A | **P0** |
-| SEC-02 | Session/device binding where practical | A | P1 |
-| SEC-03 | Scheduled rotation; never in screenshots, logs or tickets | P | P1 |
-| MIG-01 | Shadow mode with a migration report (delivered, missed, latency, unsupported) | A | P1 |
-| MIG-02 | Test/sandbox mode that never reaches viewers | A | P1 |
-| MIG-03 | Global emergency-disable button | A | P0 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| SND-01 | Moment = sound + animation + sticker + TTS style + effect, creator-curated | v1 | A | P1 |
+| SND-02 | Amount-tiered moment catalogue | v1 | A | P1 |
+| SND-03 | Loudness normalisation and duration caps | v1 | A | P1 |
+| SND-04 | Per-sound, per-viewer, stream-wide cooldowns | v1 | A | P1 |
+| SND-05 | Themed packs incl. Indic and festival | v1 | A | P2 |
+| SND-06 | Companion mute / skip / pause / emergency safe mode | v1 | P | P1 |
+| SND-07 | No remote URL execution in the overlay | v1 | A | P0 |
+| RUL-01 | Rules engine: thresholds, modes, cooldowns, caps, priority, approval | v1 | A | P1 |
+| RUL-02 | Never-interrupt-gameplay mode | v1 | A | P1 |
+| RUL-03 | Overlay-offline hold-and-replay | v1 | P | P1 |
+| SEC-01 | Short-lived signed overlay capabilities with renewal | v1 | A | **P0** |
+| SEC-02 | Session/device binding where practical | v1 | A | P1 |
+| SEC-03 | Scheduled rotation; never in screenshots, logs or tickets | v1 | P | P1 |
+| MIG-01 | Shadow mode with a migration report (delivered, missed, latency, unsupported) | v1 | A | P1 |
+| MIG-02 | Test/sandbox mode that never reaches viewers | v1 | A | P1 |
+| MIG-03 | Global emergency-disable button | v1 | A | P0 |
 
 ### 31.23 Enterprise
 
@@ -5142,187 +5147,187 @@ outbound webhooks, finance/audit exports, SLA support.
 
 ### 31.24 Payment routing
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| RTE-01 | Routing abstraction: a route is a signal source, not a rail | A | P1 |
-| RTE-02 | Health-state machine (active / degraded / paused / direct available) | A | P1 |
-| RTE-03 | `routed_signal_received → alert_queued → alert_delivered` state class, distinct from `verified_payment` | A | P1 |
-| RTE-04 | Capability restrictions in routing mode (§25.3) enforced server-side | A | P1 |
-| RTE-05 | Per-provider kill switch with confidence threshold | A | P1 |
-| RTE-06 | Explicit in-product acceptance of the Beta terms on enabling a route | A | P1 |
-| RTE-07 | Duplicate/false-signal detection disabling auto-alerts | A | P1 |
-| RTE-08 | Migration prompt when a Direct integration becomes available | A | P2 |
-| RTE-09 | Paytm Business route — **Gated on §25.6 signal mechanism** | B | P2 |
-| RTE-10 | Google Pay Business route (assisted activation) — **Gated on §25.6** | B | P3 |
-| RTE-11 | PhonePe Supervisor route — **Consent-gated on C1–C7** | B | P2 |
-| RTE-12 | HDFC Cashier route — **Consent-gated on C1–C7** | B | P2 |
-| RTE-13 | Amazon Pay consumer-credential route | N | — |
-| RTE-14 | Generic QR fallback / "mark as paid" | N | — |
-| RTE-15 | Consent flow: explicit, unbundled, revocable, re-confirmed on scope change | A | P2 |
-| RTE-16 | KMS/HSM envelope encryption for any delegated secret, no human read path | A | P2 |
-| RTE-17 | Credential-compromise incident procedure, rehearsed | A | P2 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| RTE-01 | Routing abstraction: a route is a signal source, not a rail | R | A | P1 |
+| RTE-02 | Health-state machine (active / degraded / paused / direct available) | R | A | P1 |
+| RTE-03 | `routed_signal_received → alert_queued → alert_delivered` state class, distinct from `verified_payment` | R | A | P1 |
+| RTE-04 | Capability restrictions in routing mode (§25.3) enforced server-side | R | A | P1 |
+| RTE-05 | Per-provider kill switch with confidence threshold | R | A | P1 |
+| RTE-06 | Explicit in-product acceptance of the Beta terms on enabling a route | R | A | P1 |
+| RTE-07 | Duplicate/false-signal detection disabling auto-alerts | R | A | P1 |
+| RTE-08 | Migration prompt when a Direct integration becomes available | R | A | P2 |
+| RTE-09 | Paytm Business route — **Gated on §25.6 signal mechanism** | R | B | P2 |
+| RTE-10 | Google Pay Business route (assisted activation) — **Gated on §25.6** | R | B | P3 |
+| RTE-11 | PhonePe Supervisor route — **Consent-gated on C1–C7** | R | B | P2 |
+| RTE-12 | HDFC Cashier route — **Consent-gated on C1–C7** | R | B | P2 |
+| RTE-13 | Amazon Pay consumer-credential route | N | N | — |
+| RTE-14 | Generic QR fallback / "mark as paid" | N | N | — |
+| RTE-15 | Consent flow: explicit, unbundled, revocable, re-confirmed on scope change | R | A | P2 |
+| RTE-16 | KMS/HSM envelope encryption for any delegated secret, no human read path | R | A | P2 |
+| RTE-17 | Credential-compromise incident procedure, rehearsed | R | A | P2 |
 
 ### 31.25 Subscription lifecycle
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| LIF-01 | Five-state lifecycle (active / grace 14d / paused / retained 90d / expired) | A | P1 |
-| LIF-02 | Grace-period notices in dashboard and Companion, never on stream | A | P1 |
-| LIF-03 | Paused: connectors stop, configuration read-only, nothing deleted | A | P1 |
-| LIF-04 | Retained 90d applies to **encrypted connector secrets only**; configuration, mappings, templates and durable records persist under the uniform retention policy (§12.6.2) and stay exportable | A | P1 |
-| LIF-05 | Expired: credential revocation and paid-only secret deletion, after repeated notice | A | P1 |
-| LIF-06 | Overlay quiet safe state — no payment wall, no on-stream branding change | A | **P1** |
-| LIF-07 | Never-charged-for list enforced (receipts, exports, recovery, disconnect, security) — and the full §12.6 durable-record set in every lifecycle state including Expired | A | P1 |
-| LIF-08 | Renewal restores configuration without reconnecting, unless the token expired | A | P1 |
-| LIF-09 | Desktop bridge caches a signed entitlement for 24h | A | P2 |
-| LIF-10 | Free and native behaviour independent of subscription and Platform status | P | P0 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| LIF-01 | Five-state lifecycle (active / grace 14d / paused / retained 90d / expired) | v1 | A | P1 |
+| LIF-02 | Grace-period notices in dashboard and Companion, never on stream | v1 | A | P1 |
+| LIF-03 | Paused: connectors stop, configuration read-only, nothing deleted | v1 | A | P1 |
+| LIF-04 | Retained 90d applies to **encrypted connector secrets only**; configuration, mappings, templates and durable records persist under the uniform retention policy (§12.6.2) and stay exportable | v1 | A | P1 |
+| LIF-05 | Expired: credential revocation and paid-only secret deletion, after repeated notice | v1 | A | P1 |
+| LIF-06 | Overlay quiet safe state — no payment wall, no on-stream branding change | v1 | A | **P1** |
+| LIF-07 | Never-charged-for list enforced (receipts, exports, recovery, disconnect, security) — and the full §12.6 durable-record set in every lifecycle state including Expired | v1 | A | P1 |
+| LIF-08 | Renewal restores configuration without reconnecting, unless the token expired | v1·G | A | P1 |
+| LIF-09 | Desktop bridge caches a signed entitlement for 24h | v1 | A | P2 |
+| LIF-10 | Free and native behaviour independent of subscription and Platform status | v1 | P | P0 |
 
 ### 31.26 Social Relay
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| SOC-01 | Event model: 8 relayable event types, approve-then-send default | A | P2 |
-| SOC-02 | Per-destination queue with cooldown; never send-per-event | A | P2 |
-| SOC-03 | Obey returned rate-limit headers (Discord) rather than hard-coded limits | A | P2 |
-| SOC-04 | Health states per destination, mirroring §25.2 | A | P2 |
-| SOC-05 | Discord webhook + rich embeds + bot commands | A | P2 |
-| SOC-06 | YouTube: broadcast metadata, chat announcements, polls, pinned moments | A | P2 |
-| SOC-07 | YouTube post-stream wrap with timestamps | A | P2 |
-| SOC-08 | Instagram: Reels/feed publish, clip-to-Reel draft, comment inbox | A | P3 |
-| SOC-09 | WhatsApp: opt-in, approved templates, 24h window respected, template cost shown | A | P3 |
-| SOC-10 | Twitch EventSub + Channel Point mapping | A | P3 |
-| SOC-11 | Kick OAuth 2.1 connector within granted scopes | A | P3 |
-| SOC-12 | Snapchat Creative Kit hand-off, creator taps final share | A | P3 |
-| SOC-13 | Telegram bot channel alerts | A | P3 |
-| SOC-14 | Upload-forced-private disclosure until Google audits the project | A | P2 |
-| SOC-15 | Lapse: manual share kept, auto-send stopped, no message to the audience | A | P2 |
-| SOC-16 | Auto-posting every tip/follower/alert anywhere | N | — |
-| SOC-17 | YouTube Community posts, IG personal accounts, unsolicited DMs, WhatsApp groups, Snapchat background posting | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| SOC-01 | Event model: 8 relayable event types, approve-then-send default | P3 | A | P2 |
+| SOC-02 | Per-destination queue with cooldown; never send-per-event | P3 | A | P2 |
+| SOC-03 | Obey returned rate-limit headers (Discord) rather than hard-coded limits | P3 | A | P2 |
+| SOC-04 | Health states per destination, mirroring §25.2 | P3 | A | P2 |
+| SOC-05 | Discord webhook + rich embeds + bot commands | P3 | A | P2 |
+| SOC-06 | YouTube: broadcast metadata, chat announcements, polls, pinned moments | P3 | A | P2 |
+| SOC-07 | YouTube post-stream wrap with timestamps | P3 | A | P2 |
+| SOC-08 | Instagram: Reels/feed publish, clip-to-Reel draft, comment inbox | P3 | A | P3 |
+| SOC-09 | WhatsApp: opt-in, approved templates, 24h window respected, template cost shown | P3 | A | P3 |
+| SOC-10 | Twitch EventSub + Channel Point mapping | P3 | A | P3 |
+| SOC-11 | Kick OAuth 2.1 connector within granted scopes | P3·G | A | P3 |
+| SOC-12 | Snapchat Creative Kit hand-off, creator taps final share | P3 | A | P3 |
+| SOC-13 | Telegram bot channel alerts | P3 | A | P3 |
+| SOC-14 | Upload-forced-private disclosure until Google audits the project | P3·G | A | P2 |
+| SOC-15 | Lapse: manual share kept, auto-send stopped, no message to the audience | P3 | A | P2 |
+| SOC-16 | Auto-posting every tip/follower/alert anywhere | N | N | — |
+| SOC-17 | YouTube Community posts, IG personal accounts, unsolicited DMs, WhatsApp groups, Snapchat background posting | N | N | — |
 
 ### 31.27 Packs and creator-ops
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| PCK-01 | Pack as a capability-registry row, additive, lifecycle-aware | A | P2 |
-| PCK-02 | AI Credits pack — ₹49/₹149/₹399, paid tiers only. Ships once the **measured** cost model exists; the ledger half is in `0081` | A | P1 |
-| PCK-03 | Socials Pack — ₹129/mo, Creator+. Target initial set, but cannot precede Social Relay (Phase 7) | A | P2 |
-| PCK-04 | Events Pack — ₹129/mo, Creator+. Hidden until lobby/tournament features exist | A | P2 |
-| PCK-05 | Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) | A | P2 |
-| PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **Nearest to ready**; needs MED-13/AUD-10 enforcement first | A | P2 |
-| PCK-07 | Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists | A | P2 |
-| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. Target initial set, but **last of the four to be ready**: blocked on the tenant-isolation suite (§37.6). The ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.3) | A | P3 |
-| PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation. Hidden until the CA/tax evidence row closes; sells the *prepared statement*, never access to the underlying records | A | **P1** |
-| PCK-10 | Pack attach-rate reporting to inform future tier composition | A | P3 |
-| PCK-11 | Hidden packs exist as registry rows so they become visible without a release | A | P2 |
-| PCK-12 | No pack, top-up or tier may sell retention, history depth, record search or export — enforced by CTL-14 | A | **P0** |
-| PCK-13 | Pack system launches with whatever is ready — arrival order Storage → AI Credits → Socials → Multi-Channel — not held for a fixed set of four | A | P2 |
-| PCK-14 | A lapsed pack pauses added capacity only; over-quota assets go read-only and stay viewable and exportable | A | P2 |
-| PCK-15 | Multi-Channel Pack blocked until the §37.6 tenant-isolation suite passes | A | P3 |
-| JOB-01 | Content calendar + public schedule page with notify-me | A | P2 |
-| JOB-02 | Consistency view: streak, hours, rest days framed kindly | A | P3 |
-| JOB-03 | Sponsor deliverable tracker with proof | A | P2 |
-| JOB-04 | Clip request queue | A | P3 |
-| JOB-05 | Clip-to-social pipeline ending in a draft, never auto-post | A | P3 |
-| JOB-06 | Title/thumbnail performance against our own stream records | A | P3 |
-| JOB-07 | Shareable gear/setup profile | A | P3 |
-| JOB-08 | Collab record | A | P3 |
-| JOB-09 | Community FAQ auto-answers in chat | A | P3 |
-| JOB-10 | Editor payouts / staff revenue splitting | N | — |
-| JOB-11 | Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| PCK-01 | Pack as a capability-registry row, additive, lifecycle-aware | P3 | A | P2 |
+| PCK-02 | AI Credits pack — ₹49/₹149/₹399, paid tiers only. Ships once the **measured** cost model exists; the ledger half is in `0081` | P3 | A | P1 |
+| PCK-03 | Socials Pack — ₹129/mo, Creator+. Target initial set, but cannot precede Social Relay (Phase 7) | P3 | A | P2 |
+| PCK-04 | Events Pack — ₹129/mo, Creator+. Hidden until lobby/tournament features exist | P3 | A | P2 |
+| PCK-05 | Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) | P3 | A | P2 |
+| PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **Nearest to ready**; needs MED-13/AUD-10 enforcement first | P3 | A | P2 |
+| PCK-07 | Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists | P3 | A | P2 |
+| PCK-08 | Multi-Channel Pack — ₹199/mo per added channel, Creator+. Target initial set, but **last of the four to be ready**: blocked on the tenant-isolation suite (§37.6). The ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.3) | P3 | A | P3 |
+| PCK-09 | **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation. Hidden until the CA/tax evidence row closes; sells the *prepared statement*, never access to the underlying records | P3·G | A | **P1** |
+| PCK-10 | Pack attach-rate reporting to inform future tier composition | P3 | A | P3 |
+| PCK-11 | Hidden packs exist as registry rows so they become visible without a release | P3 | A | P2 |
+| PCK-12 | No pack, top-up or tier may sell retention, history depth, record search or export — enforced by CTL-14 | P3 | A | **P0** |
+| PCK-13 | Pack system launches with whatever is ready — arrival order Storage → AI Credits → Socials → Multi-Channel — not held for a fixed set of four | P3 | A | P2 |
+| PCK-14 | A lapsed pack pauses added capacity only; over-quota assets go read-only and stay viewable and exportable | P3·G | A | P2 |
+| PCK-15 | Multi-Channel Pack blocked until the §37.6 tenant-isolation suite passes | P3 | A | P3 |
+| JOB-01 | Content calendar + public schedule page with notify-me | P3 | A | P2 |
+| JOB-02 | Consistency view: streak, hours, rest days framed kindly | P3 | A | P3 |
+| JOB-03 | Sponsor deliverable tracker with proof | P3 | A | P2 |
+| JOB-04 | Clip request queue | P3 | A | P3 |
+| JOB-05 | Clip-to-social pipeline ending in a draft, never auto-post | P3 | A | P3 |
+| JOB-06 | Title/thumbnail performance against our own stream records | P3 | A | P3 |
+| JOB-07 | Shareable gear/setup profile | P3 | A | P3 |
+| JOB-08 | Collab record | P3 | A | P3 |
+| JOB-09 | Community FAQ auto-answers in chat | P3 | A | P3 |
+| JOB-10 | Editor payouts / staff revenue splitting | N | N | — |
+| JOB-11 | Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio | N | N | — |
 
 ### 31.28 Interop, packages and bridges (§9)
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| INT-01 | **Declarative Canvas Package format** — signed, versioned, runtime-pinned; no JS, no network fetch, no external font or asset URL, no executing CSS, no runtime-reaching expressions | A | P2 |
-| INT-02 | Package validator and signature verification at import and at render | A | P2 |
-| INT-03 | Allowed-animation set — animations are chosen, never authored as code | A | P2 |
-| INT-04 | First-party curated package library authored by us | A | P2 |
-| INT-05 | Private creator packages, tenant-scoped, never shown to another creator | A | P2 |
-| INT-06 | Asset import (SVG, PNG, WebP, audio, video, Lottie) on the §18.3 gate: attestation, quarantine, scan, provenance, takedown | A | P2 |
-| INT-07 | Transcode, normalise and pre-scale on import; content-addressed tenant-scoped storage (§19.1) | A | P2 |
-| INT-08 | Migration wizard: inventory → map → side-by-side preview and diff → publish on approval → reversible | A | P2 |
-| INT-09 | Unmapped items named explicitly; an uncertain mapping shown as uncertain | A | P2 |
-| INT-10 | Connector outbox per destination: queue, backoff, dead-letter, kill switch, idempotency key, redacted delivery log | A | P2 |
-| INT-11 | A bridge failure never delays, cancels, duplicates or alters a BharatStudio alert | A | **P0 rule, P2 build** |
-| INT-12 | Streamlabs bridge — **selected low-frequency event types only**, rate-limited and coalesced below the documented ~2/min guidance, labelled a transition tool | A | P3 |
-| INT-13 | Streamer.bot local adapter in the Companion helper: `localhost` only, explicit pairing, creator-chosen action allow-list | A | P3 |
-| INT-14 | SAMMI local adapter, same shape | A | P3 |
-| INT-15 | Mix It Up local adapter, same shape | A | P3 |
-| INT-16 | StreamElements configuration migration only | A | P3 |
-| INT-17 | StreamElements event bridge — **gate:** confirmed API/partner position | B | — |
-| INT-18 | Third-party paid marketplace publishing — **gate:** author payouts, GST on third-party digital goods, content review at scale, takedown and dispute handling, defensible "verified" badge | B | — |
-| INT-19 | Never embed a third-party browser-source URL, HTML, JS, CSS or iframe in the Canvas — enforced by the package validator, not by review | A | **P0** |
-| INT-20 | Never scrape a competitor dashboard, import a browser-source secret, or execute copied widget code | N | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| INT-01 | **Declarative Canvas Package format** — signed, versioned, runtime-pinned; no JS, no network fetch, no external font or asset URL, no executing CSS, no runtime-reaching expressions | P2 | A | P2 |
+| INT-02 | Package validator and signature verification at import and at render | P2·G | A | P2 |
+| INT-03 | Allowed-animation set — animations are chosen, never authored as code | P2 | A | P2 |
+| INT-04 | First-party curated package library authored by us | P2 | A | P2 |
+| INT-05 | Private creator packages, tenant-scoped, never shown to another creator | P2 | A | P2 |
+| INT-06 | Asset import (SVG, PNG, WebP, audio, video, Lottie) on the §18.3 gate: attestation, quarantine, scan, provenance, takedown | P2 | A | P2 |
+| INT-07 | Transcode, normalise and pre-scale on import; content-addressed tenant-scoped storage (§19.1) | P2 | A | P2 |
+| INT-08 | Migration wizard: inventory → map → side-by-side preview and diff → publish on approval → reversible | P2 | A | P2 |
+| INT-09 | Unmapped items named explicitly; an uncertain mapping shown as uncertain | P2 | A | P2 |
+| INT-10 | Connector outbox per destination: queue, backoff, dead-letter, kill switch, idempotency key, redacted delivery log | P2 | A | P2 |
+| INT-11 | A bridge failure never delays, cancels, duplicates or alters a BharatStudio alert | P2 | A | **P0 rule, P2 build** |
+| INT-12 | Streamlabs bridge — **selected low-frequency event types only**, rate-limited and coalesced below the documented ~2/min guidance, labelled a transition tool | P2 | A | P3 |
+| INT-13 | Streamer.bot local adapter in the Companion helper: `localhost` only, explicit pairing, creator-chosen action allow-list | P2 | A | P3 |
+| INT-14 | SAMMI local adapter, same shape | P2 | A | P3 |
+| INT-15 | Mix It Up local adapter, same shape | P2 | A | P3 |
+| INT-16 | StreamElements configuration migration only | P2 | A | P3 |
+| INT-17 | StreamElements event bridge — **gate:** confirmed API/partner position | R | B | — |
+| INT-18 | Third-party paid marketplace publishing — **gate:** author payouts, GST on third-party digital goods, content review at scale, takedown and dispute handling, defensible "verified" badge | R | B | — |
+| INT-19 | Never embed a third-party browser-source URL, HTML, JS, CSS or iframe in the Canvas — enforced by the package validator, not by review | P2 | A | **P0** |
+| INT-20 | Never scrape a competitor dashboard, import a browser-source secret, or execute copied widget code | N | N | — |
 
 ### 31.29 Customisation depth by tier (§15.4)
 
 *IDs use the **CST-** prefix. §31.14 already owns **CUS-** for the gating model (four switches, locked-capability display, downgrade preservation); these are a different concern and must not share a namespace.*
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| CST-01 | Three-level model (0 presets / 1 safe presentation / 2 advanced / 3 brand and team) as registry rows, retierable without a release | A | P1 |
-| CST-02 | **Protected string class enforced by the customisation system** — payment, legal, consent, security and error text are never exposed for override | A | **P0** |
-| CST-03 | Overlay level 1: free colour, our fonts, position and anchor, show/hide, z-order, opacity, radius, animation, reduced-motion variant, performance mode | A | P1 |
-| CST-04 | Amount / name / message rendering controls incl. hidden amounts and bracket-name-only | A | P1 |
-| CST-05 | **Indic script fallback order per text role** | A | P1 |
-| CST-06 | Overlay level 2: font per role, per-bracket and per-source styling, burst behaviour, do-not-interrupt windows | A | P2 |
-| CST-07 | Per-scene-profile placement and theming; overlay theme follows the OBS scene | A | P2 |
-| CST-08 | Per-aspect-ratio variants (16:9 / 9:16 / 4:3) of one canvas | A | P2 |
-| CST-09 | **Conditional themes** — festival date ranges, time of day | A | P2 |
-| CST-10 | **Sponsor-safe mode** — swap to a neutral theme for a segment and back | A | P2 |
-| CST-11 | **Adversarial preview** — long Indic name, 500-char message, emoji flood | A | P1 |
-| CST-12 | **Brand kit** — palette, type, logo saved once, applied across every surface | A | P3 |
-| CST-13 | Multi-surface templates and package authoring with team approval | A | P3 |
-| CST-14 | Tip page level 1: cover image, avatar shape, tagline, lane order, labelled amount presets, privacy display | A | P1 |
-| CST-15 | Tip page level 2: message settings, pack selection, event layouts, campaign and referral pages, multilingual copy sets | A | P2 |
-| CST-16 | Tip page level 3: full theme with background media, multiple campaign pages with own goal, copy, countdown and schedule | A | P3 |
-| CST-17 | Per-page OG image, title and description | A | P2 |
-| CST-18 | Dashboard: theme, accent, density, landing tab, notification and locale preferences | A | P1 |
-| CST-19 | Dashboard: pinned cards, **named saved views**, saved export column sets, shortcut map | A | P2 |
-| CST-20 | Dashboard: logo and brand accent, per-role default views. **No background images at any tier** | A | P3 |
-| CST-21 | Moderator **preferences** — layout, columns, density, quick-action order | A | P2 |
-| CST-22 | Moderator **policies** — blocked terms per language, link allow/deny, auto-hold, escalation, canned responses, handover notes | A | P2 |
-| CST-23 | Team-managed policy libraries, approval workflows, centrally set moderator layouts | A | P3 |
-| CST-24 | **Permission classes are never customisable** — presets and libraries only inside owner/admin/operator/moderator/viewer | A | **P0 rule** |
-| CST-25 | Companion: top-strip stats, health signals shown, saved deck presets | A | P2 |
-| CST-26 | Companion accessibility at level 0 — one-hand mode, colour-blind palette, haptics, language override | A | P1 |
-| CST-27 | Companion team decks pushed to every operator | A | P3 |
-| CST-28 | Receipts and transactional mail: creator logo, accent, thank-you copy per language, reply-to, brand kit — inside §30.6.4 | A | P2 |
-| CST-29 | No customisation increases what a live surface loads (§12.7); themes are data the renderer already holds | A | **P0 rule** |
-| CST-30 | Every theme passes contrast and +40% text-expansion checks (§37.7) — a failing theme is a defect, not a taste question | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| CST-01 | Three-level model (0 presets / 1 safe presentation / 2 advanced / 3 brand and team) as registry rows, retierable without a release | P2 | A | P1 |
+| CST-02 | **Protected string class enforced by the customisation system** — payment, legal, consent, security and error text are never exposed for override | P2·G | A | **P0** |
+| CST-03 | Overlay level 1: free colour, our fonts, position and anchor, show/hide, z-order, opacity, radius, animation, reduced-motion variant, performance mode | P2 | A | P1 |
+| CST-04 | Amount / name / message rendering controls incl. hidden amounts and bracket-name-only | P2 | A | P1 |
+| CST-05 | **Indic script fallback order per text role** | P2 | A | P1 |
+| CST-06 | Overlay level 2: font per role, per-bracket and per-source styling, burst behaviour, do-not-interrupt windows | P2 | A | P2 |
+| CST-07 | Per-scene-profile placement and theming; overlay theme follows the OBS scene | P2 | A | P2 |
+| CST-08 | Per-aspect-ratio variants (16:9 / 9:16 / 4:3) of one canvas | P2 | A | P2 |
+| CST-09 | **Conditional themes** — festival date ranges, time of day | P2 | A | P2 |
+| CST-10 | **Sponsor-safe mode** — swap to a neutral theme for a segment and back | P2 | A | P2 |
+| CST-11 | **Adversarial preview** — long Indic name, 500-char message, emoji flood | P2 | A | P1 |
+| CST-12 | **Brand kit** — palette, type, logo saved once, applied across every surface | P2 | A | P3 |
+| CST-13 | Multi-surface templates and package authoring with team approval | P2 | A | P3 |
+| CST-14 | Tip page level 1: cover image, avatar shape, tagline, lane order, labelled amount presets, privacy display | P2·G | A | P1 |
+| CST-15 | Tip page level 2: message settings, pack selection, event layouts, campaign and referral pages, multilingual copy sets | P2 | A | P2 |
+| CST-16 | Tip page level 3: full theme with background media, multiple campaign pages with own goal, copy, countdown and schedule | P2 | A | P3 |
+| CST-17 | Per-page OG image, title and description | P2 | A | P2 |
+| CST-18 | Dashboard: theme, accent, density, landing tab, notification and locale preferences | P2 | A | P1 |
+| CST-19 | Dashboard: pinned cards, **named saved views**, saved export column sets, shortcut map | P2 | A | P2 |
+| CST-20 | Dashboard: logo and brand accent, per-role default views. **No background images at any tier** | P2 | A | P3 |
+| CST-21 | Moderator **preferences** — layout, columns, density, quick-action order | P2 | A | P2 |
+| CST-22 | Moderator **policies** — blocked terms per language, link allow/deny, auto-hold, escalation, canned responses, handover notes | P2·G | A | P2 |
+| CST-23 | Team-managed policy libraries, approval workflows, centrally set moderator layouts | P2 | A | P3 |
+| CST-24 | **Permission classes are never customisable** — presets and libraries only inside owner/admin/operator/moderator/viewer | P2 | A | **P0 rule** |
+| CST-25 | Companion: top-strip stats, health signals shown, saved deck presets | P2 | A | P2 |
+| CST-26 | Companion accessibility at level 0 — one-hand mode, colour-blind palette, haptics, language override | P2 | A | P1 |
+| CST-27 | Companion team decks pushed to every operator | P2 | A | P3 |
+| CST-28 | Receipts and transactional mail: creator logo, accent, thank-you copy per language, reply-to, brand kit — inside §30.6.4 | P2 | A | P2 |
+| CST-29 | No customisation increases what a live surface loads (§12.7); themes are data the renderer already holds | P2 | A | **P0 rule** |
+| CST-30 | Every theme passes contrast and +40% text-expansion checks (§37.7) — a failing theme is a defect, not a taste question | P2 | A | P1 |
 
 ### 31.30 BharatStudio Bot (§36)
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| BOT-01 | Command engine: names, aliases, cooldowns, role permissions | A | P2 |
-| BOT-02 | Scheduled and timed messages | A | P2 |
-| BOT-03 | Six-area UI and no more (Commands, Moderation, Automations, Languages, Connected channels, Import) | A | P2 |
-| BOT-04 | Deterministic multilingual aliases with Unicode and transliteration matching | A | P2 |
-| BOT-05 | Localised replies per channel or per the viewer's command language | A | P2 |
-| BOT-06 | Blocked-term lists by language including transliterated variants — **one corpus shared with §12.2 TTS safety, never a second list** | A | **P0 with TTS-06** |
-| BOT-07 | Deterministic spam, flood, repeated-text, emoji and link controls | A | P2 |
-| BOT-08 | Import wizard for simple commands from creator-supplied exports; honest "cannot import" table | A | P2 |
-| BOT-09 | Never import scripts, raw JS, shell commands, arbitrary HTTP calls or third-party credentials | N | — |
-| BOT-10 | Automation recipes from a narrow allow-list of actions | A | P3 |
-| BOT-11 | One event action at first release: command → overlay or Companion action | A | P2 |
-| BOT-12 | Rate-limited and coalesced writes; degrade to silence with a visible notice, never a delayed backlog dump | A | P2 |
-| BOT-13 | AI layer on §11 credits: translate, summarise, suggest, classify — **recommend or soft-action only** | A | P3 |
-| BOT-14 | AI audit record: original text, action, reason, confidence, policy version, appeal and reversal path | A | P3 |
-| BOT-15 | Moderation correctness untiered (§30.1); a Free creator's chat is not less safe | A | P2 |
-| BOT-16 | Bot UI languages follow the §5.6.2 waves; no separate language set | A | P2 |
-| BOT-17 | Blocked on the Google chat-write scope (`CON-08`, §32) and on YouTube being post-v1 | B | — |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| BOT-01 | Command engine: names, aliases, cooldowns, role permissions | P2 | A | P2 |
+| BOT-02 | Scheduled and timed messages | P2 | A | P2 |
+| BOT-03 | Six-area UI and no more (Commands, Moderation, Automations, Languages, Connected channels, Import) | P2 | A | P2 |
+| BOT-04 | Deterministic multilingual aliases with Unicode and transliteration matching | P2 | A | P2 |
+| BOT-05 | Localised replies per channel or per the viewer's command language | P2 | A | P2 |
+| BOT-06 | Blocked-term lists by language including transliterated variants — **one corpus shared with §12.2 TTS safety, never a second list** | P2 | A | **P0 with TTS-06** |
+| BOT-07 | Deterministic spam, flood, repeated-text, emoji and link controls | P2 | A | P2 |
+| BOT-08 | Import wizard for simple commands from creator-supplied exports; honest "cannot import" table | P2 | A | P2 |
+| BOT-09 | Never import scripts, raw JS, shell commands, arbitrary HTTP calls or third-party credentials | N | N | — |
+| BOT-10 | Automation recipes from a narrow allow-list of actions | P2 | A | P3 |
+| BOT-11 | One event action at first release: command → overlay or Companion action | P2 | A | P2 |
+| BOT-12 | Rate-limited and coalesced writes; degrade to silence with a visible notice, never a delayed backlog dump | P2 | A | P2 |
+| BOT-13 | AI layer on §11 credits: translate, summarise, suggest, classify — **recommend or soft-action only** | P2 | A | P3 |
+| BOT-14 | AI audit record: original text, action, reason, confidence, policy version, appeal and reversal path | P2 | A | P3 |
+| BOT-15 | Moderation correctness untiered (§30.1); a Free creator's chat is not less safe | P2 | A | P2 |
+| BOT-16 | Bot UI languages follow the §5.6.2 waves; no separate language set | P2 | A | P2 |
+| BOT-17 | Blocked on the Google chat-write scope (`CON-08`, §32) and on YouTube being post-v1 | P2·G | B | — |
 
 ### 31.31 Storage and media platform
 
-| ID | Item | State | Pri |
-|---|---|---|---|
-| STO-01 | GCS + CDN with content-addressed keys and signed URLs | A | **P0 for audio** |
-| STO-02 | Postgres holds metadata, moderation state and attestation only | A | P0 |
-| STO-03 | Normalisation pipeline (audio loudness, GIF→MP4/WebM, image pre-scale) | A | P1 |
-| STO-04 | Tenant-scoped dedup (`channel_id` + sha256); global dedup only for BharatStudio-owned or explicitly licensed assets (§19.1) | A | P2 |
-| STO-05 | Keep existing Lottie bytea working; new media to GCS; opportunistic backfill | A | P1 |
+| ID | Item | Phase | State | Pri |
+|---|---|:-:|:-:|:-:|
+| STO-01 | GCS + CDN with content-addressed keys and signed URLs | v1 | A | **P0 for audio** |
+| STO-02 | Postgres holds metadata, moderation state and attestation only | v1 | A | P0 |
+| STO-03 | Normalisation pipeline (audio loudness, GIF→MP4/WebM, image pre-scale) | v1 | A | P1 |
+| STO-04 | Tenant-scoped dedup (`channel_id` + sha256); global dedup only for BharatStudio-owned or explicitly licensed assets (§19.1) | v1 | A | P2 |
+| STO-05 | Keep existing Lottie bytea working; new media to GCS; opportunistic backfill | v1 | A | P1 |
 
 ---
 
@@ -5685,14 +5690,18 @@ corrected — not the other way round.
 | **§28.3.1 and §28.3.2 were each used twice** | Renumbered to 28.3.3 and 28.3.4; the checker fails on any duplicate section number |
 | **§33.2 skipped item 9** | Renumbered; the checker fails on any ordered-list gap |
 | **Nine CI checks were claimed but nothing executable existed** | `tools/doc_consistency.py` and `.github/workflows/doc-consistency.yml` — implemented, running, and it found 20 further defects on its first run, all now fixed |
-| **§35.4 gave a traceability schema with no populated rows** | `TRACEABILITY.md`, generated by `tools/traceability.py`, regenerated in CI, stale-checked. It shows 614 rows, 2 with a task file, 0 with acceptance, review or evidence |
+| **§35.4 gave a traceability schema with no populated rows** | `TRACEABILITY.md`, generated by `tools/traceability.py`, regenerated in CI and stale-checked. Counts live only in that file |
 | **"One uniform retention window" conflated tiers with data classes** | §12.6.2 is now a **schedule by data class** — payment and audit on statutory retention, chat logs shortest — with the tier never an input to any row |
 | **Register state cells carried gates instead of state letters** (`**Never**`, `**Consent-gated on C1–C7**`, `**R**`) | Normalised to U/X/P/A/B/N with the gate moved into the item text; enforced by the checker |
 | **§35.3 presented a specification as running controls** — eleven checks claimed, nine narrow ones implemented, several not implementable at all | Every check row now carries its real status: Running, Partial, Warn or Blocked with the named prerequisite. The overstated blanket claim is gone |
 | **`tools/traceability.py` hard-coded zero acceptance, review and evidence** and asserted "no build work has started", while the repository holds 62 task records, 62 test records and 72 reviews it never looked at | Rewritten to scan `tasks/`, `tests/`, `reviews/`, `done/` and `active/` and report only what it finds. The real finding — two ID systems that do not meet — replaces the false zero |
-| **§35.4 restated a register count in prose** (614) that the generator had already moved past (623, now higher) | Counts live only in `TRACEABILITY.md`; a new checker rule fails the build on any hard-coded count in prose |
+| **§35.4 restated a register count in prose** that the generator had already moved past | Counts live only in `TRACEABILITY.md`; a checker rule now fails the build on any count hard-coded near the words "requirement", "register" or "rows" |
 | **§31.0 still said any provider or legal dependency inherits phase R**, after §1.9 split G from R | Corrected — a provider or legal dependency is **G** unless building it at all needs the external party's permission first |
 | **§34 Step 0 was "generate stubs"**, which would have produced 633 empty files and buried the existing corpus | Step 0 is now the **mapping** first, with new records only where nothing exists |
+| **§1.9 required a phase label on every register row; the register had no phase column**, so §35.3's phase check was Blocked and the build/research boundary was unenforceable | A **Phase column** added to all register rows by `tools/assign_phases.py` from printed rules, and the phase check is now **Running** — invalid phases fail, and an R or N row named in a §34 build phase fails |
+| **§31.0's scope-phase field omitted the G state** that §1.9 had just defined | Field rewritten to `v1 · P2 · P3 · R · N` with the `·G` release-gated suffix, and it names the register column as the machine-checkable home |
+| **The traceability generator looked for evidence only in `done/`**, while §35.4 names `active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` as the authority — so a closed provider or legal row would still have read as empty | The generator now scans `active/launch/` as an evidence corpus and reports it as its own column |
+| **§35.3 carried a duplicate, malformed "Stale external claim" row** with no status cell, inside the table that promises every row states its status | Duplicate removed, and a **Table shape** check added — every row in a table must match that table's column count. It immediately found five more malformed rows elsewhere |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -5773,9 +5782,9 @@ the build:
 | **Post-v1 references in v1 sections** | A Phase 0 entry references a post-v1 capability | **Partial.** Keyword list only |
 | **Orphan corrections** | A correction is logged while its superseded text survives in the body | **Warn.** Heuristic — it compares inline correction markers against §35.2 rows and cannot locate the surviving text |
 | **Missing row metadata** | A register row lacks any of the ten §31.0 fields in its `active/` record | **Blocked.** No per-row `active/` records exist yet; this check is the second half of §34 Step 0 and lands with them |
-| **Phase-label integrity** | A row has no phase label, or a row labelled R has an implementation task | **Blocked.** The register carries state and priority, not a phase column. Adding one is part of the same Step 0 work |
-| **Stale external claim** | A platform-map row (§27.2) or fee figure (§12.5.1) is older than its freshness window | **Blocked.** No row carries a source date yet — the §27.2 requirement was added after the table was written |
-| **Stale external claim** | A platform-map row (§27.2) or gateway-fee figure (§12.5.1) older than its freshness window |
+| **Phase-label integrity** | A row has no phase label, carries one outside the values defined in §1.9, or a row labelled R or N is scheduled in a §34 build phase | **Running.** The register gained a Phase column on 2026-09-14; `tools/assign_phases.py` records how each value was derived |
+| **Stale external claim** | A platform-map row (§27.2) or gateway-fee figure (§12.5.1) is older than its freshness window | **Blocked.** No row carries a source date yet — the §27.2 requirement was added after that table was written |
+| **Table shape** | A row in any table has a different column count from the rest of that table — which is how a malformed duplicate row survived in this very table | **Running** |
 
 ### 35.4 Traceability — one index, six columns
 

@@ -20,9 +20,11 @@ CORPORA = {
     "review": ROOT / "reviews",
     "active": ROOT / "active",
     "evidence": ROOT / "done",
+    # the authoritative external evidence register lives here, not in done/
+    "external": ROOT / "active" / "launch",
 }
 
-ROW = re.compile(r"^\|\s*([A-Z]{2,4}-\d{1,3})\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*$")
+ROW = re.compile(r"^\|\s*([A-Z]{2,4}-\d{1,3}[a-z]?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*(.+?)\s*\|\s*$")
 HEAD = re.compile(r"^###\s+(31\.\d+)\s+(.*)$")
 LTRACK = re.compile(r"\bL\d{2}\b")
 
@@ -72,9 +74,9 @@ for line in lines:
     m = ROW.match(line)
     if not m or line.startswith("|---"):
         continue
-    rid, item, state, pri = m.groups()
+    rid, item, phase, state, pri = m.groups()
     rows.append({
-        "id": rid, "item": item, "state": state.strip(),
+        "id": rid, "item": item, "phase": phase.strip(), "state": state.strip(),
         "pri": pri.strip(), "section": section,
         "ltracks": sorted(set(LTRACK.findall(item))),
     })
@@ -120,6 +122,7 @@ out: list[str] = [
     f"| `reviews/` reviews | {counts['review']} |",
     f"| `done/` legacy evidence | {counts['evidence']} |",
     f"| `active/` authority and task records | {counts['active']} |",
+    f"| `active/launch/` external evidence register | {counts['external']} |",
     "",
     f"**{len(rows)} requirement rows in the register.**",
     "",
@@ -136,7 +139,8 @@ out: list[str] = [
     f"| task record naming the ID | {covered['task']} | {len(rows)} |",
     f"| test record naming the ID | {covered['acceptance']} | {len(rows)} |",
     f"| review naming the ID | {covered['review']} | {len(rows)} |",
-    f"| `done/` evidence naming the ID | {covered['evidence']} | {len(rows)} |",
+    f"| `done/` legacy evidence naming the ID | {covered['evidence']} | {len(rows)} |",
+    f"| external evidence register naming the ID | {covered['external']} | {len(rows)} |",
     f"| `active/` record naming the ID | {covered['active']} | {len(rows)} |",
     f"| an explicit L-track pointer in its text | {len(with_ltrack)} | {len(rows)} |",
     "",
@@ -150,19 +154,23 @@ out: list[str] = [
     "",
     "## Rows",
     "",
-    "| ID | Section | State | Pri | Task | Acceptance | Review | Evidence | L-track hint | Required suites (§37.11) | Release gate |",
-    "|---|---|:-:|:-:|---|---|---|---|---|---|---|",
+    "| ID | Section | Phase | State | Pri | Task | Acceptance | Review | Evidence | L-track hint | Required suites (§37.11) | Release gate |",
+    "|---|---|:-:|:-:|:-:|---|---|---|---|---|---|---|",
 ]
 
 for r in rows:
-    gate = "release" if r["pri"].strip("* ").startswith("P0") or r["pri"].strip("* ") == "P1" else "none"
+    gate = "release" if "·G" in r["phase"] or r["pri"].strip("* ").startswith("P0") or r["pri"].strip("* ") == "P1" else "none"
+    evidence = r["evidence"] + r["external"]
     out.append(
-        f"| {r['id']} | {r['section']} | {r['state']} | {r['pri']} "
+        f"| {r['id']} | {r['section']} | {r['phase']} | {r['state']} | {r['pri']} "
         f"| {' · '.join(r['task'])} | {' · '.join(r['acceptance'])} | {' · '.join(r['review'])} "
-        f"| {' · '.join(r['evidence'])} | {' '.join(r['ltracks'])} "
+        f"| {' · '.join(evidence)} | {' '.join(r['ltracks'])} "
         f"| {SUITES.get(r['id'].split('-')[0], '—')} | {gate} |"
     )
 
+out += ["", "## Phase distribution", "", "| Phase | Count |", "|---|---:|"]
+for ph, n in sorted(collections.Counter(r["phase"] for r in rows).items()):
+    out.append(f"| {ph} | {n} |")
 out += ["", "## Areas", "", "| Prefix | Rows |", "|---|---:|"]
 for pre, n in sorted(collections.Counter(r["id"].split("-")[0] for r in rows).items()):
     out.append(f"| {pre} | {n} |")
