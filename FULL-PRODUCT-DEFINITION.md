@@ -352,6 +352,88 @@ So three things follow, none of them optional:
    budget is spent — reduce cadence, then pause, always with a creator-visible reason,
    never a silent stop.
 
+### 4.2 One fetch, many surfaces — the rule that makes the quota affordable
+
+**Quota is consumed per API call, never per person looking at the result.** That single
+fact decides the architecture, and it is worth more than any clever sourcing trick:
+
+> **No surface ever calls YouTube. The server fetches once per channel and fans the
+> result out over the existing channel-keyed SSE path (RT-02).**
+
+Overlay, dashboard, Companion and the tip page all read the same fanned-out value. Twelve
+widgets showing the like count cost what one costs. A creator with the dashboard open and
+the overlay live costs what one costs. This is the same rule as §12.7 — surfaces receive
+projections, they do not fetch — applied to an external provider instead of our database.
+
+#### 4.2.1 What each surface may use
+
+| Need | Overlay (OBS browser source) | Dashboard | Quota |
+|---|---|---|---|
+| Tips, alerts, goals, supporters, moderation — everything BharatStudio-native | Our SSE | Our API | **None** |
+| Viewer count, like count | Fanned out from the server's single poll | Same fanned-out value | 1 unit per poll **per channel**, not per surface |
+| Playback and presence ("are we live", player state) | **IFrame Player API** — client-side, official, free | Same | **None** |
+| A creator reading their own live chat | Not on the overlay — chat display belongs in the dashboard and Companion | **YouTube's official live-chat embed** | **None** |
+| Chat as *data* — commands, `!tip`, bot replies, moderation actions | Never | Server-side ingestion only | **The expensive one.** Phase 4, gated on the quota grant |
+| Super Chat, memberships, gifting | Never | Server-side API, reconciled | Metered, and never taken from a chat display |
+| Stream health — bitrate, dropped frames, scene, sources | Desktop helper / OBS WebSocket | Same | **None — this never touches Google at all** |
+| Broadcast lifecycle — title, thumbnail, go live, end | — | Server-side API, per action | Per action, not polling |
+
+Two things fall out of that table and both are worth stating plainly:
+
+- **A large part of "is my stream healthy" never involves YouTube.** Bitrate, dropped
+  frames, scene state and source visibility come from the local helper. We should not
+  spend a single unit discovering something OBS already knows.
+- **Displaying chat and ingesting chat are different products.** A creator who wants to
+  *see* chat while operating gets the official embed for free. Ingestion is only needed
+  for commands, the bot and moderation — and that is the one place the cost is real.
+
+#### 4.2.2 Cadence is a budget
+
+Poll **only while live**. Back off when nothing changes. Tier the cadence by creator size
+rather than giving everyone the fastest setting. Define the degradation path before the
+ceiling is reached: slow down, then pause, always with a creator-visible reason, never a
+silent stop.
+
+Worked example, with the figures marked as needing §27.2 sources: `videos.list` at a
+documented 1 unit, polled every 60 seconds across a four-hour stream, is **240 units per
+creator-stream** — roughly 40 creator-streams inside the free 10,000/day allowance before
+any increase. Most quota anxiety comes from assuming a 5-second cadence nobody asked for.
+
+### 4.3 `liveChatMessages.streamList` and the quota-increase track
+
+**The structural claim is sound and the numbers are not ours yet.** `streamList` is
+documented as a streaming variant of the chat-list call: instead of asking repeatedly
+whether new messages exist, the client holds a long-lived connection and messages arrive
+as they appear. Fewer calls for the same coverage. Our poller already uses it — L15
+records the switch — and L15 also records that **its wire framing and its real quota cost
+have never been measured against a live Google project**.
+
+So the honest position: `streamList` is very likely the right mechanism and is why chat
+ingestion may be affordable at all, and **we cannot yet say how many concurrent creators
+it supports before the 10,000 ceiling**. Neither the optimistic nor the pessimistic answer
+is currently evidence.
+
+#### 4.3.1 The measurement, which is also the quota application
+
+These are one piece of work, not two, and it runs **in parallel with the build**:
+
+1. **Instrument quota consumption from the first call.** A per-call, per-endpoint,
+   per-channel counter, exported as a histogram like every other budgeted path (RT-06).
+   Without this we will be applying for an increase with a guess, which is the weakest
+   possible application.
+2. **Measure `streamList` against a real project** on one real multi-hour stream: units
+   consumed per hour, per channel, per message volume, and how the cost behaves during a
+   chat burst.
+3. **Derive the ceiling honestly** — concurrent creators supported at the free allowance,
+   and at each increase tier we might request.
+4. **Then apply**, with measured numbers, the described use case, the scopes, and a
+   working product to demonstrate. A quota audit asks for the app, not the plan.
+
+**Sequenced deliberately:** the owner decision of 2026-09-14 files external gates after
+the build works, and this fits it — but the *instrumentation* is not an external gate and
+ships with the connector, or the application arrives with nothing behind it. Steps 1 and 2
+are engineering work in Phase 4; steps 3 and 4 are the filing.
+
 **Standing rule:** the YouTube connector is *locally proven only*. Real OAuth
 verification, quota grant, chat-write approval and staged live-stream evidence must
 land before anything here is called production-ready.
@@ -4635,6 +4717,15 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | CON-19 | Kick | B | — |
 | CON-20 | Optional YouTube `/live` support page | A | P3 |
 | CON-21 | YouTube identity/trust model and namespaces (§12.3 identity rules) | A | P1 |
+| CON-22 | **One fetch, many surfaces** — no surface calls YouTube; the server polls once per channel and fans out over the channel-keyed SSE (§4.2) | A | **P0 rule for Phase 4** |
+| CON-23 | IFrame Player API for overlay and dashboard presence and playback — client-side, official, zero quota | A | P2 |
+| CON-24 | Official YouTube live-chat **embed** for the creator to read chat in the dashboard and Companion — zero quota, display only, never a data source | A | P2 |
+| CON-25 | Stream health from the desktop helper / OBS WebSocket, never from a YouTube call | A | P1 |
+| CON-26 | Cadence as a budget: poll only while live, back off when idle, tier by creator size, defined degradation (slow → pause, always with a visible reason) | A | P1 |
+| CON-27 | **Per-call, per-endpoint, per-channel quota instrumentation**, exported as a histogram (RT-06). Ships with the connector — the quota application is worthless without it | A | **P0 for Phase 4** |
+| CON-28 | Measure `streamList` against a real Google project: units per hour, per channel, per message volume, and behaviour during a chat burst | A | **P0 for Phase 4** |
+| CON-29 | Derive the supported concurrent-creator ceiling at the free allowance and at each increase tier, then file the quota application with measured numbers | A | P2 |
+| CON-30 | Page scraping and InnerTube — **never build.** ToS-prohibited automated access, no contract, no stability, unverifiable financial provenance, and it moves the consequence onto the creator's channel (§4) | N | — |
 
 ### 31.10 Entitlements, billing, admin, ops
 
@@ -5211,6 +5302,8 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Package marketplace** | **Slowed deliberately.** First-party curated packages and private creator packages only. Third-party **paid** publishing is phase R: it is a second money flow with author payouts, GST on third-party digital goods, content review at scale, takedowns, disputes, and a "verified" badge we would have to defend. Nothing else in the interop layer depends on it. |
 | **BharatStudio Bot** | **An automation product, not another dashboard** (§36). Six areas and no more. First release is six things done well: commands with aliases/cooldowns/roles, scheduled messages, English/Hindi/Hinglish, deterministic spam and link controls, a simple import wizard, and one event action. Multilingual is **deterministic first** — transliteration-matched aliases and per-language blocked terms — with AI as an optional, quota'd layer that **recommends or soft-actions and never bans**. The blocked-term corpus is **one list shared with §12.2 TTS safety**, never a second. Never imports scripts, raw JS, shell commands or third-party credentials. P2 at the earliest, blocked on the Google chat-write scope and on YouTube being post-v1. |
 | **External filings sequencing** | **Owner decision 2026-09-14: none of the external gates blocks development, and all are filed after the build works.** Razorpay Technology Partner approval, legal counsel, the CA/tax review and Google OAuth verification are **release gates, not build gates** (§1.9 phase **G**), and the owner has chosen to file them once the decided scope is built and working, accepting that minor changes may follow from their feedback. Two obligations follow and are not optional: (a) **build to best practice as if each review had already happened** — DPDP-shaped data handling, GST-inclusive pricing arithmetic, terms and refund wording drafted to be reviewable rather than rewritten; and (b) **make no claim that depends on a filing that has not happened** — no "Razorpay partner", no tax representation beyond the GST-inclusive arithmetic already published, no verified-OAuth claim. The launch date moves with the filing cycle, not with the code. |
+| **Client-side scraping and InnerTube** | **Never build** (CON-30). "Just fetching" is accurate for one request and inaccurate for a scheduled client: the ToS prohibits automated access outside the API, and the API's quota *is* the permitted path. Moving the traffic to the creator's browser and IP does not change what the terms permit — it moves the consequence onto **their** channel, for our product's benefit. The valuable data (chat, Super Chat, members) is not reachable by public fetching at all; it needs InnerTube, which requires impersonating the official client. And what *is* publicly reachable — viewer count, likes — costs 1 unit, so the trade is bad before ethics enter it. **The permitted client-side path is the IFrame Player API and the official chat embed** (CON-23, CON-24), which are free and cover presence, playback and chat *display*. |
+| **Surface data sources** | **One fetch, many surfaces** (§4.2): no surface ever calls YouTube; the server fetches once per channel and fans out over the channel-keyed SSE. Twelve widgets cost what one costs. Stream health comes from the local helper and never touches Google. Chat *display* is the official embed at zero quota; chat *ingestion* is the only genuinely expensive item and is Phase 4, gated on the quota grant. |
 | **YouTube quota** | **Quota is per Google Cloud project, not per creator** (§4.1). A creator's OAuth grant conveys permission, never allowance; every connected creator spends our 10,000-unit default day. A quota increase is required before YouTube ships at any scale, per-call unit costs need dated sources, and polling cadence is a quota budget with a defined degradation path. Filed in Phase 4 with measured usage, per the sequencing decision above. |
 | **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
 | **Alert audio** | **Two-phase release.** The visual goes out the moment it is ready; TTS arrives as a second event keyed to the same alert. Late audio is dropped rather than played over a different alert. Audio latency can never again become visual latency. |

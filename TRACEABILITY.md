@@ -8,16 +8,16 @@ Six columns per `FULL-PRODUCT-DEFINITION.md` §35.4:
 A blank cell is a real gap, not an omission. Per §37.2 a row with a gap in any
 column is not done, whatever its state letter says.
 
-**614 requirement rows across 38 areas.**
+**623 requirement rows across 38 areas.**
 
 ## Coverage summary
 
 | Column | Populated | Missing |
 |---|---:|---:|
-| Task file in `tasks/` or `active/` | 2 | 612 |
-| Acceptance record (§37.3 scenarios) | 0 | 614 |
-| Review (who traced the user path) | 0 | 614 |
-| Evidence artefact (§37.8) | 0 | 614 |
+| Task file in `tasks/` or `active/` | 2 | 621 |
+| Acceptance record (§37.3 scenarios) | 0 | 623 |
+| Review (who traced the user path) | 0 | 623 |
+| Evidence artefact (§37.8) | 0 | 623 |
 
 Acceptance, review and evidence are uniformly empty because **no build work has
 started**. The §37.11 suite column below states what each row will need; it is a
@@ -289,6 +289,15 @@ requirement, not a claim that anything has been run.
 | CON-19 | §31.9 Connectors and chat | B | — |  | post-v1 (Phase 4) |  |  |  | none |
 | CON-20 | §31.9 Connectors and chat | A | P3 |  | post-v1 (Phase 4) |  |  |  | none |
 | CON-21 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-22 | §31.9 Connectors and chat | A | **P0 rule for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-23 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-24 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-25 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-26 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-27 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-28 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-29 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-30 | §31.9 Connectors and chat | N | — |  | post-v1 (Phase 4) |  |  |  | none |
 | ENT-01 | §31.10 Entitlements, billing, admin, ops | U | — |  | LIF-E1..E3 · isolation |  |  |  | none |
 | ENT-02 | §31.10 Entitlements, billing, admin, ops | U | — |  | LIF-E1..E3 · isolation |  |  |  | none |
 | ENT-03 | §31.10 Entitlements, billing, admin, ops | X | P1 |  | LIF-E1..E3 · isolation |  |  |  | release |
@@ -652,7 +661,7 @@ requirement, not a claim that anything has been run.
 | BOT | 17 |
 | CHL | 8 |
 | CMP | 93 |
-| CON | 22 |
+| CON | 31 |
 | COS | 15 |
 | CST | 30 |
 | CTL | 15 |
