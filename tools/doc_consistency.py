@@ -195,10 +195,19 @@ def check_orphan_corrections() -> None:
         warn("orphan-correction", f"{inline} inline 'Corrected' markers vs {logged} rows in §35.2 — check for unlogged corrections")
 
 
+# 10 ── prose must not restate generated counts -----------------------------------
+def check_restated_counts() -> None:
+    pat = re.compile(r"\b\d{3}\s+(?:requirement rows|register rows|rows in the register)", re.I)
+    for n, line in enumerate(lines, 1):
+        if pat.search(line):
+            err("restated-count", f"line {n}: a register row count is hard-coded in prose — cite TRACEABILITY.md instead")
+
+
 CHECKS = [
     check_duplicate_ids, check_duplicate_sections, check_cross_refs,
     check_register_rows, check_list_gaps, check_superseded,
     check_authority_values, check_v1_sections, check_orphan_corrections,
+    check_restated_counts,
 ]
 
 for fn in CHECKS:
