@@ -110,8 +110,22 @@ client-facing gRPC · **in-app checkout in Companion** (see §5.6.1).
 | **v1** | In the frozen launch scope above |
 | **P2** | Post-v1, product-ready, needs only build time |
 | **P3** | Post-v1, needs a product or pricing decision first |
-| **R** | **Research only.** No implementation, no schema, no UI, no marketing. Needs written external evidence — provider permission, counsel, or a provider sandbox — before it can become P2/P3 |
+| **G** | **Release-gated.** Implementation proceeds now; **release** waits on named external evidence. This is the normal state for most of v1 — Razorpay is a provider dependency, the store declarations are a store dependency, the tax position needs a CA. Build it, do not launch it, and never claim the evidence exists |
+| **R** | **Research only.** No implementation, no schema, no UI, no marketing, at all. Needs written external evidence before it can become P2/P3 |
 | **N** | Never |
+
+**G and R are different states and conflating them breaks v1.** An earlier version of
+this table said any provider or legal dependency becomes phase R, which would have made
+the Razorpay path itself unbuildable. The test: *can we build this correctly today and
+decide later whether to turn it on?* If yes it is **G**. If building it at all requires
+someone outside to say yes first — because it would mean holding a credential we are not
+permitted to hold, distributing goods we cannot yet account for, or shipping a surface a
+provider has not approved — it is **R**.
+
+Currently **R**: delegated payment routes (§25) · third-party package marketplace
+(§9.7) · StreamElements event bridge · Enterprise (§24).
+Currently **G**: creator-direct Razorpay · app-store submission · anything touching the
+tax, privacy or terms rows in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`.
 
 **Post-v1 slices, in labelled order.** YouTube depth (P2) · AI credits and top-ups (P2)
 · interop: Canvas Packages, asset import and the migration wizard (P2, §9) ·
@@ -265,8 +279,8 @@ These are not features. They are the difference between a demo and a product.
 | F03 | Populate `creator_supporter_relations` on capture | Second half of F01 |
 | F04 | Mint receipts from the tip confirmation page | Makes `/r/[token]` live and gives anonymous tips a claim path |
 | F05 | TTS content safety (see §12.2) | Only item with real-world harm potential |
-| F06 | YouTube connect / disconnect / reconnect UI | Makes an entire built subsystem reachable |
-| F07 | Set `status='revoked'` on `invalid_grant` + surface it | Stops silent permanent failure |
+| F06 | YouTube connect / disconnect / reconnect UI | **Moved to Phase 4, 2026-09-14.** It makes a built subsystem reachable, but YouTube is excluded from v1 by the launch authority and building its connect surface in Phase 0 is scope drift. It stays a recorded defect, fixed when YouTube work starts |
+| F07 | Set `status='revoked'` on `invalid_grant` + surface it | **Moved to Phase 4** with F06, for the same reason — it is YouTube connector behaviour |
 | F08 | Wire mobile Companion handlers in `App.tsx` | Every control currently inert |
 | F09 | TipForm as the interaction surface | Unblocks stickers, paid votes, mega alert, priority question together |
 | F10 | Enable cron schedules (needs L06 IAM/staging evidence) | Reconciliation and delivery pump do not run |
@@ -980,6 +994,30 @@ A **signed, versioned, declarative** template format. A package contains:
 - fonts, images, video, audio and Lottie assets, all bundled
 - configurable fields the creator fills in (name, colour, threshold, sound)
 
+#### 9.2.1 The signer model — decided 2026-09-14
+
+"Signed and versioned" is not a security property without saying who signs. For now:
+
+- **BharatStudio holds the only signing key.** First-party packages are signed by us.
+- **A creator's private package is bound to their account and validated, not signed.**
+  It never leaves that account, so there is no third party for a signature to protect.
+- **Key handling:** the signing key lives in KMS with no human read path; rotation is
+  scheduled and a package records the key ID it was signed with, so rotation does not
+  invalidate history; a revocation list is checked at import **and again at render**.
+- **Canonical serialisation is specified before the first package is signed** — a
+  signature over a non-canonical form is a signature over nothing.
+- **Provenance travels with the package:** author, source, version, licence statement,
+  and the import or authoring event that produced it.
+- **Licence and takedown** follow §18.3 — a package's bundled assets are assets, with
+  the same attestation, quarantine and takedown route.
+- **Renderer sandboxing** does not depend on the signature. The renderer treats every
+  package as untrusted data regardless of who signed it, because a valid signature on a
+  malformed package must still fail safely.
+
+Creator signing keys, a revocation infrastructure and a third-party trust model arrive
+**with the marketplace**, which is phase R (§9.7). Building them now would be
+infrastructure for a thing we have decided not to ship yet.
+
 A package contains **no JavaScript, no network fetches, no external font or asset URLs,
 no CSS that executes, and no template expressions that can reach the runtime**. It is
 data the Canvas renders, not a program the Canvas runs. Every package is signed,
@@ -1189,18 +1227,19 @@ the top-up model must never blur it.
 
 ### 10.2 Top-up menu
 
+**Two consumables, and nothing else** (§28.1.1). Anything that raises a standing limit
+is a pack, not a top-up, and appears in §28 only.
+
 | Top-up | Unit | Notes |
 |---|---|---|
-| **TTS characters** | packs of characters | The obvious first one — quota already metered (`0081`), so the ledger half exists |
-| **AI credits** | micro / standard / premium (§11) | Largest long-run margin |
-| **Asset storage** | GB | Needs the storage quota that is currently absent |
-| **Extra connectors** | +1 platform | Entitlement counts already enforced (`0086:118`) |
-| **Extra moderator seats** | +1 seat | Enforced by `0104`; needs the management UI (F18) |
-| **Extra sticker/media pack slots** | +N | Tier quotas 10/25/50 already implemented |
-| **Priority alert-queue capacity** | burst allowance | For tournament and raid days |
-| **Sponsor campaign slots** | +N concurrent | Once the sponsor manager ships |
-| **Season Pass issuance** | per pass sold, or bundled | See 10.4 |
-| **Vertical/multi-canvas outputs** | +1 output | For creators streaming to two aspect ratios |
+| **TTS characters** | packs of characters | Quota already metered (`0081`), so the ledger half exists |
+| **AI credits** | micro / standard / premium (§11) | Largest long-run margin; paid tiers only |
+
+**Moved to packs on 2026-09-14**, because each raises a standing limit rather than being
+spent: asset storage · extra connectors · extra moderator seats · extra sticker and
+media pack slots · priority alert-queue burst capacity · sponsor campaign slots ·
+vertical and multi-canvas outputs. **Season Pass issuance** leaves both menus — it is
+the creator's own monetisation product (§10.4), billed on its own terms.
 
 **Never sold as a top-up (§12.6):** event retention, history depth, record search,
 export, receipt access, audit access, or anything else that is a durable creator
@@ -1589,18 +1628,25 @@ browser-voice path is not a cheaper path with weaker checks.
 - A creator must never see cross-creator viewer spend
 - Public viewer profiles are opt-in and off by default; exact lifetime spend is
   private by default and never published
-- **Deletion is archival, never destructive — decided 2026-09-13.** No row is ever hard
-  deleted, for a viewer or a creator. Identifying fields (email, display name, contact)
-  move out of the live columns into an archive so the history and audit trail stay
-  intact, and the live record is left non-identifying. If the same person returns they
-  are **treated as new** — we do not re-link them to the archived identity
-  - *Legal caveat, flagged not resolved:* retaining an email in an archive column is
-    still retaining personal data after an erasure request. To be DPDP-defensible the
-    archived identity should be **irreversibly hashed** rather than kept in plaintext —
-    which still satisfies "keep the history, treat returners as new", because we keep
-    the record without keeping the readable identity. Payment and audit records have
-    their own statutory retention basis and are unaffected either way. This needs to be
-    in the legal sign-off scope (§29)
+- **Deletion is BLOCKED on legal — not decided.** Corrected 2026-09-14: an earlier
+  version of this bullet recorded archival deletion as decided on 2026-09-13, which
+  contradicted §33.1 and §32 and is exactly the kind of stale text §35.1 rule 7 forbids.
+  - The **engineering preference**, which is a preference and not a policy: no hard
+    delete for a viewer or a creator; identifying fields (email, display name, contact)
+    move out of the live columns into an archive so history and audit stay intact; a
+    returning person is treated as new and never re-linked.
+  - **It may not ship and may not be promised.** No deletion flow, and no
+    account-deletion statement in product, terms or marketing, until the privacy/legal
+    row in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` is approved.
+  - Three things are unresolved: DPDP erasure duties, statutory retention for payment
+    records, and whether the archived identity may be plaintext at all — an email kept
+    in an archive column is still personal data retained after an erasure request, so
+    the defensible form is probably an irreversible hash, which still satisfies "keep
+    the history, treat returners as new".
+  - Both app stores require an in-app deletion route (CMP-78). That conflict is
+    resolved **before submission**, not during review.
+  - What ships meanwhile is **deactivation**, with a plainly worded statement of what is
+    retained and why.
 - Historical claiming must be idempotent, with repeat-claim and contested-claim tested
 - Badges are explicitly non-financial and opt-in: *Supporter since 2026*, *3-month
   member*, *12-month member*, *Challenge Champion*, *10 Challenges Completed*, *Stream
@@ -1776,8 +1822,10 @@ afterthought.
 - Export supporter relationships subject to viewer consent
 - Export moderation audit and sponsor exposure logs
 - One-click rollback of the OBS migration (restore hidden sources)
-- Downgrade never deletes accepted payments, refunds or audit history — it only
-  narrows the dashboard search window
+- Downgrade never deletes accepted payments, refunds or audit history, and **never
+  narrows search, filtering or export** either. Corrected 2026-09-14: this bullet
+  previously said downgrade "narrows the dashboard search window", which directly
+  violates §12.6. Durable records stay fully reachable at every tier including Free
 - On downgrade, excess queues pause newest-first and are never deleted; stored assets
   over the new quota become read-only, never deleted
 - Grandfathered price held 12 months from subscription start, with a 30-day renewal
@@ -2289,8 +2337,19 @@ Storage cost of per-tenant duplication is small next to a cross-tenant rights or
 disclosure incident, and this is not reversible after the fact. Postgres keeps metadata,
 moderation state and the rights attestation; it never keeps the bytes.
 
-Migration: keep existing Lottie `bytea` rows working, write all *new* media to GCS,
-backfill opportunistically. Do not block on the backfill.
+**Storage design resolved 2026-09-14.** The master release authority approved Postgres
+`bytea` for uploaded Lottie; this section moves media to GCS. Two approved designs is one
+too many. **Owner decision: GCS/CDN is the design, and
+`active/launch/01_MASTER_RELEASE_AUTHORITY.md` is amended** rather than contradicted from
+here.
+
+| Rule | Detail |
+|---|---|
+| **Migration** | Existing `bytea` rows keep working and keep serving. All *new* media writes to GCS. Backfill is opportunistic and never blocks a release |
+| **Serving** | GCS behind the CDN with short-lived signed URLs. A `bytea` row serves from the API until it is backfilled. No public bucket path in either case |
+| **Retention** | Media follows the uniform retention policy (§12.6.2), not the storage tier it happens to live in. Moving bytes between stores never changes what is kept |
+| **Rollback** | Until backfill completes, the `bytea` path stays functional, so a GCS or CDN failure degrades to the old path rather than losing an asset. The switch is a per-channel flag, revertible in one action |
+| **Done when** | Zero new writes to `bytea`, the backfill queue is empty, and one asset has been served from both paths in the same session to prove the fallback |
 
 ### 19.2 The flows that matter
 
@@ -2989,9 +3048,13 @@ knowing it can be withdrawn at any time — by us, or by the provider, without n
   credential sharing or automated access, using this route may put the creator in breach
   and **the provider may suspend or terminate their merchant account**. BharatStudio
   cannot restore it.
-- A provider PIN or password is a payment authentication credential. The creator
-  authorises us to hold and use it strictly for payment-signal detection, and accepts
-  responsibility for that authorisation.
+- *(Removed 2026-09-14.)* A generic clause here previously told creators they could
+  authorise BharatStudio to hold a provider PIN or password. It is deleted. **No generic
+  credential language exists anywhere in the product.** A consent flow that mentions a
+  credential may only ever appear inside a **named, provider-approved route**, describing
+  that route's specific delegated sub-user and its specific secret — and no such route
+  has passed its four gates, so no such flow may be built or shown today (§25.5, §1.9
+  phase R).
 - Detection is best-effort. Alerts may be delayed, duplicated, missed or stop entirely,
   and a routed signal is **not** a verified payment or a receipt.
 - The route may be removed at any time, by us or by the provider, with the notification
@@ -3109,15 +3172,17 @@ missing:*
 | C6 | A creator can revoke instantly, and revocation deletes the secret rather than disabling a flag |
 | C7 | Blast-radius controls: per-route kill switch (§25.4), anomaly detection on access patterns, and a rehearsed incident procedure specific to credential compromise |
 
-**Amazon Pay — owner decision 2026-09-13: build under C1–C7, behind an admin switch.**
+**C1–C7 do not apply to Amazon Pay and never did.** They govern *scoped delegated
+business users* — a PhonePe Supervisor or an HDFC Cashier the creator creates for this
+purpose and can revoke without losing their own access. Amazon's flow takes the
+creator's **primary consumer account password**, which also reaches their shopping
+account, saved cards, addresses and order history. That is a different category of
+credential with a different failure mode, and no condition in this list reaches it.
 
-It remains the highest-risk route in the set and the reason is worth keeping visible:
-PhonePe and HDFC use a *scoped delegated business user* the creator creates for this
-purpose, whereas Amazon's flow takes the creator's **primary consumer account
-password**, which also reaches their shopping account, saved cards, addresses and order
-history. C1–C7 apply in full, and C2 (provider terms read and dated) and C5 (KMS/HSM
-envelope encryption, no human read path) are the ones that will decide whether it
-actually ships.
+**Amazon Pay is never built.** See the note under the §25.5 table and the decision row
+in §33.1. The paragraph that previously stood here said "build under C1–C7, behind an
+admin switch"; it was wrong, it contradicted the table two screens above it, and it has
+been deleted rather than annotated, per §35.1 rule 7.
 
 ### 25.6 Every route has an admin master switch
 
@@ -3306,6 +3371,25 @@ event type per destination, and that is a deliberate choice, not the default.
 
 ### 27.2 Platform map — what we can promise, and what we cannot
 
+**Every cell in this table is an undocumented assertion until it carries evidence, and
+platform capabilities change without notice.** Before any row below becomes a product
+promise — in the UI, in marketing, or in a register row moving past `A` — it must carry
+six things, dated and checked in:
+
+| Field | Requirement |
+|---|---|
+| **Source** | The official provider document, with its URL and the date it was read |
+| **OAuth scope** | The exact scope required, and whether it needs provider review |
+| **Rate limit or quota** | The published number, its unit, and what we do at the ceiling |
+| **Privacy data flow** | What personal data crosses, on what basis, retained how long |
+| **Failure mode** | What the creator sees when the platform says no |
+| **Owner** | One named person who re-verifies it on a schedule |
+
+A row that has gone **stale past 180 days fails the marketing snapshot build** (§20.4),
+the same way a stale gateway fee does. The table below is our current reading, not
+verified fact, and the Kick, Instagram and WhatsApp rows in particular are the ones most
+likely to be wrong by the time they are built.
+
 | Platform | What we build | What we must never promise |
 |---|---|---|
 | **YouTube** | Schedule/manage live, title, description, privacy, thumbnails, tags · live chat in Companion · rate-limited chat announcements · polls · pinned rules/lobby/tip link at controlled moments · Super Chat, membership, gifting and moderation events · post-stream wrap with timestamps | **Community posts and DMs** — no supported API route |
@@ -3360,13 +3444,40 @@ upgrades.
 
 ### 28.1 The rules
 
-1. A pack **never** grants a correctness capability (§27.1 of the tier matrix).
+1. A pack **never** grants a correctness capability (§30.1 of the tier matrix), and
+   never touches a durable creator record (§12.6). *Corrected 2026-09-14 — this rule
+   previously cited §27.1, which is Social Relay.*
 2. A pack is **never the only way** to get something — it deepens a capability the
    creator's tier already has, or adds capacity to it.
 3. Every pack is a capability-registry row (§20), so staff can retier, reprice or kill
    it without a deploy.
 4. Packs stack additively with tier allowances and never replace them.
 5. A lapsed pack follows the §26 lifecycle: paused, retained 90 days, nothing deleted.
+
+#### 28.1.1 Top-up or pack — the line, decided 2026-09-14
+
+The two menus overlapped: extra seats, connectors, media slots and outputs appeared in
+both, with no settled commercial model behind either. One rule now decides which menu an
+item belongs to, and **nothing appears in both**.
+
+| | Top-up | Pack |
+|---|---|---|
+| **What it is** | A prepaid balance you spend once | A monthly subscription that raises a standing limit |
+| **Billing** | One-time purchase, additive to the tier allowance | Recurring, additive to the tier allowance |
+| **Runs out by** | Being consumed | Being cancelled |
+| **Examples** | AI credits · TTS characters | Seats · connectors · storage · channels · outputs · sticker and media slots · sponsor campaign slots |
+
+Consequences, applied in §10.2:
+
+- **Top-ups shrink to the two genuine consumables**: AI credits and TTS characters.
+- Everything else that was in the top-up menu — asset storage, extra connectors, extra
+  moderator seats, sticker and media pack slots, sponsor campaign slots, vertical and
+  multi-canvas outputs, priority queue burst capacity — **moves to packs**, because each
+  one raises a standing limit rather than being spent.
+- A creator who wants ₹99 of AI credits once never has to start a subscription to get
+  it. That is the whole reason top-ups survive as a category.
+- Season Pass issuance is neither: it is a creator's own monetisation product (§10.4),
+  billed on its own terms, and it leaves both menus.
 
 ### 28.2 The packs
 
@@ -3657,8 +3768,12 @@ defect against §12.6.
 | Tip-page attribution line (§30.6) | yes | — | — | — |
 | Lottie / branding upload | — | — | — | yes |
 
-**Queue count decided 2026-09-13: 1 / 2 / 3 / 5**, as shown. The 1/3/5/10 figure in
-L03's retier note is superseded.
+**Queue count: 1 / 2 / 3 / 5.** Two authorities disagreed — the launch authority carried
+1/3/5/10 while the migration, the remediation authority and this document carried
+1/2/3/5. **Resolved 2026-09-14 by owner decision: 1/2/3/5 stands, and
+`active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` is amended** rather than overruled from
+here. It matches what is enforced today, so there is no migration, no billing change and
+no creator impact. Raising a limit later is painless; lowering one breaks creators.
 
 ### 30.3 Proposed placement for everything new
 
@@ -3815,7 +3930,7 @@ one. Until that exists, standalone is a config flag with no viable signup path.
 | Tier | Branding |
 |---|---|
 | **Free** | One small BharatStudio logo in a fixed corner of the stream overlay, plus one quiet attribution line on the tip page |
-| **Any paid tier** | **Zero BharatStudio branding anywhere.** No logo, no watermark, no "powered by", no end-card, no spoken mention, no QR badge, no tip-page attribution, nothing in a receipt or an email |
+| **Any paid tier** | **Zero BharatStudio marketing attribution anywhere.** No logo, no watermark, no "powered by", no end-card, no spoken mention, no QR badge, no tip-page attribution, no promotional line in any email. The one carve-out is legal and transactional issuer identity — §30.6.4, defined narrowly |
 
 #### 30.6.1 How the overlay watermark behaves
 
@@ -3861,6 +3976,31 @@ So the position is stated plainly and honestly:
   the Free fallback render the single watermark, and only if native alerts are still
   enabled.
 - This is the same rule as LIF-06 and §26.3, stated from the branding side.
+
+#### 30.6.4 Marketing attribution versus legal issuer identity
+
+**Decided 2026-09-14.** "Zero branding" governs **marketing attribution**. It does not
+and cannot remove the identity of the party that actually issued a document or sent a
+security message — a receipt with no issuer is a weak document, and a security email
+that does not say who sent it trains creators to ignore exactly the mail they must not
+ignore.
+
+The carve-out is a **closed list**. Nothing is added to it without a decision row.
+
+| Surface | Paid tier | What is permitted |
+|---|---|---|
+| Overlay, tip page, widgets, alerts, QR, end-cards, TTS | Nothing, ever | — |
+| **Payment receipt and refund notice** | Issuer identity | Legal entity name, GSTIN where required, support contact, and the statement of who processed what. No logo lockup, no tagline, no link to our marketing site |
+| **Security and account mail** (sign-in, device added, session revoked, password, 2FA) | Sender identity | The sending entity named in the from-line and body so the mail is verifiable. No promotional content of any kind |
+| **Privacy notices, terms changes, legal documents** | Full identity | These are our documents; they say so |
+| **Billing and subscription mail to the creator** | Full identity | This is our commercial relationship with them, not their audience's |
+| **Anything reaching a supporter** | Creator's brand only | A supporter's receipt carries our issuer identity because law and dispute handling require it, and carries **nothing else** of ours |
+
+Two rules keep the carve-out from drifting into marketing:
+
+- **A carve-out surface may state who we are. It may never suggest what else we sell.**
+  No product name-drops, no feature mentions, no "create your own tip page" footer.
+- **Any addition to the table above is a decision row in §33.1**, not a copy change.
 
 ---
 
@@ -4068,7 +4208,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | MED-18 | Drag/resize/layer tools (numeric config exists) | P | P2 |
 | MED-19 | Media and sound libraries | A | P2 |
 | MED-20 | Curated meme/media queue module | A | P2 |
-| MED-21 | Lottie + custom branding upload, Studio-tier, live gate, bytea storage | U | — |
+| MED-21 | Lottie + custom branding upload, Studio-tier, live gate. **`bytea` storage is legacy** — new writes go to GCS per §19.1; the `bytea` path stays as the rollback route until backfill completes | U | — |
 
 ### 31.8 Companion
 
@@ -4708,6 +4848,14 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Sticker packs** | **Confirmed 10 / 25 / 50.** Already built and shipped in `0119`; changing it would cost a migration and a marketing correction for no evidenced benefit. |
 | **Social Relay** | One event becomes an approved, platform-specific action. Approve-then-send is the default; auto-send is Creator+ and opt-in. Never auto-post tips, followers or alerts anywhere. |
 | **Packs** | Tiers sell a capability class, packs sell capacity and scope. A pack never grants correctness and is never the only route to a capability. |
+| **Queue-count ladder, settled** | **1 / 2 / 3 / 5**, and `00_LAUNCH_SCOPE_AUTHORITY.md` is **amended** to say so. This document does not get to overrule a launch authority; the authority carries the change itself, dated, the way the Studio ₹599 amendment did. Matches what the migration enforces, so no migration, no billing change, no creator impact. |
+| **Media storage, settled** | **GCS/CDN, and `01_MASTER_RELEASE_AUTHORITY.md` is amended.** Postgres holds metadata only. Existing `bytea` rows keep serving and stay as the rollback path until backfill completes; new writes go to GCS; backfill never blocks a release. Migration, serving, retention and rollback rules are in §19.1. |
+| **Marketing attribution vs issuer identity** | Paid tiers get **zero marketing attribution**. Legal and transactional **issuer identity** is a narrow, closed carve-out (§30.6.4): receipts, refund notices, security and account mail, privacy and terms documents, and billing mail to the creator. A carve-out surface may say who we are and may never suggest what else we sell. Additions to that list are decision rows, not copy changes. |
+| **YouTube out of Phase 0** | **F06 and F07 move to Phase 4.** The connect / disconnect / reconnect UI makes a built subsystem reachable, but YouTube is excluded from v1 and building its connect surface in Phase 0 is scope drift against the launch authority. It stays a recorded defect until YouTube work starts. |
+| **Phase G vs phase R** | Two states, not one. **G — release-gated**: build now, release waits on external evidence (Razorpay, store declarations, tax, privacy). **R — research only**: no implementation of any kind until a named gate closes (delegated payment routes, marketplace, StreamElements bridge, Enterprise). The earlier "any provider or legal dependency becomes R" rule would have made the Razorpay path itself unbuildable. |
+| **Canvas Package signing** | **BharatStudio holds the only signing key.** First-party packages are signed by us; a creator's private package is bound to their account and validated rather than signed. KMS-held key with no human read path, scheduled rotation with key IDs recorded per package, a revocation list checked at import *and* at render, canonical serialisation specified before the first signature, provenance travelling with the package, and a renderer that treats every package as untrusted data regardless of signature. Creator keys and a third-party trust model arrive with the marketplace, which is phase R. |
+| **Top-up vs pack** | **One-time consumable is a top-up; recurring capacity or scope is a pack**, and nothing appears in both menus. Top-ups shrink to AI credits and TTS characters. Storage, connectors, seats, sticker and media slots, queue burst capacity, sponsor slots and extra outputs all move to packs. Season Pass issuance leaves both — it is the creator's own product. |
+| **Document repair sequencing** | **Fix every contradiction in the single file first; split into six documents second** (§35.5). Splitting a document that still contradicts itself copies the conflicts into six files. The split proceeds once the §35.3 CI checks pass clean. |
 | **Pack gating** | Each of the eight packs is held for a stated reason, not out of caution (§28.3.0). Sponsor and Finance are held because selling them early produces a **document a creator forwards to a sponsor or a CA** — being wrong there costs the creator, not just us. Events and Socials are held because the feature does not exist and a pack multiplies a real capability. Storage and Team Seats are held because the **enforcement** is missing, and selling a limit we cannot apply means charging for something the creator already had. AI Credits is held because the price has no measured basis. |
 | **Pack launch sequencing** | **The pack system launches with whatever is ready, not with a fixed four.** Arrival order **Storage → AI Credits → Socials → Multi-Channel**. Socials cannot precede Social Relay; **Multi-Channel is the largest item on the list disguised as a pack** — tenant separation, cross-channel roles, billing allocation, connector routing and per-channel audit — and it does not ship until the tenant-isolation suite (§37.6) passes. Holding two sellable packs behind that dependency would be a choice with no benefit. |
 | **Testing and evidence** | **§37 is binding on every register row.** Done means: use cases, unit and contract tests, a reachability assertion, at least one real-browser or real-device E2E scenario, failure-path coverage, a measured performance number where the row is on a budgeted path, dated artefacts, and rollback proof. Merge gates and release gates are separated (§37.9), and §37.10 lists what is never evidence — including the local SQL harness, JSDOM tests, averages standing in for p99s, and any staging run we performed ourselves where a provider or counsel must speak. |
@@ -4801,7 +4949,7 @@ capabilities (SEC-01). The control plane comes first because every later phase a
 capabilities that need a switch, and retrofitting a registry onto sixty hard-coded
 gates is far worse than seeding it with eight. Nothing new ships until the
 product stops being a set of disconnected parts. The identity writer, receipts, TTS
-safety, YouTube connect UI, mobile handler wiring, TipForm as the interaction surface,
+safety, mobile handler wiring, TipForm as the interaction surface,
 schedules on, account activation, quarantine UI, the reachability CI checks, and the
 performance budgets that will police everything after.
 
@@ -4828,7 +4976,11 @@ the Companion tap source.
 
 *Everything from here is post-v1 (§1.9).*
 
-**Phase 4 — YouTube depth (P2, excluded from v1 by the launch authority).** Member reconciliation · like goals · controlled broadcast
+**Phase 4 — YouTube depth (P2, excluded from v1 by the launch authority).** Opens with
+**F06 and F07**, moved here from Phase 0 on 2026-09-14: the connect / disconnect /
+reconnect UI and revoked-auth surfacing. No YouTube surface is built before this phase,
+including the connect step, and no YouTube capability may be marketed until it lands.
+Also· Member reconciliation · like goals · controlled broadcast
 lifecycle · chat moderation · the identity and trust model.
 
 **Phase 5 — monetisation depth (P2).** Season Passes · Priority
@@ -4933,6 +5085,20 @@ corrected — not the other way round.
 | CMP-37 cross-referenced §27.4 (Social Relay) | Corrected to §30.4 |
 | Clutch Mode withheld from Free while CMP-17 listed it P0 | Available on Free — it is a safety control (§30.4) |
 | Register rows had no phase, owner, data class, failure behaviour, kill switch, acceptance test, evidence location or rollback | §31.0 makes all ten mandatory before a row is schedulable |
+| **Amazon Pay carried three live outcomes** — "never build" in the §25.5 table, "build under C1–C7" in the conditions section, and "never build" again in §33.1 | The §25.5 conditions paragraph is **deleted**, not annotated. C1–C7 are stated to cover delegated sub-users only and never to reach a consumer credential |
+| **Account deletion was decided in §12.3 and blocked in §33.1** | §12.3 rewritten: the archival approach is an engineering *preference*, deletion is blocked on legal, nothing ships or is promised, deactivation ships meanwhile, and CMP-78 carries the store conflict |
+| **Phase 0 contained YouTube connect work** while the launch authority excludes YouTube from v1 | F06 and F07 moved to Phase 4; the Phase 0 prose no longer lists a YouTube surface |
+| **Two authorities carried different queue ladders** | 1/2/3/5 stands and the launch authority is **amended**, rather than being declared superseded from inside this document |
+| **Two approved storage designs** for uploaded Lottie | GCS/CDN is the design, the release authority is **amended**, and §19.1 now carries migration, serving, retention, rollback and done-when rules |
+| **"Zero branding anywhere" removed issuer identity** from receipts and security mail | §30.6.4 defines a narrow closed carve-out for legal and transactional identity, with two rules preventing drift into marketing |
+| **§25.2 carried generic credential language** telling creators they could authorise us to hold a PIN or password | Deleted. A credential consent flow may exist only inside a named, provider-approved route, and none has passed its gates |
+| **Portability said downgrade "narrows the dashboard search window"** | Deleted — it directly violated §12.6. Search, filter and export are unrestricted at every tier |
+| **"Any provider or legal dependency becomes phase R"** would have made the Razorpay path unbuildable | Split into **G** (release-gated, build now) and **R** (research only), with the current membership of each listed |
+| **Top-ups and packs overlapped** with no commercial model | §28.1.1 draws the line; §10.2 shrinks to two consumables; seven items move to packs |
+| **Canvas Packages were "signed" with no signer model** | §9.2.1: BharatStudio-only signing, KMS key with no human read path, rotation with recorded key IDs, revocation checked at import and render, canonical serialisation, provenance, and sandboxing independent of signature |
+| **Platform-map capabilities were undocumented assertions** | §27.2 requires source URL and read date, OAuth scope, published rate limit, privacy data flow, failure mode and a named owner per row, with a 180-day staleness build failure |
+| **Performance targets were not reproducible** | §37.4 fixes the reference environment: topology, seeded database size, skewed channel-size profile, asset mix, network profiles, named devices, OBS as the pass/fail environment, a JSON pass/fail artefact, and "worst of three runs is the result" |
+| **Nothing prevented the next contradiction** | §35.3 adds nine CI checks on this document — duplicate decision outcomes, stale superseded wording, orphan corrections, missing row metadata, post-v1 references in v1 sections, phase-label integrity, cross-reference validity, authority conflict, and stale external claims |
 | §33.1 listed multi-channel as Studio-only while §28.3 sold a Multi-Channel Pack from Creator | Multi-channel is a Studio **capability**; the pack is the Creator-tier route to one additional channel — which is what §28.1 says a pack does |
 | Four packs were named as the first release with no readiness check | §28.3.1: Socials cannot precede Social Relay and Multi-Channel needs tenant isolation; the system launches with what is ready, in a stated order (PCK-13) |
 | The document specified no tests, evidence or performance numbers per task | §37: the ladder and what each level cannot prove, a definition of done, 56 named E2E scenarios across eight surfaces, a measured performance table, load/soak/chaos profiles, security/isolation/accessibility/localisation suites, evidence artefacts, merge-versus-release gates, and what is never evidence |
@@ -4955,6 +5121,66 @@ corrected — not the other way round.
 | Premium TTS was spent uniformly until the quota ran out | §11.10 voice routing: deterministic creator rules, default off, no classifier in the live path, route and reason recorded (TTS-11 to TTS-16) |
 | Packs had no prices | §28.3 price sheet; three ₹99 packs raised to ₹129 so Creator + two feature packs actually exceeds Studio (₹597 did not); four-pack first release, four hidden until their features are real |
 | Companion had no shipping plan: no purchase position, no languages, no push infrastructure, no auth requirements, no IA, no first run, no device matrix, no release process, no store compliance, no ops | §5.6 and 56 new register rows (CMP-38 to CMP-93) |
+
+### 35.3 CI checks on this document itself
+
+The structural failure this file keeps producing is that a correction is recorded in
+§33.1 while the stale text survives in the body — which is how Amazon Pay carried three
+live outcomes, deletion carried two, and the pack launch set carried two. §35.1 rule 7
+already forbids it; a rule nobody can enforce is a wish. These checks run in CI and fail
+the build:
+
+| Check | Fails when |
+|---|---|
+| **Duplicate decision outcomes** | Two passages give a different answer for the same decision key. Every decidable statement carries its key; two different outcomes for one key is a hard failure |
+| **Stale superseded wording** | A passage says "decided", "approved" or "build" for a decision whose §33.1 row says blocked, never, or proposed |
+| **Orphan corrections** | §33.1 or §35.2 records a correction whose superseded text still exists in the body |
+| **Missing row metadata** | A register row referenced by a build lane lacks any of the ten §31.0 fields in `active/` |
+| **Post-v1 references in v1 sections** | A v1 section, or a Phase 0–2 entry, references a capability whose phase label is P2, P3, R or N |
+| **Phase-label integrity** | A register row has no phase label, or a row labelled R has an implementation task |
+| **Cross-reference validity** | A `§n.n` reference points at a section that does not exist, or at one whose title does not match the citation's subject. Three of the wrong-reference defects in §35.2 were this |
+| **Authority conflict** | This document states a value that differs from `active/launch/*` without a dated amendment in the authority file itself |
+| **Stale external claim** | A platform-map row (§27.2) or gateway-fee figure (§12.5.1) older than its freshness window |
+
+### 35.4 Traceability — one index, six columns
+
+Every requirement is followable end to end, in one place, or the evidence rules in §37
+cannot be audited:
+
+```text
+requirement → task → acceptance record → review → evidence → release gate
+```
+
+| Column | Content |
+|---|---|
+| **Requirement** | The §-reference and the register ID |
+| **Task** | The file in `active/` carrying the ten §31.0 fields |
+| **Acceptance record** | The named E2E scenarios from §37.3 and the reachability assertion |
+| **Review** | Who traced the user path, and when — §35.1 rule 1 |
+| **Evidence** | The dated artefacts from §37.8, or the external row in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` |
+| **Release gate** | Which gate in §37.9 this blocks, or "none" |
+
+A row with a gap in any column is not done, whatever its state letter says. The index is
+generated from the register and the task files, not hand-maintained — a hand-maintained
+index drifts exactly the way Part 7 did.
+
+### 35.5 Splitting this file — agreed, and deliberately sequenced after the fixes
+
+At 5,400-plus lines this document mixes frozen authority, roadmap, decision log,
+registry, evidence rules and test plan, and those layers are hard to review together.
+The agreed target is six documents plus the §35.4 index:
+
+1. Frozen v1 authority
+2. Post-v1 product backlog
+3. Decision log
+4. Capability and tier registry
+5. External evidence register (already exists in `active/launch/`)
+6. Test and performance plan
+
+**Decided 2026-09-14: fix every contradiction first, split second.** Splitting a
+document that still contains conflicting statements copies the conflicts into six files
+and makes them harder to find, not easier. The split happens once §35.3 passes clean on
+the single file.
 
 ---
 
@@ -5267,9 +5493,23 @@ provider sandboxes where a provider is involved.
 
 ### 37.4 Performance numbers — the table that gets measured
 
-Reference environment: Cloud Run at the production configuration, a production-sized
-database, a mid-range Android for mobile, and a mid-range Windows PC running OBS for
-overlay work. Every number is p95 and p99 from a histogram (RT-06), not an average.
+**The reference environment, specified concretely.** A performance number measured
+somewhere undefined is not reproducible, so this is fixed and versioned; changing any row
+invalidates prior results and is a decision, not a tuning step.
+
+| Dimension | Fixed value |
+|---|---|
+| **Deployment topology** | Cloud Run at the production configuration, the production concurrency cap, minimum instances as configured for production, one region |
+| **Database** | The production instance class, with a seeded dataset of **500 channels · 2,000,000 payments · 5,000,000 alert events · 200,000 supporter identities**, and production index definitions |
+| **Load profile** | Defined per profile in §37.5. Channel size is skewed, not uniform: **80% small (under 50 concurrent viewers), 15% mid, 5% large** — a uniform profile hides the thundering-herd behaviour that RT-02 is about |
+| **Asset mix per overlay** | 6 active modules · 1 Lottie under the complexity cap · 3 pre-scaled images · 2 sounds under the length cap · 1 web font. This is a realistic canvas, not an empty one |
+| **Network** | Overlay and dashboard on 50Mbit wired. Tip page measured on **4G (9Mbit, 170ms RTT)** and **3G (1.6Mbit, 300ms RTT)** profiles. Companion on 4G with 5% loss |
+| **Overlay client** | A mid-range Windows PC running the pinned OBS version, plus the same page in headless Chromium for CI trend-tracking. **OBS is the pass/fail environment; headless is a trend signal only** |
+| **Mobile client** | A named mid-range Android device and a named iPhone at the supported floors, both on battery, not plugged in |
+| **Measurement** | p50/p95/p99 from bucketed histograms (RT-06), aggregated across instances. **Never an average** |
+| **Duration** | 30 minutes steady state after a 5-minute warm-up, discarding the warm-up |
+| **Pass/fail artefact** | A single JSON document per run: profile ID, environment version, commit SHA, start and end timestamps, every §37.4 row with its measured p50/p95/p99, pass or fail per row, and the raw histogram export attached. A run without this document did not happen |
+| **Repeatability** | Three runs. **The worst run is the result**, not the median — the budget is a promise about a bad day |
 
 | Path | p95 | p99 | Hard limit |
 |---|---|---|---|

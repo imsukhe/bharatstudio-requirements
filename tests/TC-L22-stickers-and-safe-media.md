@@ -51,3 +51,11 @@ remain open.
 ## Batch 10 addendum — 2026-09-13
 
 `apps/api/test/l22b-asset-scan-pipeline.test.ts`, `l22b-sticker-creator-pack-routes.test.ts`, `apps/web/.../l22b-creator-pack-panel.test.tsx`, and `packages/db/tests/l22b_creator_sticker_packs.sql` all pass locally as part of API 465/465, web 312/312, SQL 49/49 (120 migrations), re-run 2026-09-13. See `../tasks/L22-stickers-and-safe-media.md` batch 10 section for the pack-quota, moderation-ladder and open-Studio-route detail.
+
+## QA remediation case — 2026-09-14
+
+| ID | Setup and action | Expected result |
+| --- | --- | --- |
+| L22-06 | Reject then approve the same Studio creator-pack sticker within one transaction | The later approval is deterministically the newest audit row via a monotonic write order; random UUID ordering and timestamp ties cannot reverse it. |
+
+**L22-06 local result: Pass.** `packages/db/tests/l22c_staff_creator_pack_review.sql` now performs both decisions in one transaction and reads `review_order` from migration `0125`; `pnpm verify:local` applied 125 migrations and passed all 52 isolated SQL proofs on 2026-09-14. No operational media-scan/staging conclusion is implied.

@@ -37,6 +37,34 @@ exception with owner, expiry and rollback. YouTube and Enterprise remain Phase
 - Client-owned entitlement decisions, Companion in-app checkout, public
   desktop APIs, arbitrary local commands and client-facing gRPC.
 
+### Amendment — 2026-09-14 — uploaded media storage
+
+The approved storage design for uploaded Lottie and creator media is **Google Cloud
+Storage behind the CDN**, not Postgres `bytea`. Postgres holds metadata, moderation
+state and the rights attestation only; it never holds the bytes.
+
+This supersedes the earlier `bytea` selection in this authority. It was raised because
+two approved designs were live at once (`FULL-PRODUCT-DEFINITION.md` §19.1 versus this
+document), which is a conflict a product document may not resolve on its own.
+
+Binding conditions on the change:
+
+- **Migration.** Existing `bytea` rows keep working and keep serving. All new media
+  writes to GCS. Backfill is opportunistic and never blocks a release.
+- **Serving.** GCS behind the CDN with short-lived signed URLs; no public bucket path. A
+  not-yet-backfilled row serves from the API as today.
+- **Retention.** Media follows the single uniform retention policy, not the store it
+  happens to live in. Moving bytes between stores never changes what is kept.
+- **Rollback.** The `bytea` path stays functional until backfill completes, so a GCS or
+  CDN failure degrades to the old path rather than losing an asset. The switch is a
+  per-channel flag revertible in one action.
+- **Storage keys are tenant-scoped** (`channel_id` + sha256), with global content
+  addressing reserved for BharatStudio-owned or explicitly licensed assets.
+- **Done when** there are zero new `bytea` writes, the backfill queue is empty, and one
+  asset has been served from both paths in the same session to prove the fallback.
+
+Nothing in this amendment changes the v1/Phase 2 boundary or any release gate.
+
 ### v1 scope addendum — 2026-08-16
 
 Owner direction (interactive session, explicit and twice-confirmed after an

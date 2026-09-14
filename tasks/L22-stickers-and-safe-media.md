@@ -121,3 +121,19 @@ Line 97 of that entry records the Studio review workflow as having "a DB primiti
 **Verification, 2026-09-13, full tree quiet:** SQL suite 51/51 across all migrations through `0123` (real Postgres 16, `ON_ERROR_STOP=1`, so every migration through 0123 is proven to apply); `apps/api` 496/496 with `tsc` clean; `apps/web` 324/324 with `tsc` clean; companion macOS 34/34; companion mobile 97/97; marketing 8/8; all three Go services build and test clean; companion action-catalogue drift check reports no drift across all five mirrors.
 
 Stage 2 malware scanning remains a documented no-op. That part of the batch 10 entry stands unchanged.
+
+## QA correction — 2026-09-14
+
+The staff-review audit used `current_timestamp` plus a random UUID to express
+"newest". Two decisions in one transaction therefore had the same timestamp
+and no causal tie-breaker; an approval could be listed behind its preceding
+rejection. Migration `0125_v1_l22c_deterministic_staff_review_order.sql` adds
+an append-only monotonic `review_order`, backfills legacy rows without deleting
+or rewriting their decision content, and makes the staff audit read order use
+that field. Scope is restricted to audit presentation/order; it does not alter
+moderation authorization, content, or the open malware-scan provider gate.
+
+Rollback is image-level: the previous reader can still use its existing
+columns, while the additive sequence/index/column remain harmless. The active
+QA goal is the approval authority for this local remediation; local evidence
+is recorded in the acceptance and review records after verification.
