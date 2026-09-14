@@ -2011,6 +2011,115 @@ metered credit line — so its provider cost comes out of the tier margin, not t
 creator's balance. Every point of cache hit rate is margin, and the §10.1 25% floor
 depends on it.
 
+### 10.10 Refunds — the whole flow, and what it costs us to get wrong
+
+A refund is the only event that runs *backwards* through every derived number in the
+product, so it is the best test of whether the architecture actually holds.
+
+#### 10.10.1 Who can initiate one, and why that is the hard part
+
+Razorpay supports refunds through its API — full and partial, with a normal and an
+instant speed, and its own webhook events. **The provider is not the obstacle; our money
+model is.**
+
+In the creator-direct design the payment settles to the **creator's** account. The funds
+are not ours, so the authority to reverse them is not ours either. Three ways out:
+
+| Route | Verdict |
+|---|---|
+| **Creator refunds in the Razorpay dashboard; we reconcile from the webhook** | **Works today, zero new permission.** This is what ships first |
+| **We initiate on the creator's behalf via partner OAuth with a refund scope on the linked account** | **The target.** Depends on `PAY-13` (partner OAuth config, currently unreachable) and on the Technology Partner approval that is already a v1 release gate |
+| **We hold the creator's API keys and call as them** | **Never.** This is the §25.5 consumer-credential prohibition wearing different clothes |
+
+So the register's "no rail reports `supportsRefunds: true`" is accurate about our
+*abstraction* and misleading about the *provider*. Corrected here: **Razorpay supports
+refunds; we do not yet hold the delegated authority to trigger one**, and that authority
+arrives with the partner approval rather than with a code change.
+
+**Every per-field and per-behaviour claim about the provider in this section carries the
+§27.2 requirement** — a dated official source before it becomes a planning number. The
+shape below is designed to survive being wrong about a field name; it must not be built
+against memory.
+
+#### 10.10.2 The data we must store, per refund
+
+Reconciliation is impossible later if any of this is missing at the time:
+
+| Field | Why |
+|---|---|
+| Our `refund_id`, and our **idempotency key** for the initiation attempt | So a retry never double-refunds |
+| Provider `refund_id`, `payment_id`, `order_id` | The join back to the money |
+| `amount_paise`, `currency` | Partial refunds mean the payment's amount is not the refund's amount |
+| `status` and every transition, with timestamps | The state machine below |
+| `speed_requested` and `speed_processed` | A requested instant refund can be processed as normal; the creator will ask why |
+| `reason_code` (our taxonomy) and `reason_text` | Support, disputes and the Activity Log |
+| `initiated_by` — creator, admin, provider-side, or system | Owner/admin only; operator and moderator never (§ role scoping) |
+| `initiated_where` — our product or the provider dashboard | Out-of-band refunds must be recognised, not treated as anomalies |
+| Provider event ID of each webhook | Dedup, exactly as payments already do |
+| `arn` / acquirer reference, once available | The number a supporter's bank will ask for |
+| Expected and actual credit timing | "When will I see it" is the only question a supporter asks |
+| `failure_code` and `failure_reason` | A failed refund is a state, not an absence |
+| Balance context at initiation | A refund against an already-settled payment can overdraw; see below |
+| Link to the alert event, receipt and supporter identity | Every derived number and the receipt must reflect it |
+
+#### 10.10.3 The state machine
+
+```text
+requested → accepted_by_provider → processing → processed
+                     │                  │
+                     │                  └→ failed → (retry | manual)
+                     └→ rejected
+processed → (reversed_by_bank)        ← rare, but it exists
+```
+
+Every transition is webhook-driven, idempotent on the provider event ID, and written to
+the ledger as an append-only row. **We never infer a state from elapsed time.**
+
+#### 10.10.4 What a refund must touch, and what it must not
+
+**Recomputes automatically, because we derive rather than store (§19.6):** goal progress ·
+leaderboards · badges · streaks · supporter reputation · season-pass eligibility · any
+widget total. **This is the payoff of that decision** — there is no counter to decrement,
+no badge to revoke, no leaderboard to rebuild, and a refund needs no special handling in
+any of them.
+
+**Updates:** the receipt, which already reflects live refund state (`VID-04`) · the
+Activity Log (§7.5) · the payment's detail view timeline (§7.2) · the creator's payout
+reconciliation view.
+
+**Does not touch:**
+
+- **The alert that already played.** It happened; the audience saw it. We do not rewrite
+  the past on stream. The record shows the reversal; the stream does not.
+- **TTS already spoken.** Same reason.
+- **The stored message and its moderation history.** Durable records (§12.6).
+- **The supporter's ability to support again.** A refund is not a punishment.
+
+#### 10.10.5 The edge cases that decide whether this is real
+
+| Case | Behaviour |
+|---|---|
+| **Partial refund, then another** | Track cumulative refunded amount; refuse to exceed the payment. Derived numbers use `paid − Σ refunds`, which already works |
+| **Refund after settlement** | The creator's balance may be insufficient. The provider's behaviour governs; we surface it as a distinct, explained state rather than a generic failure |
+| **Refund of a Compatibility-Routing signal** | **Impossible, and must fail loudly.** A routed signal is not a verified payment (§25.3). There is no money for us to reverse and no receipt to amend |
+| **Refund before the webhook for the original payment** | Queue it; refunds are ordered behind their payment, never applied to a payment we have not yet recorded |
+| **Duplicate refund webhooks** | One refund row, exactly as `PAY-02` handles payments |
+| **Refund during a live stream** | No on-stream change of any kind. The creator sees it in Companion; the audience does not |
+| **Chargeback or dispute** | **A separate state machine, not a refund.** Different timeline, evidence pack, provider-driven, and it can arrive months later |
+| **Repeated refunds by one supporter** | A private risk signal on the creator's view (§12.11). Never an automatic block, never cross-creator |
+| **Tax treatment** | Unresolved and gated on the CA review. **No refund copy may state a tax consequence** until then |
+
+#### 10.10.6 What the creator and the supporter each see
+
+- **Creator:** a refund action on the payment detail view (once delegated authority
+  exists), a reason field that is required, an undo window before submission rather than
+  a confirmation dialog, live status afterwards, and the effect on their goals shown
+  immediately.
+- **Supporter:** an honest status and an expected credit window, reachable from their
+  receipt link with no login (`/r/[token]`), because the receipt token is the only thing
+  an anonymous supporter has.
+- **Neither sees** a silent change. A refund that fails is visible to both.
+
 ---
 
 ## 12. Hard boundaries — the rules that never bend
@@ -2358,6 +2467,131 @@ Backend obligations that make it enforceable rather than aspirational:
 (RT-01), and standalone widgets each open their own live transport (§21.3). Both are
 replaced by the channel-keyed, single-Master-Canvas model before the experience may be
 described as smooth.
+
+### 12.8 One message, end to end — the story
+
+Machinery is easier to check against a narrative than against a spec. This is one real
+message, from typing to appeal.
+
+**A supporter tips ₹500 and types a message containing a slur written as `f.u.c.k`, plus
+a Hindi insult in Devanagari, plus their phone number.**
+
+1. **The money is never in question.** The payment is captured, verified, recorded and
+   receipted. Nothing about the text can reject it (§12.2.4). This is the rule everything
+   else hangs from.
+2. **L0 normalises.** `f.u.c.k` loses its separators; the Devanagari term is transliterated
+   and reduced to its phonetic key; the phone number is detected as PII. The original text
+   is untouched and stored exactly as typed.
+3. **L1 matches**, twice: an English T1 term and a Hindi T1 term, both on the phonetic key
+   rather than the spelling. **No provider call.** Microseconds.
+4. **The verdict is not cached**, because L0 flagged PII (`SAF-21`). Computed, used,
+   discarded.
+5. **Four independent decisions** (§12.2.4): payment — recorded. Display — masked. TTS —
+   silent. Record — stored in full. Review — queued, because ₹500 is above the creator's
+   review threshold.
+6. **The overlay shows** the alert with a masked message. The creator's audience never
+   sees the slur or the phone number.
+7. **Companion buzzes** the creator: a ₹500 tip, held for review, with the reason. One tap
+   shows the original, because the creator is allowed to see what was actually said about
+   them.
+8. **The Activity Log records** the automated action: original, normalised form, the layer
+   that decided, both matched rules, the policy version, and that no human was involved
+   (`SAF-18`).
+9. **The creator sets a rule**: auto-timeout on a T1 match. The next such message from the
+   same supporter triggers it — and the timeout carries an **evidence snapshot** (§12.10),
+   so three weeks later the creator can still see exactly why.
+10. **The supporter appeals** from their receipt link. The appeal, the reviewer and the
+    outcome are all audited, and a reversal is as visible as the block was (`SAF-19`).
+11. **Nothing here was tiered.** A Free creator's message travelled the identical path,
+    with the identical latency (`SAF-17`).
+
+**Where AI appears in this story: nowhere.** Both terms were already in the corpus. AI
+only enters when the corpus does not know a term yet — and then its verdict becomes a
+corpus entry, so it never pays for that term again (§11.12.3).
+
+### 12.9 The corpus — seeding, growth and governance
+
+#### 12.9.1 Seed small and precise, not large and noisy
+
+**Do not import a public profanity list wholesale.** They are noisy, they cause the
+Scunthorpe problem, and several include words that are ordinary in Indic languages. A
+public list is a source of **candidates**, each reviewed before it ships.
+
+| | |
+|---|---|
+| **Launch set** | English and Hindi/Hinglish only — roughly 300–800 unambiguous terms each |
+| **Wave two** | Marathi · Bengali · Telugu · Tamil · Kannada, matching the §5.6.2 language waves |
+| **Per-term record** | surface form · language · script · phonetic key · severity tier · whole-word or substring · source · added-by · reviewed-by · date · policy version |
+| **T1** | Always blocked, never spoken — slurs, sexual violence, threats |
+| **T2** | Masked in display, never spoken |
+| **T3** | Context-dependent — a signal to L3/L4, never a hard rule |
+| **Owner** | One native speaker per language **who actually streams**. Machine-translated abuse lists are worse than none |
+| **Allowlist** | Legitimate words containing a banned substring, maintained alongside — this is the fix for `assist`, `Sussex`, `classic` |
+
+#### 12.9.2 The growth flywheel
+
+```text
+message the corpus cannot decide
+  → offline batch classification (§11.12.1)
+  → candidate term with context and frequency
+  → native-speaker review: accept · reject · mark T3
+  → corpus entry, new policy_version
+  → every future message with that term decides at L1, free, forever
+```
+
+**Near-miss telemetry is how we catch the next spelling.** Anything at edit-distance one
+or two from a banned term that did *not* match is logged as a candidate. That is how
+`phuck` gets added before it spreads, rather than after.
+
+#### 12.9.3 Governance
+
+Corpus changes are versioned, audited and reversible — the same shape as the capability
+registry (§20). A term addition names its reviewer. A removal names its reason. The
+`policy_version` bump invalidates cached verdicts automatically (§11.12.2), so there is no
+purge step and no stale verdict outliving its rule.
+
+### 12.10 Evidence and retention for moderation actions
+
+The rule that makes short retention compatible with long accountability:
+
+> **Snapshot the evidence at action time. Do not retain the firehose.**
+
+| What | Retention |
+|---|---|
+| **Action record** — the timeout, ban, hold, mask or block | Long. Moderation history is a durable record (§12.6) |
+| **Evidence snapshot attached to it** — original text, normalised form, matched rule, layer, confidence, policy version, actor, and **±N surrounding messages** | Lives with the action record |
+| **Raw chat never acted on** | The shortest retention class (§12.6.2) — enough for appeals and context, then gone |
+| **Appeal record** | With the action, including the outcome and reviewer |
+
+So a creator asked "why was this person timed out three weeks ago" has a complete answer,
+and we are not storing every message anyone ever typed to get it.
+
+### 12.11 Flags and cross-creator signals — share signals, never verdicts
+
+| Scope | Position |
+|---|---|
+| **A creator's own flag and block list** | Fully supported. Their channel, their data |
+| **A global shared blacklist** | **Never.** §16.3 already prohibits a permanent blacklist keyed on Google or UPI identity |
+| **A cross-creator risk *signal*** | Defensible only as a hint: *this identity has been actioned by several creators recently*. Decaying, never naming which creators, never auto-actioning, keyed only on OAuth-verified platform identity and **never on payment identity**. Gated on DPDP review — phase G |
+
+The distinction that keeps it safe: a risk signal **orders a moderation queue**; it never
+bans anyone anywhere they have not been. Nobody arrives pre-punished.
+
+### 12.12 Supporter reputation — derived, private where it is negative
+
+Computed live, never stored as a score — `0120` already raises rather than storing one,
+and §19.6 governs.
+
+- **Inputs:** payments minus refunds · tenure · consistency · actioned events · appeal
+  outcomes.
+- **Positive signals may be visible** — badges, *supporter since* — subject to visibility
+  consent. **Negative signals are private to that one creator.** Never a public lifetime
+  total (§12.3).
+- **Used for:** auto-approving trusted supporters, TTS eligibility hints, queue priority,
+  lobby attendance priority, and the named-supporter rule in voice routing (§11.10).
+- **Guardrails:** it decays, it is appealable, it is never shared as a negative across
+  creators, it is never permanent, and it is **never purchasable** — no tier, pack or
+  top-up may raise it.
 
 ---
 
@@ -5298,6 +5532,47 @@ surfaces had no rows.*
 | SAF-27 | Negative caching of common benign phrases | v1 | A | P2 |
 | SAF-28 | Compiled per-channel matcher rebuilt on change, held in memory | v1 | A | P1 |
 | SAF-29 | Per-channel and global AI budgets that stop escalation, **never L0–L3** | v1 | A | P1 |
+| SAF-31 | **Seed corpus**: English + Hindi/Hinglish, 300–800 reviewed terms each, tiered T1/T2/T3. Public lists are candidates only, never shipped unreviewed | v1 | A | **P0** |
+| SAF-32 | Per-term record: surface · language · script · phonetic key · severity · whole-word or substring · source · added-by · reviewed-by · date · policy version | v1 | A | **P0** |
+| SAF-33 | **Allowlist of legitimate words containing a banned substring** — the Scunthorpe fix | v1 | A | **P0** |
+| SAF-34 | Named native-speaker owner per language, who streams | v1 | A | P1 |
+| SAF-35 | Wave-two corpora matching the §5.6.2 language waves | v1 | A | P2 |
+| SAF-36 | **Growth flywheel**: offline classification → candidate → native-speaker review → corpus entry → new policy version | v1 | A | P1 |
+| SAF-37 | **Near-miss telemetry** — unmatched text within edit-distance 1–2 of a banned term logged as a candidate | v1 | A | P1 |
+| SAF-38 | Corpus changes versioned, audited, reversible; additions name their reviewer, removals name their reason | v1 | A | P1 |
+| SAF-39 | **AI is not in the live path for chat** — deterministic online, AI offline and batched; an exhausted budget degrades discovery, never protection | v1 | A | **P0** |
+| SAF-40 | Unicode TR39 confusables mapping, vowel-elision keys, skeleton form, Double Metaphone for Latin and a syllable key for Indic | v1 | A | **P0** |
+| SAF-41 | **Evidence snapshot at action time**: original, normalised, rule, layer, confidence, policy version, actor, ±N surrounding messages | v1 | A | **P0** |
+| SAF-42 | Raw unactioned chat on the shortest retention class; action records and their snapshots on the long one | v1 | A | **P0** |
+| SAF-43 | Appeal record stored with the action, including outcome and reviewer | v1 | A | P1 |
+| SAF-44 | Creator-scoped flag and block lists | v1 | A | P1 |
+| SAF-45 | **No global shared blacklist, ever** (§16.3) | v1 | N | — |
+| SAF-46 | Cross-creator risk **signal** only: decaying, unattributed, never auto-actioning, OAuth identity only, never payment identity | v1·G | A | P2 |
+| REP-01 | Supporter reputation **derived, never stored as a score** (§19.6) | v1 | A | P1 |
+| REP-02 | Inputs: payments minus refunds · tenure · consistency · actioned events · appeal outcomes | v1 | A | P1 |
+| REP-03 | Negative signals private to that creator; positive signals subject to visibility consent; never a public lifetime total | v1 | A | **P0** |
+| REP-04 | Consumers: auto-approve trusted supporters · TTS eligibility hints · queue priority · lobby attendance priority · voice-routing named supporter | v1 | A | P2 |
+| REP-05 | Decays, appealable, never cross-creator negative, never permanent, **never purchasable** | v1 | A | **P0** |
+| REF-01 | Reconcile provider-initiated refunds from the webhook, idempotent on the provider event ID — **ships first, needs no new permission** | v1 | P | **P0** |
+| REF-02 | **In-product refund initiation via partner OAuth with a refund scope** on the linked account | v1·G | A | P1 |
+| REF-03 | Never hold creator API keys to refund as them (§25.5) | v1 | N | — |
+| REF-04 | Full refund record per §10.10.2 — our id and idempotency key, provider ids, amount, status transitions, speeds requested and processed, reason code and text, initiator, origin, event ids, ARN, timing, failure code, balance context, links to alert, receipt and supporter | v1 | A | **P0** |
+| REF-05 | State machine: requested → accepted → processing → processed, with rejected, failed and bank-reversed branches; webhook-driven, never time-inferred | v1 | A | **P0** |
+| REF-06 | Cumulative partial-refund tracking; never exceed the payment | v1 | A | **P0** |
+| REF-07 | Derived numbers recompute with no special handling — the §19.6 payoff | v1 | U | — |
+| REF-08 | Receipt reflects live refund state (`VID-04`) | v1 | U | — |
+| REF-09 | Refund appears in the Activity Log and the payment detail timeline | v1 | A | P1 |
+| REF-10 | **No on-stream change** — the alert and the TTS that already played are not rewritten | v1 | A | **P0** |
+| REF-11 | Refund of a Compatibility-Routing signal is impossible and **fails loudly** (§25.3) | v1 | A | P1 |
+| REF-12 | Refund ordered behind its payment; never applied to an unrecorded payment | v1 | A | **P0** |
+| REF-13 | **Chargebacks and disputes are a separate state machine**, provider-driven, with an evidence pack | v1·G | A | P1 |
+| REF-14 | Repeated-refund risk signal, private to that creator, never automatic, never cross-creator | v1 | A | P2 |
+| REF-15 | Owner and admin may refund; operator and moderator never | v1 | A | **P0** |
+| REF-16 | Reason required, undo window before submission rather than a confirmation dialog | v1 | A | P1 |
+| REF-17 | Supporter sees status and expected credit window from the receipt link, with no login | v1 | A | P1 |
+| REF-18 | **No refund copy states a tax consequence** until the CA review closes | v1·G | A | **P0** |
+| REF-19 | Insufficient-balance and post-settlement refunds surfaced as an explained state, not a generic failure | v1·G | A | P1 |
+| REF-20 | Every provider field and behaviour in §10.10 carries a dated source per §27.2 before it is built against | v1·G | A | **P0** |
 | SAF-30 | Metrics as histograms: cache hit rate overall and per language, residual rate, **cost per thousand messages**, terms promoted per week, creator-reported false negatives, L3-vs-L4 agreement | v1 | A | P1 |
 
 ### 31.14 Customisation and gating
@@ -5707,7 +5982,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | Item | Unblocked by |
 |---|---|
 | Recurring memberships | A rail reporting `supportsRecurringPayments: true`. **Interim answer: Season Passes (§10.4)** |
-| Refund initiation, refundable challenges | A rail reporting `supportsRefunds: true`. No rail does today |
+| **In-product** refund initiation, refundable challenges | **Delegated authority, not provider capability.** Razorpay supports refunds; our creator-direct model means the funds sit in the creator's account, so initiation needs partner OAuth with a refund scope on the linked account (`REF-02`), which arrives with the Technology Partner approval. *Corrected 2026-09-14 — this row previously read "no rail supports refunds", which was true of our abstraction and misleading about the provider.* Reconciling a creator-initiated refund (`REF-01`) is **not** blocked and ships first |
 | Enterprise workspace | Five written Razorpay Route answers (parent/linked structure, third-party split rights, direct settlement, per-account flexibility, suspended-account behaviour) + counsel/CA advice |
 | Paytm | All eight written conditions confirmed |
 | Cashfree, PhonePe | Partner confirmation |
@@ -6146,6 +6421,11 @@ corrected — not the other way round.
 | **§7 listed the dashboard's jobs and never its screens, and the register had no dashboard section at all** | §7.1 screen inventory · §7.2 detail-view contract · §7.3 one-click affordances · §7.4 supporter profile and command palette · §7.6 support handoff bundle · §7.7 authored states. New register section §31.13.1, `DSH-10`…`DSH-31` |
 | **§12.2 was a nine-bullet list** for the highest-harm gap in the register, with no pipeline, no evasion handling, no failure behaviour and no per-surface decision model | §12.2.1–12.2.7: one corpus and one pipeline across every surface, L0 normalisation against homoglyph/leet/zero-width/Zalgo evasion, phonetic keys per Indic script, independent per-surface decisions, fail-closed-for-speech, untiered, auditable, appealable. `SAF-01`…`SAF-19` |
 | **Nothing addressed what AI safety classification would cost** | §11.12: the ladder decides cheaply and escalates rarely; an HMAC-keyed verdict cache with `policy_version` in the key; **term-level caching so an AI verdict becomes a permanent deterministic rule**; batching, signal-based escalation, distillation, budgets that never stop L0–L3. `SAF-20`…`SAF-30`, E2E `SAF-E1`…`SAF-E10` |
+| **The corpus had no seeding plan, no schema, no growth model and no governance** | §12.9: seed small and precise, per-term record, T1/T2/T3, allowlist for the Scunthorpe problem, named native-speaker owners, the discovery flywheel and near-miss telemetry. `SAF-31`…`SAF-40` |
+| **Nothing said how long moderation evidence is kept** | §12.10: **snapshot the evidence at action time**, keep the action record long, keep raw unactioned chat on the shortest class. `SAF-41`…`SAF-43` |
+| **Cross-creator flagging was undefined**, next to a §16.3 rule prohibiting a global blacklist | §12.11: share **signals, never verdicts** — decaying, unattributed, never auto-actioning, OAuth identity only. `SAF-44`…`SAF-46` |
+| **Supporter reputation was referenced and never specified** | §12.12: derived not stored, negatives private, decaying, appealable, never purchasable. `REP-01`…`REP-05` |
+| **§32 read as "no rail supports refunds"**, which was true of our abstraction and misleading about the provider | §10.10: Razorpay supports refunds; **we lack the delegated authority**, which arrives with the partner approval. Reconcile-from-webhook ships first, in-product initiation follows. Full data model, state machine, nine edge cases, and both parties' views. `REF-01`…`REF-20`, E2E `REF-E1`…`REF-E10` |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -6623,6 +6903,25 @@ provider sandboxes where a provider is involved.
 | SAF-E8 | A copypasta raid — 500 identical messages in 30 seconds | One classification, 499 cache hits, and the measured cost reflects it |
 | SAF-E9 | A Free creator and a Studio creator send identical borderline messages | Identical verdicts, identical layers, identical latency (SAF-17) |
 | SAF-E10 | An automated block is appealed | The appeal path works, the reversal is audited, and both appear in the Activity Log |
+| SAF-E11 | The §12.8 story, run end to end | Every one of its eleven steps happens as written, on a Free account |
+| SAF-E12 | A term is added to the corpus | `policy_version` bumps, affected cache entries stop matching, and the reviewer is recorded |
+| SAF-E13 | A near-miss one character from a banned term | Logged as a candidate, not blocked |
+| SAF-E14 | A creator asks why a supporter was timed out three weeks ago | The evidence snapshot answers it in full, after raw chat for that day has expired |
+
+#### 37.3.10 Refunds
+
+| # | Scenario | Passes when |
+|---|---|---|
+| REF-E1 | Creator refunds in the Razorpay dashboard | Webhook reconciles, ledger records it, every derived number reflects it on next read, receipt updates, Activity Log shows it |
+| REF-E2 | Two partial refunds totalling the payment, then a third attempt | The third is refused; cumulative tracking is correct |
+| REF-E3 | Duplicate refund webhooks | One refund row |
+| REF-E4 | A refund webhook arrives before its payment webhook | Queued and applied in order, never to an unrecorded payment |
+| REF-E5 | A refund lands mid-stream | Nothing changes on stream; Companion shows it; the audience sees nothing |
+| REF-E6 | A refunded tip had contributed to a goal and earned a badge | Both recompute with no counter to fix and no badge to revoke |
+| REF-E7 | A refund fails at the provider | A visible failed state with its reason, for both creator and supporter — never a silent disappearance |
+| REF-E8 | Refund attempted on a Compatibility-Routing signal | Refused loudly, with the reason that a routed signal is not a verified payment |
+| REF-E9 | An operator attempts a refund | Refused by projection and RLS, not by a hidden button |
+| REF-E10 | An anonymous supporter opens their receipt link after a refund | Live status and expected credit window, no login |
 
 ### 37.4 Performance numbers — the table that gets measured
 
@@ -6771,9 +7070,10 @@ rollback** — the same rule the master release authority already applies.
 | INT | INT-E1..E7 · package fuzz corpus |
 | BOT | BOT-E1..E5 · rate-limit compliance · shared-corpus test with TTS |
 | LIF, PCK | LIF-E1..E3 · DSH-E4 · durable-record access suite |
+| REF | REF-E1..E10 · duplicate-webhook and dispatcher-down chaos · isolation |
 | STO, MED | INT-E4 · asset-serving suite · one rehearsed takedown drill (§18.3) |
 | CUS (gating model) | DSH-E1..E5 · role-boundary suite |
 | CST (customisation depth) | OVL-E1..E12 · HUB-E1..E5 · accessibility and localisation suites · +40% expansion |
-| SAF | SAF-E1..E10 · the shared-corpus test with TTS and the bot · cost-per-thousand-messages measured, not asserted |
+| SAF, REP | SAF-E1..E14 · REP guardrail tests · the shared-corpus test with TTS and the bot · cost-per-thousand-messages measured, not asserted |
 | DSH | DSH-E1..E12 · isolation and role-boundary suites |
 | SOC, RTE, Enterprise | Not scheduled — phase R or blocked. No suite required until a gate closes |
