@@ -289,15 +289,15 @@ requirement, not a claim that anything has been run.
 | CON-19 | §31.9 Connectors and chat | B | — |  | post-v1 (Phase 4) |  |  |  | none |
 | CON-20 | §31.9 Connectors and chat | A | P3 |  | post-v1 (Phase 4) |  |  |  | none |
 | CON-21 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
-| CON-22 | §31.9 Connectors and chat | A | **P0 rule for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
-| CON-23 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
-| CON-24 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
-| CON-25 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
-| CON-26 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
-| CON-27 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
-| CON-28 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
-| CON-29 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
-| CON-30 | §31.9 Connectors and chat | N | — |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-31 | §31.9 Connectors and chat | A | **P0 rule for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-32 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-33 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-34 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-35 | §31.9 Connectors and chat | A | P1 |  | post-v1 (Phase 4) |  |  |  | release |
+| CON-36 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-37 | §31.9 Connectors and chat | A | **P0 for Phase 4** |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-38 | §31.9 Connectors and chat | A | P2 |  | post-v1 (Phase 4) |  |  |  | none |
+| CON-39 | §31.9 Connectors and chat | N | — |  | post-v1 (Phase 4) |  |  |  | none |
 | ENT-01 | §31.10 Entitlements, billing, admin, ops | U | — |  | LIF-E1..E3 · isolation |  |  |  | none |
 | ENT-02 | §31.10 Entitlements, billing, admin, ops | U | — |  | LIF-E1..E3 · isolation |  |  |  | none |
 | ENT-03 | §31.10 Entitlements, billing, admin, ops | X | P1 |  | LIF-E1..E3 · isolation |  |  |  | release |
