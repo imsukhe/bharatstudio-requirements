@@ -20,7 +20,7 @@ which is not the same as no work existing. See the finding below.
 | `active/` authority and task records | 7 |
 | `active/launch/` external evidence register | 6 |
 
-**768 requirement rows in the register.**
+**783 requirement rows in the register.**
 
 ## The finding: two ID systems that do not meet
 
@@ -30,15 +30,15 @@ identifiers). The register in §31 is keyed on **area prefixes** (`PAY-`, `CMP-`
 …). Almost nothing references both, so the two bodies of work cannot currently be
 joined.
 
-| Register rows with a … | Count | Of 768 |
+| Register rows with a … | Count | Of 783 |
 |---|---:|---:|
-| task record naming the ID | 2 | 768 |
-| test record naming the ID | 0 | 768 |
-| review naming the ID | 0 | 768 |
-| `done/` legacy evidence naming the ID | 0 | 768 |
-| external evidence register naming the ID | 1 | 768 |
-| `active/` record naming the ID | 1 | 768 |
-| an explicit L-track pointer in its text | 1 | 768 |
+| task record naming the ID | 2 | 783 |
+| test record naming the ID | 0 | 783 |
+| review naming the ID | 0 | 783 |
+| `done/` legacy evidence naming the ID | 0 | 783 |
+| external evidence register naming the ID | 1 | 783 |
+| `active/` record naming the ID | 1 | 783 |
+| an explicit L-track pointer in its text | 1 | 783 |
 
 **So the gap is a missing mapping, not (only) missing work.** Building that mapping —
 register ID → L-track record where one exists, and a new `active/` record where one
@@ -68,7 +68,22 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | PAY-14 | §31.2 Payments and money | v1 | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
 | PAY-15 | §31.2 Payments and money | v1 | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
 | PAY-16 | §31.2 Payments and money | v1 | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-17 | §31.2 Payments and money | v1 | P | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-17 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| QR-01 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
+| QR-02 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
+| QR-03 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
+| QR-04 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
+| QR-05 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
+| QR-06 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | — | release |
+| QR-07 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
+| QR-08 | §31.2 Payments and money | v1 | P | P1 |  |  |  |  |  | — | release |
+| QR-09 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | — | none |
+| QR-10 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | — | release |
+| QR-11 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | — | none |
+| QR-12 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
+| QR-13 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
+| QR-14 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | — | release |
+| QR-15 | §31.2 Payments and money | v1 | N | — |  |  |  |  |  | — | none |
 | PAY-18 | §31.2 Payments and money | v1 | X | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
 | PAY-19 | §31.2 Payments and money | v1 | A | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
 | PAY-20 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
@@ -831,7 +846,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | P3 | 84 |
 | P3·G | 6 |
 | R | 17 |
-| v1 | 486 |
+| v1 | 501 |
 | v1·G | 49 |
 
 ## Areas
@@ -867,6 +882,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | PAY | 30 |
 | PCK | 15 |
 | PRF | 19 |
+| QR | 15 |
 | REF | 20 |
 | REP | 5 |
 | RT | 13 |

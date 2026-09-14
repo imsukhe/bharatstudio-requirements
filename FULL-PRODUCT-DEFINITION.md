@@ -1220,6 +1220,79 @@ Changed, and why:
 - **Sound jukebox → catalogue and creator-pack only.** No viewer uploads, no arbitrary
   URLs, no executable media. This matches the standing L22 safe-media boundary.
 
+### 8.2.1 QR and UPI — the flows, precisely
+
+Added 2026-09-15. The pieces were scattered across five sections and three of the rules
+that matter most were assumptions rather than text.
+
+#### 8.2.1.1 Three kinds of QR, and they are not interchangeable
+
+| Kind | Encodes | Used on | Lifetime |
+|---|---|---|---|
+| **Channel QR** | The creator's **tip-page short link**. Never a payment, never an amount | The **overlay**, print, business cards, a stream's ending screen, anywhere the creator shares it | Stable for the life of the channel. Rotates only if the creator rotates the link |
+| **Order QR** | One specific payment order, produced by the provider at checkout | The **tip page**, on desktop, inside the checkout step | Short-lived, expires with the order |
+| **Campaign QR** | A campaign page's link (§15.4.4) | A campaign or event page, a poster, a sponsor asset | Lives with the campaign page |
+
+> **The overlay QR is always a Channel QR.** An Order QR on stream would expire while
+> people are still scanning it, bind every viewer to one stranger's order, and break the
+> moment the page reloads. This was previously an unstated assumption; it is now a rule
+> (`QR-02`).
+
+#### 8.2.1.2 Amounts, expiry and refresh
+
+- **A Channel QR never embeds an amount.** The supporter chooses on the page. This is the
+  same reason a bare `!tip` replies with the link and no amount (§33.1).
+- **A Campaign QR may carry a suggested amount as a page parameter**, which the page
+  pre-fills and the supporter can change. It is a suggestion in the URL, never a fixed
+  sum in the QR payload.
+- **An Order QR carries the exact amount** and expires with its order. The tip page shows
+  its remaining validity and offers one regeneration, rather than silently refreshing
+  underneath someone mid-scan.
+- **Rotating the channel short link invalidates every Channel QR in circulation**, which
+  is a destructive act on printed material. It requires confirmation naming that
+  consequence, and it is audited (§7.5).
+
+#### 8.2.1.3 The device paths
+
+| Device | Path |
+|---|---|
+| **Mobile web** | **UPI Intent** — the app chooser opens, the supporter pays in their UPI app, and the return path brings them back to the confirmation screen |
+| **Desktop** | **Order QR** in the checkout step, scanned from the phone, with the page polling its own order state — never the provider's |
+| **Tablet** | Treated as mobile when a UPI app is installed, desktop otherwise; the page offers both rather than guessing |
+| **JavaScript degraded** | A link and a QR still work (§19.9). The payment path never depends on the client |
+
+**The UPI-intent return path is the fragile part and needs real devices**, not an
+assumption: Android and iOS differ, several UPI apps differ from each other, and a
+supporter who does not come back cleanly must still land on a page that tells them the
+truth about their payment. `QR-07` owns that, with device-lab coverage (`ENV-05`).
+
+**Preferred-app memory** is half-built today — the server allowlist exists, the browser
+half does not (§2). It stores *which app a supporter chose*, never a credential, never an
+account identifier (§12.1), and it is per-device.
+
+#### 8.2.1.4 Verification is not negotiable
+
+- The page **never** treats a return from a UPI app as success. Only the HMAC-verified
+  webhook confirms (`PAY-02`).
+- The page shows the honest intermediate state — *waiting for confirmation* — with a
+  bounded wait, and then a recovery screen with the receipt link so the supporter can
+  check later without an account.
+- **No "mark as paid", no generic QR fallback, no screenshot-based confirmation.** Ever
+  (`RTE-14`).
+- The receipt link is the supporter's only artefact, so it must work with no login, from
+  any device, at any later time (`VID-04`).
+
+#### 8.2.1.5 What we record
+
+Per attempt: which path was offered (intent / QR / link), which was taken, which app was
+chosen where the OS reports it, whether the return path completed, time from intent to
+webhook, and the failure class when it fails. **No account identifiers, no VPAs, no
+banking data** — §12.1 and §12.4 both apply, and the PII detector treats a UPI ID as PII
+(`SAF-12`).
+
+That data exists for one reason: conversion on the tip page is the product's economics,
+and today nothing measures where a supporter falls out.
+
 ### 8.3 The "support without paying" lane
 
 Not every interaction should demand money. This lane makes the page useful to viewers
@@ -5211,7 +5284,22 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | PAY-14 | Payment account activation | v1 | X | P0 |
 | PAY-15 | Reconciliation sweep + refund sweep actually running | v1 | X | P0 |
 | PAY-16 | Manual-review quarantine resolution UI | v1 | X | P0 |
-| PAY-17 | Dynamic UPI QR on the tip page (server side exists) | v1 | P | P1 |
+| PAY-17 | Dynamic **Order QR** on the tip page — server side exists, the surface half does not (§8.2.1) | v1 | P | **P0** |
+| QR-01 | **Three QR kinds** implemented distinctly: Channel QR (tip-page short link), Order QR (one payment, expiring), Campaign QR (campaign page) | v1 | A | **P0** |
+| QR-02 | **The overlay QR is always a Channel QR** — an Order QR on stream would expire mid-scan, bind every viewer to one stranger's order, and break on reload | v1 | A | **P0** |
+| QR-03 | A Channel QR never embeds an amount; a Campaign QR may carry a suggested amount as a page parameter the supporter can change; an Order QR carries the exact amount | v1 | A | **P0** |
+| QR-04 | Order QR shows remaining validity and offers one explicit regeneration — never a silent refresh mid-scan | v1 | A | P1 |
+| QR-05 | Rotating the channel short link invalidates every Channel QR in circulation: confirmation naming that consequence, and audited | v1 | A | P1 |
+| QR-06 | Device routing — mobile UPI Intent, desktop Order QR, tablet offers both rather than guessing | v1 | P | **P0** |
+| QR-07 | **UPI-intent return path proven on real devices** across Android, iOS and several UPI apps; a supporter who does not return cleanly still lands on a page that tells them the truth (`ENV-05`) | v1 | A | **P0** |
+| QR-08 | Preferred-app memory: the **browser half** (server allowlist exists). Stores which app was chosen, never a credential or account identifier, per device | v1 | P | P1 |
+| QR-09 | A return from a UPI app is **never** success — only the HMAC-verified webhook confirms (`PAY-02`) | v1 | U | — |
+| QR-10 | Honest waiting state with a bounded wait, then a recovery screen carrying the receipt link | v1 | P | **P0** |
+| QR-11 | Receipt link works with no login, from any device, at any later time (`VID-04`) | v1 | U | — |
+| QR-12 | QR download and copy from the tip-page editor and the §7.3 copy affordances, at print resolution | v1 | A | P1 |
+| QR-13 | Per-attempt funnel record: path offered, path taken, app chosen where the OS reports it, return completed, intent-to-webhook time, failure class. **No account identifiers, no VPAs, no banking data** | v1 | A | P1 |
+| QR-14 | Payment path functional with JavaScript degraded — a link and a QR always work (§19.9) | v1 | P | **P0** |
+| QR-15 | No "mark as paid", no generic QR fallback, no screenshot-based confirmation | v1 | N | — |
 | PAY-18 | Preferred UPI app memory (browser half) | v1 | X | P2 |
 | PAY-19 | Direct UPI intent `upi://pay?pa&pn&tr&am&cu` | v1 | A | P2 |
 | PAY-20 | Payout/settlement status visible to creator | v1 | A | P1 |
@@ -6604,6 +6692,7 @@ corrected — not the other way round.
 | **§32 read as "no rail supports refunds"**, which was true of our abstraction and misleading about the provider | §10.10: Razorpay supports refunds; **we lack the delegated authority**, which arrives with the partner approval. Reconcile-from-webhook ships first, in-product initiation follows. Full data model, state machine, nine edge cases, and both parties' views. `REF-01`…`REF-20`, E2E `REF-E1`…`REF-E10` |
 | **The product had goals, a milestone queue and a rules engine, and nothing saying what happens at 100%** | §23.3: the completion latch, the full trigger and action catalogues, YouTube's real and narrow options, ordered sequences with delays, non-configurable safety interlocks, templates and preview, and the overflow and refund accounting. `GOA-01`…`GOA-29`, E2E `GOA-E1`…`GOA-E10` |
 | **Completion would have been a recomputed boolean over a derived total** — so a refund would have un-completed a goal and the next tip would have re-fired the celebration | `GOA-01` latches `goal_completed` as a recorded event; actions fire from the event, never the boolean |
+| **QR and UPI flows were scattered across five sections, and three load-bearing rules were assumptions rather than text** — which QR the overlay shows, whether a QR may embed an amount, and what happens when the channel link rotates | §8.2.1: three distinct QR kinds, **the overlay QR is always a Channel QR**, amount rules per kind, expiry and regeneration, device routing, the intent return path, verification, and the funnel record. `QR-01`…`QR-15`, E2E `QR-E1`…`QR-E10` |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -7086,7 +7175,22 @@ provider sandboxes where a provider is involved.
 | SAF-E13 | A near-miss one character from a banned term | Logged as a candidate, not blocked |
 | SAF-E14 | A creator asks why a supporter was timed out three weeks ago | The evidence snapshot answers it in full, after raw chat for that day has expired |
 
-#### 37.3.10 Goal lifecycle
+#### 37.3.10 QR and UPI
+
+| # | Scenario | Passes when |
+|---|---|---|
+| QR-E1 | Scan the overlay QR from three phones at once, mid-stream, then reload the overlay | All three reach the tip page; the QR is unchanged; no order is bound to it |
+| QR-E2 | Desktop checkout, Order QR scanned after its expiry | An honest expired state with one regeneration, not a silent swap |
+| QR-E3 | Mobile web, UPI Intent, pay, return | Confirmation screen reached; the **webhook**, not the return, marks it verified |
+| QR-E4 | Mobile web, UPI Intent, pay, **do not return** — kill the browser | The payment still completes; the receipt link resolves later with correct status |
+| QR-E5 | Across the device lab: Android and iOS, several UPI apps | The return path works or degrades to a truthful waiting state on every one |
+| QR-E6 | JavaScript disabled entirely | Link and QR still work; a payment completes end to end |
+| QR-E7 | Creator rotates the channel short link | Confirmation names the printed-material consequence; old Channel QRs stop resolving; the action is in the Activity Log |
+| QR-E8 | Campaign QR with a suggested amount | The page pre-fills it and the supporter can change it |
+| QR-E9 | A supporter's UPI ID appears in a message | Treated as PII (`SAF-12`) — never spoken, never cached |
+| QR-E10 | Funnel data after 100 attempts | Path, outcome and timing recorded; **no VPA, account identifier or banking data anywhere in it** |
+
+#### 37.3.11 Goal lifecycle
 
 | # | Scenario | Passes when |
 |---|---|---|
@@ -7101,7 +7205,7 @@ provider sandboxes where a provider is involved.
 | GOA-E9 | A creator manually reopens a completed goal | Audited with a reason and visible in the Activity Log |
 | GOA-E10 | "Why this number?" on a goal total after two refunds | Shows the contributions, both refunds, and the arithmetic |
 
-#### 37.3.11 Refunds
+#### 37.3.12 Refunds
 
 | # | Scenario | Passes when |
 |---|---|---|
@@ -7264,6 +7368,7 @@ rollback** — the same rule the master release authority already applies.
 | BOT | BOT-E1..E5 · rate-limit compliance · shared-corpus test with TTS |
 | LIF, PCK | LIF-E1..E3 · DSH-E4 · durable-record access suite |
 | REF | REF-E1..E10 · duplicate-webhook and dispatcher-down chaos · isolation |
+| QR, PAY | QR-E1..E10 · device-lab coverage · degraded-JS path |
 | GOA, RUL | GOA-E1..E10 · OVL suites for the celebration path · §12.2 corpus test on generated text |
 | STO, MED | INT-E4 · asset-serving suite · one rehearsed takedown drill (§18.3) |
 | CUS (gating model) | DSH-E1..E5 · role-boundary suite |
