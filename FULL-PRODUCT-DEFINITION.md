@@ -3896,7 +3896,154 @@ This is the feature that turns the product from a widget collection into an oper
 system, and it composes with everything else: Sound Moments, TTS eligibility, Clutch
 Mode, queue modes and the capability registry are all inputs to the same evaluation.
 
-### 23.3 Overlay URLs are bearer credentials
+### 23.3 Goal lifecycle — what happens when a goal completes
+
+Added 2026-09-15. The product had goals, a milestone queue and a rules engine, and
+nothing that said **what actually happens at 100%**. This is that section, and it is the
+same trigger→action engine as §23.2 rather than a second one.
+
+#### 23.3.1 Completion must be latched, not recomputed
+
+**This is the design point everything else depends on.** Goal progress is *derived* from
+`payments − refunds` (§19.6), which means progress can go **down**. If "complete" were a
+recomputed boolean, a refund would un-complete a goal and the next tip would fire the
+celebration a second time.
+
+So completion is a **recorded event with a latch**:
+
+- The first read that crosses the target writes a `goal_completed` event, **once**,
+  idempotently, with the contribution that crossed it and the derived total at that
+  moment.
+- Actions fire from that event, never from the boolean.
+- **A later refund does not un-complete the goal.** It is recorded against it, the
+  progress display shows the true derived figure, and the completion stands — because it
+  happened, and the audience saw it (the same rule as §10.10.4: we do not rewrite the
+  past on stream).
+- A creator may **manually reopen** a goal. That is an explicit, audited action with a
+  reason, not an automatic consequence of arithmetic.
+
+#### 23.3.2 Triggers — everything that can fire a rule
+
+| Class | Triggers |
+|---|---|
+| **Goal** | Reached 100% · a creator-defined threshold (percentage **or** absolute) · first contribution · the contribution that completed it ("the closer") · biggest single contribution · stretch beyond 100% at defined steps · goal stalled for N minutes · goal expired unmet · ladder step complete · **all** goals complete · **any** goal complete |
+| **Session** | Session total crossing a figure · Nth supporter of the stream · new top supporter · first-time supporter · returning supporter (reputation, §12.12) |
+| **Platform** *(P2, Phase 4)* | Super Chat received · membership · gifted memberships · like-count milestone · viewer-count milestone |
+| **Community** *(P3)* | Challenge complete · lobby filled · tournament result · giveaway drawn |
+| **Operational** | Stream start · stream end · scene change · Clutch Mode entered or left · sponsor segment start or end |
+
+Every trigger carries the same controls: enabled · threshold · **once per stream / every
+time / at most N per stream** · cooldown · minimum contribution · quiet window · and which
+contribution sources count (UPI tip, Super Chat, membership, manual adjustment —
+independently, per §15.2).
+
+#### 23.3.3 Actions — the full catalogue
+
+**On the overlay:** celebration animation · confetti or particle burst · full-screen
+takeover for a bounded duration · banner or lower third · ticker message · progress-bar
+flourish · module swap · **theme swap** (festival, sponsor-safe, celebration) · winner or
+closer card · a "goal smashed" scene preset.
+
+**Audio:** a Sound Moment · a music sting · a TTS announcement — **through the §12.2
+pipeline like any other text** · duck other audio for the duration.
+
+**Goal lifecycle:** mark complete · **auto-advance to the next goal in the ladder** ·
+**auto-create the next goal** by a rule — `+₹X`, `×N`, next value from a template list, or
+the same target again · **roll the overflow into the next goal** or discard it · convert to
+a stretch goal · extend the deadline · pause · archive · reset for the next stream.
+
+**To the creator:** Companion push · a Live Deck banner · a suggested next action · a
+**stream marker** so the moment is findable in the Wrap Stream summary (§5.5).
+
+**To supporters:** a thank-you card naming the closer *with visibility consent* · a badge
+grant (§12.12 rules apply) · a note appended to receipts issued during the goal.
+
+**Outbound** *(P2/P3, approve-then-send by default per §27.1):* a rate-limited YouTube
+chat announcement · a Discord webhook post · Telegram · WhatsApp opt-in reminder · a
+social post with a generated card.
+
+**OBS, through the local helper:** scene switch · source toggle · save the replay buffer ·
+trigger an approved Streamer.bot or SAMMI action (§9.6).
+
+**Sponsor:** reveal a sponsor card · log the exposure with a timestamp for the
+proof-of-delivery report.
+
+#### 23.3.4 What YouTube can and cannot do — Phase 4, and narrower than people expect
+
+| Wanted | Reality |
+|---|---|
+| Post a chat announcement | **Possible**, needs the chat-write scope (unfiled, §32), and is rate-limited and coalesced by us (§36.6) |
+| Pin the announcement | Possible within the same scope |
+| Update the broadcast title or description — "GOAL SMASHED" | Possible, and **heavily rate-limited**; treat as once per stream, not per milestone |
+| Create a poll | Possible where authorised |
+| Trigger a membership gift, a Super Chat, or any purchase | **Never.** §4 is explicit: BharatStudio must never automate a membership purchase or card confirmation |
+| Change anything about someone else's account | Never |
+
+**Everything above is Phase 4**, and none of it may be marketed before the scope exists.
+The BharatStudio-side actions in §23.3.3 are available without any of it — which is the
+point of not building the celebration on top of YouTube.
+
+#### 23.3.5 Sequencing, conditions and the safety interlocks
+
+Actions are an **ordered list with delays**, not a set. A creator composes:
+
+```text
+goal reached 100%
+  → 0.0s  duck audio · play sting
+  → 0.2s  confetti · full-screen takeover (4s)
+  → 4.2s  banner: "{goal_name} complete — thank you {closer}!"
+  → 5.0s  auto-create next goal: +₹2000, roll overflow in
+  → 6.0s  prepare Discord post  (approve-then-send)
+  → 6.0s  stream marker "goal 1 complete"
+```
+
+**Conditions** on any rule: only while live · only in named scenes · **not** while Clutch
+Mode is active · not during a sponsor segment · only above a tier · only if the overlay is
+connected · only outside quiet hours.
+
+**Interlocks that are not creator-configurable:**
+
+- **Clutch Mode suppresses everything loud or full-screen**, and the deferred actions are
+  shown afterwards rather than lost (§5.2).
+- **Never interrupt an alert mid-play.** Celebrations queue behind the current alert.
+- **Never-interrupt-gameplay mode** (`RUL-02`) holds full-screen actions until a safe
+  moment.
+- **Any text that will be spoken or displayed goes through §12.2**, including generated
+  announcement copy.
+- **Rate limits are ours to enforce**, not the platform's to reject.
+- **Prepare, not fire, is the default for anything outbound or public** (§5.4) — the
+  creator releases it. Low-risk local actions (a sound, a banner) may auto-fire.
+
+#### 23.3.6 Templates, preview and configurability
+
+Text templates carry variables — `{goal_name}` `{target}` `{raised}` `{remaining}`
+`{percent}` `{closer}` `{top_supporter}` `{supporter_count}` `{session_total}` `{next_goal}`
+— and every string is per-language (§15.4).
+
+**Every action is configurable to the §15.2 depth**: which sound, which animation, its
+duration and easing, its position within the safe zones, colour, size, and whether it
+exists at all. **Preview fires the whole sequence** on the overlay in a test mode that is
+visually marked and auto-reverts, so a creator sees the composition before an audience
+does.
+
+**Starting points, not cages:** presets — *Quiet* (banner and marker only), *Standard*
+(sting, confetti, banner, auto-advance), *Hype* (takeover, theme swap, outbound posts
+prepared) — each fully editable afterwards, per §15.3.
+
+#### 23.3.7 Refunds, overflow and the accounting
+
+- **Overflow** — the amount above the target — is either rolled into the next goal or
+  discarded, creator's choice, recorded either way.
+- **A refund after completion** reduces the derived total and is visible on the goal's
+  detail view, but does not reverse the completion event, the celebration, or a rolled-over
+  overflow that has already been credited to the next goal.
+- **The goal's detail view** follows the §7.2 contract: summary, timeline of every
+  contribution and every rule that fired, relations to the contributions and the next goal,
+  actions, and the audit of any manual reopen.
+- **"Why this number?"** (§7.3) explains a goal total from its contributions, including
+  refunds — which is only possible because the total is derived.
+
+### 23.4 Overlay URLs are bearer credentials
 
 The competitor review's sharpest lesson. Our current design is already good — token in
 the URL fragment, only a SHA-256 hash stored, per-overlay lookup, rotate and revoke —
@@ -3908,7 +4055,7 @@ that overlay URLs never appear in screenshots, support tickets, logs or error me
 A creator screenshotting their OBS setup for a support request must not hand over a
 permanent credential.
 
-### 23.4 Other things worth taking from the benchmark
+### 23.5 Other things worth taking from the benchmark
 
 Test/sandbox mode that never reaches viewers · shadow mode beside an existing provider
 · a global emergency-disable button · transparent-background source · portrait and
@@ -5775,6 +5922,35 @@ surfaces had no rows.*
 | RUL-01 | Rules engine: thresholds, modes, cooldowns, caps, priority, approval | v1 | A | P1 |
 | RUL-02 | Never-interrupt-gameplay mode | v1 | A | P1 |
 | RUL-03 | Overlay-offline hold-and-replay | v1 | P | P1 |
+| GOA-01 | **Completion latch** — `goal_completed` written once, idempotently, with the closing contribution and the derived total. Actions fire from the event, never from a recomputed boolean | v1 | A | **P0** |
+| GOA-02 | A refund never un-completes a goal; it is recorded against it and the progress display shows the true derived figure | v1 | A | **P0** |
+| GOA-03 | Manual reopen is explicit, audited and reason-required — never an automatic consequence of arithmetic | v1 | A | P1 |
+| GOA-04 | Goal triggers: 100% · percentage and absolute thresholds · first contribution · the closer · biggest single · stretch steps · stalled N minutes · expired unmet · ladder step · all/any goals complete | v1 | A | P1 |
+| GOA-05 | Session triggers: session total · Nth supporter · new top supporter · first-time · returning supporter | v1 | A | P2 |
+| GOA-06 | Platform triggers — Super Chat, membership, gifting, like and viewer milestones | P2 | A | P2 |
+| GOA-07 | Community triggers — challenge, lobby, tournament, giveaway | P3 | A | P3 |
+| GOA-08 | Operational triggers — stream start/end, scene change, Clutch enter/leave, sponsor segment | v1 | A | P2 |
+| GOA-09 | Per-trigger controls: enabled · threshold · once-per-stream / every time / max N · cooldown · minimum contribution · quiet window · which contribution sources count | v1 | A | P1 |
+| GOA-10 | Overlay actions: celebration, confetti, bounded takeover, banner, ticker, progress flourish, module swap, theme swap, closer card, scene preset | v1 | A | P1 |
+| GOA-11 | Audio actions: Sound Moment, sting, TTS announcement **through the §12.2 pipeline**, audio duck | v1 | A | P1 |
+| GOA-12 | Goal-lifecycle actions: complete · **auto-advance the ladder** · **auto-create next** (`+₹X`, `×N`, template, repeat) · **roll overflow in or discard** · convert to stretch · extend · pause · archive · reset | v1 | A | P1 |
+| GOA-13 | Creator actions: Companion push · Live Deck banner · suggested next action · **stream marker** into the Wrap Stream summary | v1 | A | P1 |
+| GOA-14 | Supporter actions: thank-you card naming the closer **with visibility consent** · badge grant · receipt note | v1 | A | P2 |
+| GOA-15 | Outbound actions, **approve-then-send by default**: YouTube chat announcement, Discord, Telegram, WhatsApp opt-in, social card | P2 | A | P2 |
+| GOA-16 | OBS actions via the local helper: scene switch, source toggle, replay-buffer save, approved Streamer.bot or SAMMI action | v1 | A | P2 |
+| GOA-17 | Sponsor actions: reveal card, log exposure with timestamp for proof-of-delivery | v1 | A | P3 |
+| GOA-18 | **Ordered action sequences with per-step delays**, not a set | v1 | A | P1 |
+| GOA-19 | Conditions: only live · named scenes · not in Clutch · not during a sponsor segment · tier · overlay connected · outside quiet hours | v1 | A | P1 |
+| GOA-20 | **Interlocks, not creator-configurable**: Clutch suppresses loud and full-screen and defers rather than drops · never interrupt an alert mid-play · never-interrupt-gameplay holds takeovers · all text through §12.2 · our rate limits, not the platform's rejection | v1 | A | **P0** |
+| GOA-21 | Prepare-not-fire default for anything outbound or public (§5.4); low-risk local actions may auto-fire | v1 | A | **P0** |
+| GOA-22 | Text templates with `{goal_name}` `{target}` `{raised}` `{remaining}` `{percent}` `{closer}` `{top_supporter}` `{supporter_count}` `{session_total}` `{next_goal}`, per language | v1 | A | P1 |
+| GOA-23 | Every action configurable to §15.2 depth — sound, animation, duration, easing, safe-zone position, colour, size, or absent | v1 | A | P1 |
+| GOA-24 | **Sequence preview** fires the whole composition on the overlay in a marked test mode that auto-reverts | v1 | A | P1 |
+| GOA-25 | Presets — Quiet · Standard · Hype — each fully editable afterwards (§15.3) | v1 | A | P2 |
+| GOA-26 | Overflow rolled into the next goal or discarded, creator's choice, recorded either way | v1 | A | P1 |
+| GOA-27 | Goal detail view follows the §7.2 contract, with a timeline of every contribution and every rule that fired | v1 | A | P1 |
+| GOA-28 | **"Why this number?"** explains a goal total from its contributions including refunds (§7.3) | v1 | A | P1 |
+| GOA-29 | YouTube goal actions are Phase 4 and narrower than expected: announce, pin, one title update per stream, poll. **Never a purchase or a gift** (§4) | P2 | A | P2 |
 | SEC-01 | Short-lived signed overlay capabilities with renewal | v1 | A | **P0** |
 | SEC-02 | Session/device binding where practical | v1 | A | P1 |
 | SEC-03 | Scheduled rotation; never in screenshots, logs or tickets | v1 | P | P1 |
@@ -6426,6 +6602,8 @@ corrected — not the other way round.
 | **Cross-creator flagging was undefined**, next to a §16.3 rule prohibiting a global blacklist | §12.11: share **signals, never verdicts** — decaying, unattributed, never auto-actioning, OAuth identity only. `SAF-44`…`SAF-46` |
 | **Supporter reputation was referenced and never specified** | §12.12: derived not stored, negatives private, decaying, appealable, never purchasable. `REP-01`…`REP-05` |
 | **§32 read as "no rail supports refunds"**, which was true of our abstraction and misleading about the provider | §10.10: Razorpay supports refunds; **we lack the delegated authority**, which arrives with the partner approval. Reconcile-from-webhook ships first, in-product initiation follows. Full data model, state machine, nine edge cases, and both parties' views. `REF-01`…`REF-20`, E2E `REF-E1`…`REF-E10` |
+| **The product had goals, a milestone queue and a rules engine, and nothing saying what happens at 100%** | §23.3: the completion latch, the full trigger and action catalogues, YouTube's real and narrow options, ordered sequences with delays, non-configurable safety interlocks, templates and preview, and the overflow and refund accounting. `GOA-01`…`GOA-29`, E2E `GOA-E1`…`GOA-E10` |
+| **Completion would have been a recomputed boolean over a derived total** — so a refund would have un-completed a goal and the next tip would have re-fired the celebration | `GOA-01` latches `goal_completed` as a recorded event; actions fire from the event, never the boolean |
 | A TTS grace buffer was proposed, contradicting the append-only ledger and TTS-04 | Rejected; §11.11 states no buffer exists and none may be added |
 | Studio-only widgets were costed at zero the day after §37.11 required per-widget runtime, performance, accessibility and OBS verification | Deferred until each widget's package passes |
 | 2,000 pending visuals was proposed against §12.7 | Rejected; the existing 500 is now itself flagged for verification |
@@ -6908,7 +7086,22 @@ provider sandboxes where a provider is involved.
 | SAF-E13 | A near-miss one character from a banned term | Logged as a candidate, not blocked |
 | SAF-E14 | A creator asks why a supporter was timed out three weeks ago | The evidence snapshot answers it in full, after raw chat for that day has expired |
 
-#### 37.3.10 Refunds
+#### 37.3.10 Goal lifecycle
+
+| # | Scenario | Passes when |
+|---|---|---|
+| GOA-E1 | A tip completes a goal, then is refunded, then another tip arrives | The celebration fired **once**; the refund is recorded and visible; the second tip does not re-fire it |
+| GOA-E2 | A goal completes while Clutch Mode is active | Nothing loud or full-screen plays; the deferred actions are shown to the creator afterwards, not dropped |
+| GOA-E3 | A goal completes while an alert is playing | The celebration queues behind it and never interrupts |
+| GOA-E4 | Auto-create next goal with overflow roll-in | The next goal exists with the correct target and starting amount, and the overflow is recorded once |
+| GOA-E5 | A sequence with delays is previewed | The whole composition plays on the overlay in a marked test mode and auto-reverts |
+| GOA-E6 | An outbound action is configured | It is **prepared**, not sent, until the creator releases it |
+| GOA-E7 | A generated announcement contains a blocked term | The §12.2 pipeline catches it before it is spoken or posted |
+| GOA-E8 | Threshold rules at 25/50/75% with "once per stream" | Each fires exactly once, and re-crossing after a refund does not re-fire |
+| GOA-E9 | A creator manually reopens a completed goal | Audited with a reason and visible in the Activity Log |
+| GOA-E10 | "Why this number?" on a goal total after two refunds | Shows the contributions, both refunds, and the arithmetic |
+
+#### 37.3.11 Refunds
 
 | # | Scenario | Passes when |
 |---|---|---|
@@ -7071,6 +7264,7 @@ rollback** — the same rule the master release authority already applies.
 | BOT | BOT-E1..E5 · rate-limit compliance · shared-corpus test with TTS |
 | LIF, PCK | LIF-E1..E3 · DSH-E4 · durable-record access suite |
 | REF | REF-E1..E10 · duplicate-webhook and dispatcher-down chaos · isolation |
+| GOA, RUL | GOA-E1..E10 · OVL suites for the celebration path · §12.2 corpus test on generated text |
 | STO, MED | INT-E4 · asset-serving suite · one rehearsed takedown drill (§18.3) |
 | CUS (gating model) | DSH-E1..E5 · role-boundary suite |
 | CST (customisation depth) | OVL-E1..E12 · HUB-E1..E5 · accessibility and localisation suites · +40% expansion |

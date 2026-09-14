@@ -1,6 +1,6 @@
 # Traceability index
 
-**Generated 2026-09-14 by `tools/traceability.py`. Do not edit by hand.**
+**Generated 2026-09-15 by `tools/traceability.py`. Do not edit by hand.**
 
 Six columns per `FULL-PRODUCT-DEFINITION.md` §35.4:
 `requirement → task → acceptance record → review → evidence → release gate`.
@@ -20,7 +20,7 @@ which is not the same as no work existing. See the finding below.
 | `active/` authority and task records | 7 |
 | `active/launch/` external evidence register | 6 |
 
-**739 requirement rows in the register.**
+**768 requirement rows in the register.**
 
 ## The finding: two ID systems that do not meet
 
@@ -30,15 +30,15 @@ identifiers). The register in §31 is keyed on **area prefixes** (`PAY-`, `CMP-`
 …). Almost nothing references both, so the two bodies of work cannot currently be
 joined.
 
-| Register rows with a … | Count | Of 739 |
+| Register rows with a … | Count | Of 768 |
 |---|---:|---:|
-| task record naming the ID | 2 | 739 |
-| test record naming the ID | 0 | 739 |
-| review naming the ID | 0 | 739 |
-| `done/` legacy evidence naming the ID | 0 | 739 |
-| external evidence register naming the ID | 1 | 739 |
-| `active/` record naming the ID | 1 | 739 |
-| an explicit L-track pointer in its text | 1 | 739 |
+| task record naming the ID | 2 | 768 |
+| test record naming the ID | 0 | 768 |
+| review naming the ID | 0 | 768 |
+| `done/` legacy evidence naming the ID | 0 | 768 |
+| external evidence register naming the ID | 1 | 768 |
+| `active/` record naming the ID | 1 | 768 |
+| an explicit L-track pointer in its text | 1 | 768 |
 
 **So the gap is a missing mapping, not (only) missing work.** Building that mapping —
 register ID → L-track record where one exists, and a new `active/` record where one
@@ -643,6 +643,35 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | RUL-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
 | RUL-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
 | RUL-03 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 |  |  |  |  |  | — | release |
+| GOA-01 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
+| GOA-02 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
+| GOA-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-04 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-05 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
+| GOA-06 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 |  |  |  |  |  | — | none |
+| GOA-07 | §31.22 Sound Moments and Rules Engine | P3 | A | P3 |  |  |  |  |  | — | none |
+| GOA-08 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
+| GOA-09 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-10 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-11 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-12 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-13 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-14 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
+| GOA-15 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 |  |  |  |  |  | — | none |
+| GOA-16 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
+| GOA-17 | §31.22 Sound Moments and Rules Engine | v1 | A | P3 |  |  |  |  |  | — | none |
+| GOA-18 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-19 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-20 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
+| GOA-21 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
+| GOA-22 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-23 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-24 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-25 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
+| GOA-26 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-27 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-28 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
+| GOA-29 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 |  |  |  |  |  | — | none |
 | SEC-01 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
 | SEC-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
 | SEC-03 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 |  |  |  |  |  | — | release |
@@ -797,12 +826,12 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | Phase | Count |
 |---|---:|
 | N | 14 |
-| P2 | 97 |
+| P2 | 100 |
 | P2·G | 12 |
-| P3 | 83 |
+| P3 | 84 |
 | P3·G | 6 |
 | R | 17 |
-| v1 | 461 |
+| v1 | 486 |
 | v1·G | 49 |
 
 ## Areas
@@ -825,6 +854,7 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | ENT | 9 |
 | ENV | 9 |
 | GIV | 7 |
+| GOA | 29 |
 | HUB | 23 |
 | INT | 20 |
 | JOB | 11 |
