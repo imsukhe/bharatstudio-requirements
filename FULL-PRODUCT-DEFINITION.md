@@ -318,6 +318,40 @@ Verified constraints. Design against these, not against optimism.
 | **Chat write / moderation** | Supported, gated | Needs scoped OAuth, rate limiting, audit trail, and a clear fallback when YouTube rejects or disables chat operations. |
 | **BYOK / InnerTube** | Ruled out | Verified ToS violations; InnerTube additionally has no contract, unverifiable financial provenance, and a client-POST fraud vector. |
 
+### 4.1 YouTube quota is ours, not the creator's — corrected 2026-09-14
+
+A working assumption surfaced that each creator brings their own YouTube API quota. **They
+do not, and the design must not depend on it.**
+
+- **Quota is allocated per Google Cloud project**, not per authorising user. Every creator
+  who connects spends **our** project's daily allowance. A creator's OAuth grant conveys
+  permission to act on their data; it conveys no quota.
+- The default allowance for a new project is **10,000 units per day, shared across every
+  creator on it**. It does not scale with signups.
+- There is no supported way to attribute usage to a creator's own allowance. Per-creator
+  projects are not a workable structure, and creator-supplied keys / InnerTube are already
+  **ruled out** in the table above as ToS violations.
+
+Why that matters concretely: a poll costing a handful of units, run every few seconds for
+a four-hour stream, consumes a large share of a 10,000-unit day **for one creator**.
+Several creators live at once exhausts it outright, and the failure is not graceful —
+calls start returning quota errors and the connector goes dark mid-stream.
+
+So three things follow, none of them optional:
+
+1. **A quota increase must be granted before YouTube ships at any scale.** It is an
+   application with an audit, and it is a lead-time item even though YouTube itself is
+   Phase 4.
+2. **Every per-call unit cost in this document needs the §27.2 treatment** — a dated
+   official source, because these figures change and ours are currently unverified.
+   `L15` records that the poller's switch to `streamList` has **never been measured
+   against a real Google project**, which is exactly the gap.
+3. **Polling cadence is a quota budget, not a latency preference.** Cadence, creator
+   count and the daily allowance are one equation, and the connector needs a measured
+   per-creator cost, a project-wide budget, and a defined degradation path when the
+   budget is spent — reduce cadence, then pause, always with a creator-visible reason,
+   never a silent stop.
+
 **Standing rule:** the YouTube connector is *locally proven only*. Real OAuth
 verification, quota grant, chat-write approval and staged live-stream evidence must
 land before anything here is called production-ready.
@@ -5176,6 +5210,8 @@ outbound webhooks, finance/audit exports, SLA support.
 | **StreamElements** | Configuration migration only. An event bridge is **phase R** until a confirmed API or partner position exists. Never scrape a dashboard, import a browser-source secret, or execute copied widget code. |
 | **Package marketplace** | **Slowed deliberately.** First-party curated packages and private creator packages only. Third-party **paid** publishing is phase R: it is a second money flow with author payouts, GST on third-party digital goods, content review at scale, takedowns, disputes, and a "verified" badge we would have to defend. Nothing else in the interop layer depends on it. |
 | **BharatStudio Bot** | **An automation product, not another dashboard** (§36). Six areas and no more. First release is six things done well: commands with aliases/cooldowns/roles, scheduled messages, English/Hindi/Hinglish, deterministic spam and link controls, a simple import wizard, and one event action. Multilingual is **deterministic first** — transliteration-matched aliases and per-language blocked terms — with AI as an optional, quota'd layer that **recommends or soft-actions and never bans**. The blocked-term corpus is **one list shared with §12.2 TTS safety**, never a second. Never imports scripts, raw JS, shell commands or third-party credentials. P2 at the earliest, blocked on the Google chat-write scope and on YouTube being post-v1. |
+| **External filings sequencing** | **Owner decision 2026-09-14: none of the external gates blocks development, and all are filed after the build works.** Razorpay Technology Partner approval, legal counsel, the CA/tax review and Google OAuth verification are **release gates, not build gates** (§1.9 phase **G**), and the owner has chosen to file them once the decided scope is built and working, accepting that minor changes may follow from their feedback. Two obligations follow and are not optional: (a) **build to best practice as if each review had already happened** — DPDP-shaped data handling, GST-inclusive pricing arithmetic, terms and refund wording drafted to be reviewable rather than rewritten; and (b) **make no claim that depends on a filing that has not happened** — no "Razorpay partner", no tax representation beyond the GST-inclusive arithmetic already published, no verified-OAuth claim. The launch date moves with the filing cycle, not with the code. |
+| **YouTube quota** | **Quota is per Google Cloud project, not per creator** (§4.1). A creator's OAuth grant conveys permission, never allowance; every connected creator spends our 10,000-unit default day. A quota increase is required before YouTube ships at any scale, per-call unit costs need dated sources, and polling cadence is a quota budget with a defined degradation path. Filed in Phase 4 with measured usage, per the sequencing decision above. |
 | **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
 | **Alert audio** | **Two-phase release.** The visual goes out the moment it is ready; TTS arrives as a second event keyed to the same alert. Late audio is dropped rather than played over a different alert. Audio latency can never again become visual latency. |
 | **Concurrency target** | **2,000 concurrent live overlays.** Deliberately above a first-year expectation, because a shared channel-keyed subscriber registry is cheap now and a rebuild later, and the failure being avoided is a successful launch weekend taking the product down. |
