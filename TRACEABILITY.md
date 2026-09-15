@@ -14,10 +14,10 @@ which is not the same as no work existing. See the finding below.
 | Corpus | Files |
 |---|---:|
 | `tasks/` task records | 62 |
-| `tests/` test records | 76 |
-| `reviews/` reviews | 87 |
+| `tests/` test records | 77 |
+| `reviews/` reviews | 88 |
 | `done/` legacy evidence | 3 |
-| `active/` authority and task records | 14 |
+| `active/` authority and task records | 15 |
 | `active/launch/` external evidence register | 6 |
 
 **783 requirement rows in the register.**
@@ -33,17 +33,17 @@ joined.
 | Register rows with a … | Count | Of 783 |
 |---|---:|---:|
 | task record naming the ID | 2 | 783 |
-| test record naming the ID | 12 | 783 |
-| review naming the ID | 13 | 783 |
+| test record naming the ID | 13 | 783 |
+| review naming the ID | 15 | 783 |
 | `done/` legacy evidence naming the ID | 0 | 783 |
 | external evidence register naming the ID | 1 | 783 |
-| `active/` corpus file mentioning the ID | 34 | 783 |
+| `active/` corpus file mentioning the ID | 35 | 783 |
 | an explicit L-track pointer in its text | 1 | 783 |
 
 ## Step 0 mapping validation
 
 `active/traceability/register-map.tsv` structurally enumerates 783 unique known §31 IDs.
-Semantic inventory: 66 mapped-existing; 706 unresolved new-record-required.
+Semantic inventory: 66 mapped-existing; 705 unresolved new-record-required.
 `new-record-required` is not completion evidence; it carries an item-specific missing_behavior and '-' targets until taken.
 
 **Step 0 semantic mapping is conditionally closed; capability implementation lifecycle remains open.** The map
@@ -52,7 +52,7 @@ Rows marked `new-record-required` receive real ten-field records just in time wh
 takes them; until then they are not implementation or completion evidence.
 
 The §31.0 contract still holds independently: a row is schedulable only when its
-`active/` record carries all ten fields. That is true of **11** active-record rows today.
+`active/` record carries all ten fields. That is true of **12** active-record rows today.
 
 ## Rows
 
@@ -569,13 +569,13 @@ The §31.0 contract still holds independently: a row is schedulable only when it
 | AUD-09 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Duration, size and format caps; scan pipeline applied → `-` · `-` · `-` |  |  |  |  |  | — | release |
 | AUD-10 | §31.17 Custom audio and creator media | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Asset storage quota enforcement (MED-13 dependency) → `-` · `-` · `-` |  |  |  |  |  | — | release |
 | AUD-11 | §31.17 Custom audio and creator media | N | N | — | new-record-required · Missing from reviewed L-track evidence: Shared or discoverable music library → `-` · `-` · `-` |  |  |  |  |  | — | none |
-| RT-01 | §31.18 Performance | v1 | U | **P0** | active-record · - → `active/tasks/RT-01.md` · `tests/TC-RT-01-overlay-idle-replay.md` · `reviews/2026-09-15-rt-01-overlay-idle-replay.md` |  | tests/TC-RT-01-overlay-idle-replay.md · tests/TC-RT-02-overlay-channel-fanout.md | reviews/2026-09-15-rt-01-overlay-idle-replay.md · reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-02 | §31.18 Performance | v1 | P | **P0** | active-record · - → `active/tasks/RT-02.md` · `tests/TC-RT-02-overlay-channel-fanout.md` · `reviews/2026-09-15-rt-02-overlay-channel-fanout.md` |  | tests/TC-RT-02-overlay-channel-fanout.md | reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-03 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L03 evidence: no explicit two-phase visual-then-media event contract exists on the same alert, and late audio drop after the display window closes is unproven. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-01 | §31.18 Performance | v1 | U | **P0** | active-record · - → `active/tasks/RT-01.md` · `tests/TC-RT-01-overlay-idle-replay.md` · `reviews/2026-09-15-rt-01-overlay-idle-replay.md` |  | tests/TC-RT-01-overlay-idle-replay.md · tests/TC-RT-02-overlay-channel-fanout.md · tests/TC-RT-03-checks-synthesis-release.md | reviews/2026-09-15-rt-01-overlay-idle-replay.md · reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-02 | §31.18 Performance | v1 | P | **P0** | active-record · - → `active/tasks/RT-02.md` · `tests/TC-RT-02-overlay-channel-fanout.md` · `reviews/2026-09-15-rt-02-overlay-channel-fanout.md` |  | tests/TC-RT-02-overlay-channel-fanout.md · tests/TC-RT-03-checks-synthesis-release.md | reviews/2026-09-15-rt-02-overlay-channel-fanout.md · reviews/2026-09-16-rt-03-checks-synthesis-release.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-03 | §31.18 Performance | v1 | U | **P0** | active-record · - → `active/tasks/RT-03.md` · `tests/TC-RT-03-checks-synthesis-release.md` · `reviews/2026-09-16-rt-03-checks-synthesis-release.md` |  | tests/TC-RT-03-checks-synthesis-release.md | reviews/2026-09-16-rt-03-checks-synthesis-release.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | RT-04 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L04/L05 evidence: no single composite triad proves the full cross-service chain as one contract, including an independently scheduled leased dispatcher owning recovery; live IAM/Cloud Tasks staging remains open. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | RT-05 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L04/L05 evidence: no proof establishes that only a leased dispatcher scans ready deliveries or that no request handler scans backlog; the exclusivity/lease boundary remains unresolved and private authorization must not be conflated with dispatcher-only ownership. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-06 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L09 evidence: histogram metrics with explicit buckets and per-instance aggregation remain unproven; L09-03 topology scrape/latency is Not run and staging targets are pending. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-07 | §31.18 Performance | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count → `-` · `-` · `-` |  | tests/TC-RT-02-overlay-channel-fanout.md | reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-06 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L09 evidence: histogram metrics with explicit buckets and per-instance aggregation remain unproven; L09-03 topology scrape/latency is Not run and staging targets are pending. → `-` · `-` · `-` |  |  | reviews/2026-09-16-rt-03-checks-synthesis-release.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-07 | §31.18 Performance | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count → `-` · `-` · `-` |  | tests/TC-RT-02-overlay-channel-fanout.md · tests/TC-RT-03-checks-synthesis-release.md | reviews/2026-09-15-rt-02-overlay-channel-fanout.md · reviews/2026-09-16-rt-03-checks-synthesis-release.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | RT-08 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L06 evidence: defined/disabled schedules do not satisfy the enabled dispatcher dependency; no approved/rehearsed schedule enablement or live scheduler/IAM evidence exists, and legal approval remains open. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | RT-09 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
 | RT-10 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
