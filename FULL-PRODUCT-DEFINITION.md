@@ -3238,6 +3238,38 @@ late over a different alert** · the two events share the alert's identifier so 
 overlay can match them · quota, safety and the routing decision (§11.10) all still
 happen before synthesis, not after.
 
+**Refined by owner decision, 2026-09-16 — synthesis runs during the display queue wait.**
+Two-phase release stays the mechanism; what changes is *when* synthesis starts and *what
+the overlay does with audio for an alert it has not shown yet*.
+
+The defect RT-03 names is not that picture and audio arrive as two events. It is that
+synthesis sits **inside** the durable release, so one slow provider call stalls the alert
+behind it and every alert behind that. That stays fixed: nothing in the release path may
+wait on a provider.
+
+The refinement is that **an alert does not display the moment it is released.** It waits
+its turn behind whatever is already on screen, and that wait is free synthesis time. So
+synthesis starts at release, and the overlay attaches arriving audio to the **queued**
+item, not only to the one currently displayed:
+
+| The alert is… | What happens to its audio |
+|---|---|
+| Still **queued**, not yet shown | **Attached.** Picture and audio start together when its slot opens — the normal case on a busy stream |
+| **On screen now** | Played against it immediately — a late join, audible mid-alert |
+| **Finished** | **Dropped, silently.** Never played over a different alert |
+| Arriving via **replay or reconnect** | Dropped. Stale audio is never resurrected |
+
+**On a quiet stream there is no queue, so there is no free time.** The owner decided the
+alert **displays immediately anyway**: audio joins if it arrives while the alert is still
+up, and is otherwise dropped in favour of the chime. The worst case on a quiet stream is a
+tip alert with a chime instead of a voice — never a delayed alert. A bounded hold was
+considered and rejected: any hold is a visible delay on exactly the alert a creator
+watches most closely, and no approved authority states a hold duration.
+
+Nothing here introduces a number. The display queue and its per-config duration already
+exist (`apps/web/app/overlay/overlay-policy.ts`, `displayDurationMs`), and the playable
+window is read from the durable delivery status, not from a new timer.
+
 #### RT-04 · Payment acknowledgement waits on a worker-pump scan
 
 `services/payment-webhook-go/internal/ingress/handler.go:109` — after committing payment
@@ -5916,7 +5948,7 @@ surfaces had no rows.*
 |---|---|:-:|:-:|:-:|
 | RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | v1 | U | **P0** |
 | RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits. **P, not U**: fanout and deduplicated replay are done and locally verified; the admission **ceiling values** ship unset because no authority states one, and they wait on ENV-08 | v1 | P | **P0** |
-| RT-03 | Two-phase release: visual out immediately, TTS/media as a second event on the same alert; late audio dropped, never played over a different alert | v1 | X | **P0** |
+| RT-03 | Two-phase release: visual out immediately, synthesis runs during the display queue wait, TTS/media arrives as a second event on the same alert and is **attached to a still-queued alert so both start together**; audio for a finished alert is dropped, never played over a different one (owner refinement 2026-09-16) | v1 | X | **P0** |
 | RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | v1 | X | **P0** |
 | RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | v1 | X | **P0** |
 | RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget | v1 | A | **P0** |
