@@ -1,6 +1,6 @@
 # Traceability index
 
-**Generated 2026-09-15 by `tools/traceability.py`. Do not edit by hand.**
+**Generated 2026-09-16 by `tools/traceability.py`. Do not edit by hand.**
 
 Six columns per `FULL-PRODUCT-DEFINITION.md` §35.4:
 `requirement → task → acceptance record → review → evidence → release gate`.
@@ -14,10 +14,10 @@ which is not the same as no work existing. See the finding below.
 | Corpus | Files |
 |---|---:|
 | `tasks/` task records | 62 |
-| `tests/` test records | 62 |
-| `reviews/` reviews | 72 |
+| `tests/` test records | 76 |
+| `reviews/` reviews | 87 |
 | `done/` legacy evidence | 3 |
-| `active/` authority and task records | 7 |
+| `active/` authority and task records | 14 |
 | `active/launch/` external evidence register | 6 |
 
 **783 requirement rows in the register.**
@@ -33,808 +33,814 @@ joined.
 | Register rows with a … | Count | Of 783 |
 |---|---:|---:|
 | task record naming the ID | 2 | 783 |
-| test record naming the ID | 0 | 783 |
-| review naming the ID | 0 | 783 |
+| test record naming the ID | 12 | 783 |
+| review naming the ID | 13 | 783 |
 | `done/` legacy evidence naming the ID | 0 | 783 |
 | external evidence register naming the ID | 1 | 783 |
-| `active/` record naming the ID | 1 | 783 |
+| `active/` corpus file mentioning the ID | 34 | 783 |
 | an explicit L-track pointer in its text | 1 | 783 |
 
-**So the gap is a missing mapping, not (only) missing work.** Building that mapping —
-register ID → L-track record where one exists, and a new `active/` record where one
-does not — is the first task in §34's Step 0, and until it exists §34 is a proposed
-roadmap rather than a schedulable plan.
+## Step 0 mapping validation
+
+`active/traceability/register-map.tsv` structurally enumerates 783 unique known §31 IDs.
+Semantic inventory: 66 mapped-existing; 706 unresolved new-record-required.
+`new-record-required` is not completion evidence; it carries an item-specific missing_behavior and '-' targets until taken.
+
+**Step 0 semantic mapping is conditionally closed; capability implementation lifecycle remains open.** The map
+has 66 mapped-existing rows and conservative `new-record-required` targets for every other row.
+Rows marked `new-record-required` receive real ten-field records just in time when a lane
+takes them; until then they are not implementation or completion evidence.
 
 The §31.0 contract still holds independently: a row is schedulable only when its
-`active/` record carries all ten fields. That is true of **1** rows today.
+`active/` record carries all ten fields. That is true of **11** active-record rows today.
 
 ## Rows
 
-| ID | Section | Phase | State | Pri | Task | Acceptance | Review | Evidence | L-track hint | Required suites (§37.11) | Release gate |
-|---|---|:-:|:-:|:-:|---|---|---|---|---|---|---|
-| PAY-01 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-02 | §31.2 Payments and money | v1·G | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-03 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-04 | §31.2 Payments and money | v1·G | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-05 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-06 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-07 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-08 | §31.2 Payments and money | v1·G | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-09 | §31.2 Payments and money | v1·G | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-10 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-11 | §31.2 Payments and money | v1·G | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-12 | §31.2 Payments and money | v1·G | P | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-13 | §31.2 Payments and money | v1·G | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-14 | §31.2 Payments and money | v1 | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-15 | §31.2 Payments and money | v1 | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-16 | §31.2 Payments and money | v1 | X | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-17 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| QR-01 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
-| QR-02 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
-| QR-03 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
-| QR-04 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
-| QR-05 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
-| QR-06 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | — | release |
-| QR-07 | §31.2 Payments and money | v1 | A | **P0** |  |  |  |  |  | — | release |
-| QR-08 | §31.2 Payments and money | v1 | P | P1 |  |  |  |  |  | — | release |
-| QR-09 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | — | none |
-| QR-10 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | — | release |
-| QR-11 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | — | none |
-| QR-12 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
-| QR-13 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | — | release |
-| QR-14 | §31.2 Payments and money | v1 | P | **P0** |  |  |  |  |  | — | release |
-| QR-15 | §31.2 Payments and money | v1 | N | — |  |  |  |  |  | — | none |
-| PAY-18 | §31.2 Payments and money | v1 | X | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-19 | §31.2 Payments and money | v1 | A | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-20 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-21 | §31.2 Payments and money | v1 | A | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-22 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-23 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-24 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-25 | §31.2 Payments and money | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-26 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-27 | §31.2 Payments and money | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
-| PAY-30 | §31.2 Payments and money | N | N | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-28 | §31.2 Payments and money | v1 | B | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| PAY-29 | §31.2 Payments and money | v1 | B | — |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
-| ALQ-01 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-02 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-03 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-04 | §31.3 Alerts, queues, overlay | v1 | P | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst | release |
-| ALQ-05 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-06 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-07 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-08 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-09 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-10 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-11 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-12 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-13 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-14 | §31.3 Alerts, queues, overlay | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-15 | §31.3 Alerts, queues, overlay | v1 | A | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-16 | §31.3 Alerts, queues, overlay | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · raid burst | release |
-| ALQ-17 | §31.3 Alerts, queues, overlay | v1 | A | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| ALQ-18 | §31.3 Alerts, queues, overlay | v1 | A | P0 |  |  |  |  |  | PAY-E1..E8 · raid burst | release |
-| ALQ-19 | §31.3 Alerts, queues, overlay | v1 | A | P2 |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
-| TTS-01 | §31.4 TTS | v1 | U | — |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
-| TTS-02 | §31.4 TTS | v1·G | U | — |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-03 | §31.4 TTS | v1 | U | — |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
-| TTS-04 | §31.4 TTS | v1·G | U | — |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-05 | §31.4 TTS | v1 | U | — |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
-| TTS-06 | §31.4 TTS | v1 | A | **P0** |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-07 | §31.4 TTS | v1·G | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-08 | §31.4 TTS | v1 | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-09 | §31.4 TTS | v1 | P | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-10 | §31.4 TTS | v1 | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-11 | §31.4 TTS | v1 | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-12 | §31.4 TTS | v1 | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-13 | §31.4 TTS | v1 | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-14 | §31.4 TTS | v1 | A | P2 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
-| TTS-15 | §31.4 TTS | v1·G | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-16 | §31.4 TTS | v1 | A | **P0 with TTS-06** |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| TTS-17 | §31.4 TTS | v1 | A | P1 |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
-| VID-01 | §31.5 Viewer identity, history, trust | v1 | A | **P0** |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-02 | §31.5 Viewer identity, history, trust | v1 | A | **P0** |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-03 | §31.5 Viewer identity, history, trust | v1 | X | **P0** |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-04 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
-| VID-05 | §31.5 Viewer identity, history, trust | v1 | P | P0 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-06 | §31.5 Viewer identity, history, trust | v1 | X | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-07 | §31.5 Viewer identity, history, trust | v1 | X | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-08 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
-| VID-09 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
-| VID-10 | §31.5 Viewer identity, history, trust | v1 | U | — |  |  |  |  |  | PAY-E1..E8 · isolation | none |
-| VID-11 | §31.5 Viewer identity, history, trust | v1·G | B | — |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-21 | §31.5 Viewer identity, history, trust | v1·G | B | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-22 | §31.5 Viewer identity, history, trust | v1·G | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-12 | §31.5 Viewer identity, history, trust | v1·G | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-13 | §31.5 Viewer identity, history, trust | v1·G | X | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-14 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-15 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-16 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-17 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-18 | §31.5 Viewer identity, history, trust | v1 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-19 | §31.5 Viewer identity, history, trust | P2 | A | P0 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| VID-20 | §31.5 Viewer identity, history, trust | P2 | A | P1 |  |  |  |  |  | PAY-E1..E8 · isolation | release |
-| ENG-01 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-02 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-03 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-04 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-05 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-06 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-07 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-08 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-09 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-10 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-11 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-12 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-13 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | X | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-14 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | X | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-15 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-16 | §31.6 Engagement — interactions, widgets, goals, challenges | P2 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-17 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | X | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-18 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-19 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-20 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-21 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-22 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| ENG-23 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| ENG-24 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| CHL-01 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — |  |  |  |  |  | — | none |
-| CHL-02 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | U | — |  |  |  |  |  | — | release |
-| CHL-03 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 |  |  |  |  |  | — | release |
-| CHL-04 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | A | P1 |  |  |  |  |  | — | release |
-| CHL-05 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 |  |  |  |  |  | — | release |
-| CHL-06 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | — | none |
-| CHL-07 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 |  |  |  |  |  | — | none |
-| CHL-08 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | B | — |  |  |  |  |  | — | none |
-| MED-01 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-02 | §31.7 Stickers, media, Alert Studio | v1·G | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-03 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-04 | §31.7 Stickers, media, Alert Studio | v1 | P | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-05 | §31.7 Stickers, media, Alert Studio | v1 | X | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-06 | §31.7 Stickers, media, Alert Studio | v1 | X | **P0** |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-07 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-08 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-09 | §31.7 Stickers, media, Alert Studio | v1 | X | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-10 | §31.7 Stickers, media, Alert Studio | v1 | A | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-11 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-12 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-13 | §31.7 Stickers, media, Alert Studio | v1·G | A | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-14 | §31.7 Stickers, media, Alert Studio | v1 | A | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-15 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-22 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-23 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-24 | §31.7 Stickers, media, Alert Studio | v1·G | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-25 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-26 | §31.7 Stickers, media, Alert Studio | v1·G | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| MED-27 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-16 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-17 | §31.7 Stickers, media, Alert Studio | v1 | P | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-18 | §31.7 Stickers, media, Alert Studio | v1 | P | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-19 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-20 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| MED-21 | §31.7 Stickers, media, Alert Studio | v1 | U | — |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| CMP-01 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-02 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-03 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-04 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-05 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-06 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-07 | §31.8 Companion | v1 | X | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-08 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-09 | §31.8 Companion | v1 | B | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-10 | §31.8 Companion | v1 | B | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-11 | §31.8 Companion | v1 | B | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-12 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-36 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-37 | §31.8 Companion | v1 | P | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-13 | §31.8 Companion | v1 | P | P0 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-14 | §31.8 Companion | v1 | A | P0 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-15 | §31.8 Companion | v1 | P | P0 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-16 | §31.8 Companion | v1 | A | P0 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-17 | §31.8 Companion | v1 | A | P0 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-18 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-19 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-20 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-21 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-22 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-23 | §31.8 Companion | v1 | P | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-24 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-25 | §31.8 Companion | v1 | P | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-26 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-27 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-28 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-29 | §31.8 Companion | v1 | P | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-30 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-31 | §31.8 Companion | v1·G | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-32 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-33 | §31.8 Companion | v1 | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-34 | §31.8 Companion | v1·G | U | — |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-35 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-38 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-39 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-40 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-41 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-42 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-43 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-44 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-45 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-46 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-47 | §31.8 Companion | v1 | A | P3 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-48 | §31.8 Companion | v1 | A | P3 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-49 | §31.8 Companion | v1·G | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-50 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-51 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-52 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-53 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-54 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-55 | §31.8 Companion | v1·G | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-56 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-57 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-58 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-59 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-60 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-61 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-62 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-63 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-64 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-94 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-95 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-96 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-65 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-66 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-67 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-68 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-69 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-70 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-71 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-72 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-73 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-74 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-75 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-76 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-77 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-78 | §31.8 Companion | v1·G | B | **P0** |  |  |  | active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-79 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-80 | §31.8 Companion | v1·G | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-81 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-82 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-83 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-84 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-85 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-86 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-87 | §31.8 Companion | v1 | A | P2 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
-| CMP-88 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-89 | §31.8 Companion | v1·G | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-90 | §31.8 Companion | v1 | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-91 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-92 | §31.8 Companion | v1 | A | **P0** |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CMP-93 | §31.8 Companion | v1·G | A | P1 |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
-| CON-01 | §31.9 Connectors and chat | P2·G | U | — | tasks/L15-live-platform-connectors-and-chat-commands.md |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-02 | §31.9 Connectors and chat | P2 | X | **P0** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-03 | §31.9 Connectors and chat | P2 | A | **P0** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-04 | §31.9 Connectors and chat | P2 | U | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-05 | §31.9 Connectors and chat | P2·G | U | — |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-06 | §31.9 Connectors and chat | P2 | U | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-07 | §31.9 Connectors and chat | P2 | U | — | tasks/L15-live-platform-connectors-and-chat-commands.md |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-22 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-08 | §31.9 Connectors and chat | P2 | B | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-09 | §31.9 Connectors and chat | P2 | U | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-10 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-11 | §31.9 Connectors and chat | P2 | X | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-12 | §31.9 Connectors and chat | P2 | U | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-13 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-14 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-15 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-16 | §31.9 Connectors and chat | P2 | A | P2 |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-17 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-18 | §31.9 Connectors and chat | P2 | B | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-19 | §31.9 Connectors and chat | P2 | B | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-20 | §31.9 Connectors and chat | P2 | A | P3 |  |  |  |  |  | post-v1 (Phase 4) | none |
-| CON-21 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-31 | §31.9 Connectors and chat | P2 | A | **P0 rule for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-32 | §31.9 Connectors and chat | P2·G | A | P2 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-33 | §31.9 Connectors and chat | P2·G | A | P2 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-34 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-35 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-36 | §31.9 Connectors and chat | P2·G | A | **P0 for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-37 | §31.9 Connectors and chat | P2·G | A | **P0 for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-38 | §31.9 Connectors and chat | P2·G | A | P2 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-40 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-41 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-42 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-43 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-44 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-45 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-46 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-47 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-48 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-49 | §31.9 Connectors and chat | P2 | A | P1 |  |  |  |  |  | post-v1 (Phase 4) | release |
-| CON-39 | §31.9 Connectors and chat | N | N | — |  |  |  |  |  | post-v1 (Phase 4) | none |
-| ENT-01 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | LIF-E1..E3 · isolation | none |
-| ENT-02 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | LIF-E1..E3 · isolation | none |
-| ENT-03 | §31.10 Entitlements, billing, admin, ops | v1 | X | P1 |  |  |  |  |  | LIF-E1..E3 · isolation | release |
-| ENT-04 | §31.10 Entitlements, billing, admin, ops | v1·G | P | P1 |  |  |  |  |  | LIF-E1..E3 · isolation | release |
-| ENT-05 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | LIF-E1..E3 · isolation | none |
-| ENT-06 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | LIF-E1..E3 · isolation | none |
-| ENT-07 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | LIF-E1..E3 · isolation | none |
-| ENT-08 | §31.10 Entitlements, billing, admin, ops | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · isolation | release |
-| ENT-09 | §31.10 Entitlements, billing, admin, ops | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · isolation | release |
-| ADM-01 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
-| ADM-02 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
-| ADM-03 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
-| ADM-04 | §31.10 Entitlements, billing, admin, ops | v1 | P | P2 |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
-| ADM-05 | §31.10 Entitlements, billing, admin, ops | v1 | X | P0 |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | release |
-| ADM-06 | §31.10 Entitlements, billing, admin, ops | v1 | X | P1 |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | release |
-| ADM-07 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | release |
-| ADM-08 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
-| ADM-09 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
-| OPS-01 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | — | none |
-| OPS-02 | §31.10 Entitlements, billing, admin, ops | v1 | X | **P0** |  |  |  |  |  | — | release |
-| OPS-03 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | — | none |
-| OPS-04 | §31.10 Entitlements, billing, admin, ops | v1·G | B | — |  |  |  |  |  | — | release |
-| OPS-05 | §31.10 Entitlements, billing, admin, ops | v1·G | U | — |  |  |  |  |  | — | release |
-| OPS-06 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | — | none |
-| OPS-07 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 |  |  |  |  |  | — | release |
-| OPS-08 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 |  |  |  |  |  | — | release |
-| OPS-09 | §31.10 Entitlements, billing, admin, ops | v1 | P | P0 |  |  |  |  |  | — | release |
-| OPS-10 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 |  |  |  |  |  | — | release |
-| OPS-11 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 |  |  |  |  |  | — | release |
-| OPS-12 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | — | none |
-| OPS-13 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | — | none |
-| OPS-14 | §31.10 Entitlements, billing, admin, ops | v1 | B | — |  |  |  |  |  | — | none |
-| OPS-15 | §31.10 Entitlements, billing, admin, ops | v1 | U | — |  |  |  |  |  | — | none |
-| MKT-01 | §31.11 Marketing, legal, support | v1 | U | — |  |  |  |  |  | — | none |
-| MKT-02 | §31.11 Marketing, legal, support | v1·G | U | — |  |  |  |  |  | — | release |
-| MKT-03 | §31.11 Marketing, legal, support | v1 | U | — |  |  |  |  |  | — | none |
-| MKT-04 | §31.11 Marketing, legal, support | v1 | U | — |  |  |  |  | L10 | — | none |
-| MKT-05 | §31.11 Marketing, legal, support | v1 | A | P1 |  |  |  |  |  | — | release |
-| MKT-06 | §31.11 Marketing, legal, support | v1 | A | P2 |  |  |  |  |  | — | none |
-| MKT-07 | §31.11 Marketing, legal, support | v1·G | B | — |  |  |  |  |  | — | release |
-| MKT-08 | §31.11 Marketing, legal, support | v1 | A | P0 |  |  |  |  |  | — | release |
-| MKT-09 | §31.11 Marketing, legal, support | v1 | U | — |  |  |  |  |  | — | none |
-| HUB-01 | §31.13 Live Support Hub | v1 | P | P0 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-02 | §31.13 Live Support Hub | v1 | A | P0 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-03 | §31.13 Live Support Hub | v1 | A | P0 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-04 | §31.13 Live Support Hub | v1 | A | P0 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-05 | §31.13 Live Support Hub | v1 | X | P0 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-06 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-07 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-08 | §31.13 Live Support Hub | v1 | P | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-09 | §31.13 Live Support Hub | P2 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-10 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-11 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-12 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
-| HUB-13 | §31.13 Live Support Hub | P2 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
-| HUB-14 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-15 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-16 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-17 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-18 | §31.13 Live Support Hub | v1 | P | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-19 | §31.13 Live Support Hub | v1 | P | P0 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| HUB-20 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
-| HUB-21 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
-| HUB-22 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
-| HUB-23 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
-| DSH-10 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-11 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-12 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-13 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-14 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-15 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-16 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-17 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-18 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-19 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-20 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-21 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
-| DSH-22 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-23 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-24 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
-| DSH-25 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-26 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-27 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-28 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-29 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
-| DSH-30 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| DSH-31 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
-| SAF-01 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-02 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-03 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-04 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-05 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-06 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-07 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-08 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-09 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-10 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-11 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-12 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-13 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-14 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-15 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-16 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-17 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-18 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-19 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-20 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-21 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-22 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-23 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-24 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | — | none |
-| SAF-25 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | — | none |
-| SAF-26 | §31.13 Live Support Hub | v1 | A | P3 |  |  |  |  |  | — | none |
-| SAF-27 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | — | none |
-| SAF-28 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-29 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-31 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-32 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-33 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-34 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-35 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | — | none |
-| SAF-36 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-37 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-38 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-39 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-40 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-41 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-42 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SAF-43 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-44 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| SAF-45 | §31.13 Live Support Hub | v1 | N | — |  |  |  |  |  | — | none |
-| SAF-46 | §31.13 Live Support Hub | v1·G | A | P2 |  |  |  |  |  | — | release |
-| REP-01 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| REP-02 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| REP-03 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REP-04 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | — | none |
-| REP-05 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-01 | §31.13 Live Support Hub | v1 | P | **P0** |  |  |  |  |  | — | release |
-| REF-02 | §31.13 Live Support Hub | v1·G | A | P1 |  |  |  |  |  | — | release |
-| REF-03 | §31.13 Live Support Hub | v1 | N | — |  |  |  |  |  | — | none |
-| REF-04 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-05 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-06 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-07 | §31.13 Live Support Hub | v1 | U | — |  |  |  |  |  | — | none |
-| REF-08 | §31.13 Live Support Hub | v1 | U | — |  |  |  |  |  | — | none |
-| REF-09 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| REF-10 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-11 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| REF-12 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-13 | §31.13 Live Support Hub | v1·G | A | P1 |  |  |  |  |  | — | release |
-| REF-14 | §31.13 Live Support Hub | v1 | A | P2 |  |  |  |  |  | — | none |
-| REF-15 | §31.13 Live Support Hub | v1 | A | **P0** |  |  |  |  |  | — | release |
-| REF-16 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| REF-17 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| REF-18 | §31.13 Live Support Hub | v1·G | A | **P0** |  |  |  |  |  | — | release |
-| REF-19 | §31.13 Live Support Hub | v1·G | A | P1 |  |  |  |  |  | — | release |
-| REF-20 | §31.13 Live Support Hub | v1·G | A | **P0** |  |  |  |  |  | — | release |
-| SAF-30 | §31.13 Live Support Hub | v1 | A | P1 |  |  |  |  |  | — | release |
-| CUS-01 | §31.14 Customisation and gating | v1 | P | P0 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
-| CUS-02 | §31.14 Customisation and gating | v1 | A | P0 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
-| CUS-03 | §31.14 Customisation and gating | v1 | P | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
-| CUS-04 | §31.14 Customisation and gating | v1 | P | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
-| CUS-05 | §31.14 Customisation and gating | v1 | A | P2 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | none |
-| CUS-06 | §31.14 Customisation and gating | P2 | A | P1 |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
-| LOB-01 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-02 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-03 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-04 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-05 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-06 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-07 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-08 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-09 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-10 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-11 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-12 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-13 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-14 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-15 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-16 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-17 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-18 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-19 | §31.15 Lobby Engine | P3 | A | P1 |  |  |  |  |  | — | release |
-| LOB-20 | §31.15 Lobby Engine | P3 | A | P3 |  |  |  |  |  | — | none |
-| LOB-21 | §31.15 Lobby Engine | P3 | A | P2 |  |  |  |  |  | — | none |
-| LOB-22 | §31.15 Lobby Engine | P3 | A | P3 |  |  |  |  |  | — | none |
-| LOB-23 | §31.15 Lobby Engine | N | N | — |  |  |  |  |  | — | none |
-| GIV-01 | §31.16 Giveaways and tournaments | P3 | A | P1 |  |  |  |  |  | — | release |
-| GIV-02 | §31.16 Giveaways and tournaments | P3 | A | P1 |  |  |  |  |  | — | release |
-| GIV-03 | §31.16 Giveaways and tournaments | P3 | A | P1 |  |  |  |  |  | — | release |
-| GIV-04 | §31.16 Giveaways and tournaments | P3 | A | P1 |  |  |  |  |  | — | release |
-| GIV-05 | §31.16 Giveaways and tournaments | P3·G | A | P1 |  |  |  |  |  | — | release |
-| GIV-06 | §31.16 Giveaways and tournaments | P3 | A | P1 |  |  |  |  |  | — | release |
-| GIV-07 | §31.16 Giveaways and tournaments | P3·G | A | P1 |  |  |  |  |  | — | release |
-| TRN-01 | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| TRN-01b | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| TRN-02 | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| TRN-03 | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| TRN-04 | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| TRN-05 | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| TRN-06 | §31.16 Giveaways and tournaments | P3 | A | P2 |  |  |  |  |  | — | none |
-| AUD-01 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-02 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-03 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-04 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-05 | §31.17 Custom audio and creator media | v1 | A | P2 |  |  |  |  |  | — | none |
-| AUD-06 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-07 | §31.17 Custom audio and creator media | v1·G | A | P1 |  |  |  |  |  | — | release |
-| AUD-08 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-09 | §31.17 Custom audio and creator media | v1 | A | P1 |  |  |  |  |  | — | release |
-| AUD-10 | §31.17 Custom audio and creator media | v1·G | A | P1 |  |  |  |  |  | — | release |
-| AUD-11 | §31.17 Custom audio and creator media | N | N | — |  |  |  |  |  | — | none |
-| RT-01 | §31.18 Performance | v1 | X | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-02 | §31.18 Performance | v1 | X | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-03 | §31.18 Performance | v1 | X | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-04 | §31.18 Performance | v1 | X | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-05 | §31.18 Performance | v1 | X | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-06 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-07 | §31.18 Performance | v1·G | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-08 | §31.18 Performance | v1 | X | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-09 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-10 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-11 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-12 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| RT-13 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-01 | §31.18 Performance | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-02 | §31.18 Performance | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-03 | §31.18 Performance | v1 | P | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-04 | §31.18 Performance | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-05 | §31.18 Performance | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-06 | §31.18 Performance | v1 | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-07 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-08 | §31.18 Performance | v1·G | A | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-09 | §31.18 Performance | v1 | P | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-10 | §31.18 Performance | v1 | P | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-11 | §31.18 Performance | v1 | P | P0 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-12 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-13 | §31.18 Performance | v1 | U | — |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
-| PRF-14 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-15 | §31.18 Performance | v1 | P | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-16 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-17 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-18 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| PRF-19 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
-| WMK-01 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E8..E11 | release |
-| WMK-02 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E8..E11 | release |
-| WMK-03 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E8..E11 | release |
-| WMK-04 | §31.18 Performance | v1 | A | P1 |  |  |  |  |  | OVL-E8..E11 | release |
-| WMK-05 | §31.18 Performance | v1·G | A | **P0** |  |  |  |  |  | OVL-E8..E11 | release |
-| WMK-06 | §31.18 Performance | v1 | A | **P0** |  |  |  |  |  | OVL-E8..E11 | release |
-| WMK-07 | §31.18 Performance | N | N | — |  |  |  |  |  | OVL-E8..E11 | none |
-| CTL-01 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-02 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-03 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-04 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-05 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-06 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-07 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-08 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| ENV-01 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| ENV-02 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| ENV-03 | §31.19 Control plane and admin | v1·G | A | **P0** |  |  |  |  |  | — | release |
-| ENV-04 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| ENV-05 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| ENV-06 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | — | release |
-| ENV-07 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| ENV-08 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| ENV-09 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | — | release |
-| CTL-09 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-14 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-15 | §31.19 Control plane and admin | v1 | A | **P0** |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-10 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-11 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-12 | §31.19 Control plane and admin | v1 | A | P1 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| CTL-13 | §31.19 Control plane and admin | v1 | A | P0 |  |  |  |  |  | LIF-E4..E6 · isolation | release |
-| WID-01 | §31.20 New widgets | v1 | A | P1 |  |  |  |  |  | — | release |
-| WID-02 | §31.20 New widgets | v1 | A | P2 |  |  |  |  |  | — | none |
-| WID-03 | §31.20 New widgets | v1 | A | P1 |  |  |  |  |  | — | release |
-| WID-04 | §31.20 New widgets | v1 | A | P2 |  |  |  |  |  | — | none |
-| WID-05 | §31.20 New widgets | v1 | A | P2 |  |  |  |  |  | — | none |
-| WID-06 | §31.20 New widgets | v1 | A | P2 |  |  |  |  |  | — | none |
-| WID-07 | §31.20 New widgets | v1 | A | P2 |  |  |  |  |  | — | none |
-| COS-01 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-02 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-03 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-04 | §31.21 Co-Stream Room | P3 | A | P2 |  |  |  |  |  | — | none |
-| COS-05 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-06 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-07 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-08 | §31.21 Co-Stream Room | P3 | A | P2 |  |  |  |  |  | — | none |
-| COS-09 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-10 | §31.21 Co-Stream Room | P3 | A | P2 |  |  |  |  |  | — | none |
-| COS-11 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-12 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-13 | §31.21 Co-Stream Room | P3 | A | P1 |  |  |  |  |  | — | release |
-| COS-14 | §31.21 Co-Stream Room | P3 | A | P2 |  |  |  |  |  | — | none |
-| COS-15 | §31.21 Co-Stream Room | N | N | — |  |  |  |  |  | — | none |
-| SND-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| SND-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| SND-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| SND-04 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| SND-05 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
-| SND-06 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 |  |  |  |  |  | — | release |
-| SND-07 | §31.22 Sound Moments and Rules Engine | v1 | A | P0 |  |  |  |  |  | — | release |
-| RUL-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| RUL-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| RUL-03 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 |  |  |  |  |  | — | release |
-| GOA-01 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
-| GOA-02 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
-| GOA-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-04 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-05 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
-| GOA-06 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 |  |  |  |  |  | — | none |
-| GOA-07 | §31.22 Sound Moments and Rules Engine | P3 | A | P3 |  |  |  |  |  | — | none |
-| GOA-08 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
-| GOA-09 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-10 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-11 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-12 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-13 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-14 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
-| GOA-15 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 |  |  |  |  |  | — | none |
-| GOA-16 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
-| GOA-17 | §31.22 Sound Moments and Rules Engine | v1 | A | P3 |  |  |  |  |  | — | none |
-| GOA-18 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-19 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-20 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
-| GOA-21 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
-| GOA-22 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-23 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-24 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-25 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 |  |  |  |  |  | — | none |
-| GOA-26 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-27 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-28 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| GOA-29 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 |  |  |  |  |  | — | none |
-| SEC-01 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** |  |  |  |  |  | — | release |
-| SEC-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| SEC-03 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 |  |  |  |  |  | — | release |
-| MIG-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| MIG-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 |  |  |  |  |  | — | release |
-| MIG-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P0 |  |  |  |  |  | — | release |
-| RTE-01 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-02 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-03 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-04 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-05 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-06 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-07 | §31.24 Payment routing | R | A | P1 |  |  |  |  |  | none — phase R or blocked | release |
-| RTE-08 | §31.24 Payment routing | R | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-09 | §31.24 Payment routing | R | B | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-10 | §31.24 Payment routing | R | B | P3 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-11 | §31.24 Payment routing | R | B | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-12 | §31.24 Payment routing | R | B | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-13 | §31.24 Payment routing | N | N | — |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-14 | §31.24 Payment routing | N | N | — |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-15 | §31.24 Payment routing | R | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-16 | §31.24 Payment routing | R | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| RTE-17 | §31.24 Payment routing | R | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| LIF-01 | §31.25 Subscription lifecycle | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-02 | §31.25 Subscription lifecycle | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-03 | §31.25 Subscription lifecycle | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-04 | §31.25 Subscription lifecycle | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-05 | §31.25 Subscription lifecycle | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-06 | §31.25 Subscription lifecycle | v1 | A | **P1** |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-07 | §31.25 Subscription lifecycle | v1 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-08 | §31.25 Subscription lifecycle | v1·G | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| LIF-09 | §31.25 Subscription lifecycle | v1 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | none |
-| LIF-10 | §31.25 Subscription lifecycle | v1 | P | P0 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
-| SOC-01 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-02 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-03 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-04 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-05 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-06 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-07 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-08 | §31.26 Social Relay | P3 | A | P3 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-09 | §31.26 Social Relay | P3 | A | P3 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-10 | §31.26 Social Relay | P3 | A | P3 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-11 | §31.26 Social Relay | P3·G | A | P3 |  |  |  |  |  | none — phase R or blocked | release |
-| SOC-12 | §31.26 Social Relay | P3 | A | P3 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-13 | §31.26 Social Relay | P3 | A | P3 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-14 | §31.26 Social Relay | P3·G | A | P2 |  |  |  |  |  | none — phase R or blocked | release |
-| SOC-15 | §31.26 Social Relay | P3 | A | P2 |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-16 | §31.26 Social Relay | N | N | — |  |  |  |  |  | none — phase R or blocked | none |
-| SOC-17 | §31.26 Social Relay | N | N | — |  |  |  |  |  | none — phase R or blocked | none |
-| PCK-01 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-02 | §31.27 Packs and creator-ops | P3 | A | P1 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
-| PCK-03 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-04 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-05 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-06 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-07 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-08 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-09 | §31.27 Packs and creator-ops | P3·G | A | **P1** |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
-| PCK-10 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-11 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-12 | §31.27 Packs and creator-ops | P3 | A | **P0** |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
-| PCK-13 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| PCK-14 | §31.27 Packs and creator-ops | P3·G | A | P2 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
-| PCK-15 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
-| JOB-01 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | — | none |
-| JOB-02 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-03 | §31.27 Packs and creator-ops | P3 | A | P2 |  |  |  |  |  | — | none |
-| JOB-04 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-05 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-06 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-07 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-08 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-09 | §31.27 Packs and creator-ops | P3 | A | P3 |  |  |  |  |  | — | none |
-| JOB-10 | §31.27 Packs and creator-ops | N | N | — |  |  |  |  |  | — | none |
-| JOB-11 | §31.27 Packs and creator-ops | N | N | — |  |  |  |  |  | — | none |
-| INT-01 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-02 | §31.28 Interop, packages and bridges (§9) | P2·G | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | release |
-| INT-03 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-04 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-05 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-06 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-07 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-08 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-09 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-10 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-11 | §31.28 Interop, packages and bridges (§9) | P2 | A | **P0 rule, P2 build** |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | release |
-| INT-12 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-13 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-14 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-15 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-16 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-17 | §31.28 Interop, packages and bridges (§9) | R | B | — |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-18 | §31.28 Interop, packages and bridges (§9) | R | B | — |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| INT-19 | §31.28 Interop, packages and bridges (§9) | P2 | A | **P0** |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | release |
-| INT-20 | §31.28 Interop, packages and bridges (§9) | N | N | — |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
-| CST-01 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-02 | §31.29 Customisation depth by tier (§15.4) | P2·G | A | **P0** |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-03 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-04 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-05 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-06 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-07 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-08 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-09 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-10 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-11 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-12 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-13 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-14 | §31.29 Customisation depth by tier (§15.4) | P2·G | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-15 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-16 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-17 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-18 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-19 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-20 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-21 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-22 | §31.29 Customisation depth by tier (§15.4) | P2·G | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-23 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-24 | §31.29 Customisation depth by tier (§15.4) | P2 | A | **P0 rule** |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-25 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-26 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-27 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-28 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
-| CST-29 | §31.29 Customisation depth by tier (§15.4) | P2 | A | **P0 rule** |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| CST-30 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
-| BOT-01 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-02 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-03 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-04 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-05 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-06 | §31.30 BharatStudio Bot (§36) | P2 | A | **P0 with TTS-06** |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | release |
-| BOT-07 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-08 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-09 | §31.30 BharatStudio Bot (§36) | N | N | — |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-10 | §31.30 BharatStudio Bot (§36) | P2 | A | P3 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-11 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-12 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-13 | §31.30 BharatStudio Bot (§36) | P2 | A | P3 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-14 | §31.30 BharatStudio Bot (§36) | P2 | A | P3 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-15 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-16 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
-| BOT-17 | §31.30 BharatStudio Bot (§36) | P2·G | B | — |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | release |
-| STO-01 | §31.31 Storage and media platform | v1 | A | **P0 for audio** |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| STO-02 | §31.31 Storage and media platform | v1 | A | P0 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| STO-03 | §31.31 Storage and media platform | v1 | A | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
-| STO-04 | §31.31 Storage and media platform | v1 | A | P2 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
-| STO-05 | §31.31 Storage and media platform | v1 | A | P1 |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| ID | Section | Phase | State | Pri | Mapping | Task | Acceptance | Review | Evidence | L-track hint | Required suites (§37.11) | Release gate |
+|---|---|:-:|:-:|:-:|---|---|---|---|---|---|---|---|
+| PAY-01 | §31.2 Payments and money | v1 | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-02 | §31.2 Payments and money | v1·G | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-03 | §31.2 Payments and money | v1 | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-04 | §31.2 Payments and money | v1·G | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-05 | §31.2 Payments and money | v1 | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-06 | §31.2 Payments and money | v1 | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-07 | §31.2 Payments and money | v1 | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-08 | §31.2 Payments and money | v1·G | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-09 | §31.2 Payments and money | v1·G | U | — | mapped-existing · - → `tasks/L04-go-payment-boundary.md` · `tests/TC-L04-go-payment-boundary.md` · `reviews/2026-08-14-L04-provider-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-10 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Donor-safe status projection (UUID, amount, INR, state, updated) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-11 | §31.2 Payments and money | v1·G | U | — | new-record-required · Missing from reviewed L-track evidence: Payments ledger + CSV export (explicitly not a CA tax report) — **untiered and uncapped**, §12.6 → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-12 | §31.2 Payments and money | v1·G | P | P1 | new-record-required · Missing from reviewed L-track evidence: Provider capability snapshots; features gate on capability, not name → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-13 | §31.2 Payments and money | v1·G | X | P0 | new-record-required · Missing from reviewed L-track evidence: Razorpay partner OAuth → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-14 | §31.2 Payments and money | v1 | X | P0 | new-record-required · Missing from reviewed L-track evidence: Payment account activation → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-15 | §31.2 Payments and money | v1 | X | P0 | new-record-required · Missing from reviewed L-track evidence: Reconciliation sweep + refund sweep actually running → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-16 | §31.2 Payments and money | v1 | X | P0 | new-record-required · Missing from reviewed L-track evidence: Manual-review quarantine resolution UI → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-17 | §31.2 Payments and money | v1 | P | **P0** | new-record-required · Missing from reviewed L-track evidence: Dynamic **Order QR** on the tip page — server side exists, the surface half does not (§8.2.1) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| QR-01 | §31.2 Payments and money | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Three QR kinds** implemented distinctly: Channel QR (tip-page short link), Order QR (one payment, expiring), Campaign QR (campaign page) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-02 | §31.2 Payments and money | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **The overlay QR is always a Channel QR** — an Order QR on stream would expire mid-scan, bind every viewer to one stranger's order, and break on reload → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-03 | §31.2 Payments and money | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: A Channel QR never embeds an amount; a Campaign QR may carry a suggested amount as a page parameter the supporter can change; an Order QR carries the exact amount → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-04 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Order QR shows remaining validity and offers one explicit regeneration — never a silent refresh mid-scan → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-05 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Rotating the channel short link invalidates every Channel QR in circulation: confirmation naming that consequence, and audited → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-06 | §31.2 Payments and money | v1 | P | **P0** | new-record-required · Missing from reviewed L-track evidence: Device routing — mobile UPI Intent, desktop Order QR, tablet offers both rather than guessing → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-07 | §31.2 Payments and money | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **UPI-intent return path proven on real devices** across Android, iOS and several UPI apps; a supporter who does not return cleanly still lands on a page that tells them the truth (`ENV-05`) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-08 | §31.2 Payments and money | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Preferred-app memory: the **browser half** (server allowlist exists). Stores which app was chosen, never a credential or account identifier, per device → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-09 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: A return from a UPI app is **never** success — only the HMAC-verified webhook confirms (`PAY-02`) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| QR-10 | §31.2 Payments and money | v1 | P | **P0** | new-record-required · Missing from reviewed L-track evidence: Honest waiting state with a bounded wait, then a recovery screen carrying the receipt link → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-11 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Receipt link works with no login, from any device, at any later time (`VID-04`) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| QR-12 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: QR download and copy from the tip-page editor and the §7.3 copy affordances, at print resolution → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-13 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-attempt funnel record: path offered, path taken, app chosen where the OS reports it, return completed, intent-to-webhook time, failure class. **No account identifiers, no VPAs, no banking data** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-14 | §31.2 Payments and money | v1 | P | **P0** | new-record-required · Missing from reviewed L-track evidence: Payment path functional with JavaScript degraded — a link and a QR always work (§19.9) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| QR-15 | §31.2 Payments and money | v1 | N | — | new-record-required · Missing from reviewed L-track evidence: No "mark as paid", no generic QR fallback, no screenshot-based confirmation → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| PAY-18 | §31.2 Payments and money | v1 | X | P2 | new-record-required · Missing from reviewed L-track evidence: Preferred UPI app memory (browser half) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-19 | §31.2 Payments and money | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Direct UPI intent `upi://pay?pa&pn&tr&am&cu` → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-20 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Payout/settlement status visible to creator → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-21 | §31.2 Payments and money | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Payment failure classification surfaced to creator → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-22 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Subscriptions: annual = 10 months charged / 12 served → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-23 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Past-due 30-day grace preserves price; rejoin at current pricing → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-24 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Downgrade pauses newest queues, never deletes; `paused_reason` distinguishes cause → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-25 | §31.2 Payments and money | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Referral credit = service-time (30-day reward, 14-day hold, 5/30-day cap, 12 banked, same-subnet fraud signal) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-26 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Top-up purchase, ledger and balances (§10.2) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-27 | §31.2 Payments and money | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Season Passes (§10.4) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | release |
+| PAY-30 | §31.2 Payments and money | N | N | — | new-record-required · Missing from reviewed L-track evidence: Paid room-code unlocking → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-28 | §31.2 Payments and money | v1 | B | — | new-record-required · Missing from reviewed L-track evidence: Paytm / Cashfree / PhonePe → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| PAY-29 | §31.2 Payments and money | v1 | B | — | new-record-required · Missing from reviewed L-track evidence: Recurring memberships → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst · duplicate-webhook and dispatcher-down chaos · isolation | none |
+| ALQ-01 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-02 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-03 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-04 | §31.3 Alerts, queues, overlay | v1 | P | P0 | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-14-L03-definition-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | release |
+| ALQ-05 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-16-L03-corrected-findings-remediation-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-06 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-16-L03-corrected-findings-remediation-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-07 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-08 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-09 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-10 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-16-L03-corrected-findings-remediation-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-11 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-16-L03-corrected-findings-remediation-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-12 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-14-L03-definition-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-13 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-14-L03-definition-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-14 | §31.3 Alerts, queues, overlay | v1 | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-14-L03-definition-review.md` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-15 | §31.3 Alerts, queues, overlay | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Per-item skip action → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-16 | §31.3 Alerts, queues, overlay | v1 | A | P1 | new-record-required · Missing from reviewed L03 evidence: no implemented or locally proved 1-hour reconnect policy coalesces the recovered burst into a summary plus bounded catch-up instead of firing an hour of alerts; no configured/displayed summary rule or OVL-E5 proof exists. → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst | release |
+| ALQ-17 | §31.3 Alerts, queues, overlay | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Time-bounded replay window (the "72-hour buffer" that never existed) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| ALQ-18 | §31.3 Alerts, queues, overlay | v1 | A | P0 | new-record-required · Missing from reviewed L03/L16 evidence: no Master Canvas runtime combines modules into one OBS browser source, one connection and one requestAnimationFrame loop; no pure-module composition/error isolation, protected one-per-canvas Free watermark/reserved zone, paid-brand-free composition, or ALQ-18/PRF-02/OVL-E8, OVL-E9 and OVL-E10 local proof exists. → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst | release |
+| ALQ-19 | §31.3 Alerts, queues, overlay | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Vertical / second-output canvas → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · raid burst | none |
+| TTS-01 | §31.4 TTS | v1 | U | — | new-record-required · Missing from reviewed L03 task/test/review evidence: Full Sarvam synthesis across 13 locales with 2MB/60s caps remains unverified → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
+| TTS-02 | §31.4 TTS | v1·G | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-09-13-reachability-register.md` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-03 | §31.4 TTS | v1 | U | — | new-record-required · Missing from reviewed L03 task/test/review evidence: End-to-end shared maxCharLimit enforcement across the amount-tiered ladder remains unverified → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
+| TTS-04 | §31.4 TTS | v1·G | U | — | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-09-13-reachability-register.md` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-05 | §31.4 TTS | v1 | U | — | mapped-existing · - → `tasks/L05-go-alert-worker-and-cloud-tasks.md` · `tests/TC-L05-go-alert-worker-and-cloud-tasks.md` · `reviews/2026-08-14-L05-worker-boundary-review.md` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
+| TTS-06 | §31.4 TTS | v1 | A | **P0** | new-record-required · Missing from reviewed L03 task/test/review evidence: Shared safety corpus/pipeline, homoglyph/leet/repeat/script/transliteration checks, L1-L4 decisions, PII/blocked-user/policy handling, per-surface audit/appeal, and closed-for-speech behavior remain unverified → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-07 | §31.4 TTS | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Quota bar visible from ~70% consumption → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-08 | §31.4 TTS | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Upgrade prompt on exhaustion → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-09 | §31.4 TTS | v1 | P | P1 | new-record-required · Missing from reviewed L15/L03 evidence: Dashboard/mobile wiring and cancel-in-flight proof remain unverified → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-10 | §31.4 TTS | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: TTS character top-ups → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-11 | §31.4 TTS | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Voice routing rule set: amount, length, script, supporter, event class (§11.10) → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-12 | §31.4 TTS | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Unicode-range script detection in the live path — no model, no network call → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-13 | §31.4 TTS | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Dashboard control with a "what this would have cost last week" preview → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-14 | §31.4 TTS | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Companion mode display and mid-stream switch, plus timed "premium everything" → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | none |
+| TTS-15 | §31.4 TTS | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Route and reason recorded per alert and shown in history and the quota view → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-16 | §31.4 TTS | v1 | A | **P0 with TTS-06** | new-record-required · Missing from reviewed L03 task/test/review evidence: Dual-route identical safety enforcement, including browser-voice path parity, remains unverified → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| TTS-17 | §31.4 TTS | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Companion and dashboard notice at the moment of fallback; no grace buffer exists and none may be added (§11.11) → `-` · `-` · `-` |  |  |  |  |  | OVL-E6, OVL-E7 · TTS-down chaos · safety corpus on both routes | release |
+| VID-01 | §31.5 Viewer identity, history, trust | v1 | A | **P0** | mapped-existing · - → `tasks/L04-L14-anonymous-payment-identity-attribution.md` · `tests/TC-L04-L14-anonymous-payment-identity-attribution.md` · `reviews/2026-09-14-L04-L14-anonymous-payment-identity-attribution-decision.md` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-02 | §31.5 Viewer identity, history, trust | v1 | A | **P0** | mapped-existing · - → `tasks/L04-L14-anonymous-payment-identity-attribution.md` · `tests/TC-L04-L14-anonymous-payment-identity-attribution.md` · `reviews/2026-09-14-L04-L14-anonymous-payment-identity-attribution-decision.md` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-03 | §31.5 Viewer identity, history, trust | v1 | X | **P0** | mapped-existing · - → `tasks/L14-viewer-identity-and-supporter-history.md` · `tests/TC-L14-viewer-identity-and-supporter-history.md` · `reviews/2026-09-08-L14-local-completion-and-claim-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-04 | §31.5 Viewer identity, history, trust | v1 | U | — | mapped-existing · - → `tasks/L14-viewer-identity-and-supporter-history.md` · `tests/TC-L14-viewer-identity-and-supporter-history.md` · `reviews/2026-09-08-L14-local-completion-and-claim-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · isolation | none |
+| VID-05 | §31.5 Viewer identity, history, trust | v1 | P | P0 | new-record-required · Missing from reviewed L04/L14 evidence: Event writer and L15 verifier linkage for all anonymous/platform/account identity levels remain unverified → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-06 | §31.5 Viewer identity, history, trust | v1 | X | P1 | mapped-existing · - → `tasks/L14-viewer-identity-and-supporter-history.md` · `tests/TC-L14-viewer-identity-and-supporter-history.md` · `reviews/2026-09-08-L14-local-completion-and-claim-boundary-review.md` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-07 | §31.5 Viewer identity, history, trust | v1 | X | P1 | new-record-required · Missing from reviewed L14/L17/L18 evidence: Full eight-badge opt-in non-financial policy and streak producers remain unverified → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-08 | §31.5 Viewer identity, history, trust | v1 | U | — | mapped-existing · - → `tasks/L14-public-viewer-privacy-and-bounds-hardening.md` · `tests/TC-L14-public-viewer-privacy-and-bounds-hardening.md` · `reviews/2026-09-09-L14-public-viewer-privacy-and-bounds-hardening-decision.md` |  |  |  |  |  | PAY-E1..E8 · isolation | none |
+| VID-09 | §31.5 Viewer identity, history, trust | v1 | U | — | mapped-existing · - → `tasks/L14-public-viewer-privacy-and-bounds-hardening.md` · `tests/TC-L14-public-viewer-privacy-and-bounds-hardening.md` · `reviews/2026-09-09-L14-public-viewer-privacy-and-bounds-hardening-decision.md` |  |  |  |  |  | PAY-E1..E8 · isolation | none |
+| VID-10 | §31.5 Viewer identity, history, trust | v1 | U | — | new-record-required · Missing from reviewed L14 evidence: No single reviewed task/test/review trio covers both the newest-100 session cap and the 30-minute single-use enumeration-safe reset semantics; the pieces are separately documented. → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | none |
+| VID-11 | §31.5 Viewer identity, history, trust | v1·G | B | — | new-record-required · Missing from reviewed L-track evidence: DPDP erased-vs-retained split — **the logic exists in code; no deletion flow ships or is promised** (§33.1, §32). Deactivation is what ships. State is B, not U: a capability nobody may reach is not usable → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-21 | §31.5 Viewer identity, history, trust | v1·G | B | P1 | new-record-required · Missing from reviewed L-track evidence: Archival deletion: no hard deletes, identity fields moved aside, returner treated as new. **Engineering preference, not approved policy** — blocked on the privacy/legal gate (§32) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-22 | §31.5 Viewer identity, history, trust | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Irreversible hashing of archived identity (legal-gated) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-12 | §31.5 Viewer identity, history, trust | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: DPDP data export → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-13 | §31.5 Viewer identity, history, trust | v1·G | X | P1 | new-record-required · Missing from reviewed L-track evidence: Reputation: verdict-only (3 keys), score never stored, 180-day window → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-14 | §31.5 Viewer identity, history, trust | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Reputation write path (chargeback, velocity, moderation strike producers) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-15 | §31.5 Viewer identity, history, trust | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Creator-facing reputation display → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-16 | §31.5 Viewer identity, history, trust | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Flag / report a supporter → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-17 | §31.5 Viewer identity, history, trust | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Block a supporter → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-18 | §31.5 Viewer identity, history, trust | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Anonymous non-platform tip claim path → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-19 | §31.5 Viewer identity, history, trust | P2 | A | P0 | new-record-required · Missing from reviewed L-track evidence: YouTube identity attribution carried onto payments → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| VID-20 | §31.5 Viewer identity, history, trust | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: YouTube handle-vs-channel-ID trust model and namespaces (§12.3 identity rules) → `-` · `-` · `-` |  |  |  |  |  | PAY-E1..E8 · isolation | release |
+| ENG-01 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P0 | mapped-existing · - → `tasks/L16-interaction-menu-goals-and-widgets.md` · `tests/TC-L16-interaction-menu-goals-and-widgets.md` · `reviews/2026-09-08-L16-widget-completion-review.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-02 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P1 | mapped-existing · - → `tasks/L16-interaction-menu-goals-and-widgets.md` · `tests/TC-L16-interaction-menu-goals-and-widgets.md` · `reviews/2026-09-08-L16-widget-completion-review.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-03 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — | mapped-existing · - → `tasks/L16-interaction-menu-goals-and-widgets.md` · `tests/TC-L16-interaction-menu-goals-and-widgets.md` · `reviews/2026-09-08-L16-widget-completion-review.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-04 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — | mapped-existing · - → `tasks/L16-interaction-menu-goals-and-widgets.md` · `tests/TC-L16-interaction-menu-goals-and-widgets.md` · `reviews/2026-09-08-L16-widget-completion-review.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-05 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — | mapped-existing · - → `tasks/L16-interaction-menu-goals-and-widgets.md` · `tests/TC-L16-interaction-menu-goals-and-widgets.md` · `reviews/2026-09-08-L16-widget-completion-review.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-06 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — | mapped-existing · - → `tasks/L16-overlay-widget-response-integrity.md` · `tests/TC-L16-overlay-widget-response-integrity.md` · `reviews/2026-09-09-L16-overlay-widget-response-integrity-decision.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-07 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P1 | mapped-existing · - → `tasks/L16-interaction-menu-goals-and-widgets.md` · `tests/TC-L16-interaction-menu-goals-and-widgets.md` · `reviews/2026-09-14-L16-public-paid-vote-reachability-decision.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-08 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — | mapped-existing · - → `tasks/L16-vote-option-cardinality-and-overlay-contract-alignment.md` · `tests/TC-L16-vote-option-cardinality-and-overlay-contract-alignment.md` · `reviews/2026-09-09-L16-vote-option-cardinality-and-overlay-contract-alignment-decision.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-09 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Viewer interaction menu** → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-10 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Support-vote creator UI (create options) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-11 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Support-vote viewer UI (cast) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-12 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Mega alert + priority question viewer trigger → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-13 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Hype mode start control → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-14 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | X | P1 | new-record-required · Missing from reviewed L-track evidence: Widget privacy-scope control → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-15 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | P | P2 | new-record-required · Missing from reviewed L-track evidence: Widget preview / sample data for all widget types → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-16 | §31.6 Engagement — interactions, widgets, goals, challenges | P2 | U | — | new-record-required · Missing from reviewed L16 evidence: Only Super Chat Phase 4/live provider integration remains absent → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-17 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Contribution-source toggles wired into Challenges panel → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-18 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Priority Question "Unanswered" tab + Mark Answered (§10.6) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-19 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Community boss battle → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-20 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Team / squad goals → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-21 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Milestone queue (prepare thank-you / sponsor reveal / transition) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-22 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Stream streaks (daily/weekly) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| ENG-23 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Like goal, member goal, chat goal, watch-time goal → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| ENG-24 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Prediction widget, no gambling mechanic → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| CHL-01 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | U | — | mapped-existing · - → `tasks/L17-paid-challenges.md` · `tests/TC-L17-paid-challenges.md` · `reviews/2026-09-08-L17-nonrefundable-challenge-decision.md` |  |  |  |  |  | — | none |
+| CHL-02 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | U | — | new-record-required · Missing from reviewed L17 evidence: Locked provider-refund copy and merchant-refund capability are absent; do not credit the blocked refundable task → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| CHL-03 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Viewer-proposed challenges (plan calls this the better default) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| CHL-04 | §31.6 Engagement — interactions, widgets, goals, challenges | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Completion evidence submission → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| CHL-05 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Dispute record → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| CHL-06 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 | new-record-required · Missing from reviewed L17 evidence: Public standalone challenge board page remains unimplemented → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| CHL-07 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: `!challenge` chat command → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| CHL-08 | §31.6 Engagement — interactions, widgets, goals, challenges | v1 | B | — | new-record-required · Missing from reviewed L-track evidence: Refundable multi-contributor challenges → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| MED-01 | §31.7 Stickers, media, Alert Studio | v1 | U | — | mapped-existing · - → `tasks/L01-public-sticker-contract-slice.md` · `tests/TC-L01-public-sticker-contract-slice.md` · `reviews/2026-09-09-L01-public-sticker-contract-slice-decision.md` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-02 | §31.7 Stickers, media, Alert Studio | v1·G | U | — | new-record-required · Missing from reviewed L-track evidence: Creator packs, tier quotas 10/25/50 (implementation choice, needs sign-off) → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-03 | §31.7 Stickers, media, Alert Studio | v1 | U | — | new-record-required · Missing from reviewed L22 evidence: scan/attestation/pending_review are documented in the L22 task, TC L22-03–05 remain Open/Not run, and the original decision review is open; later ordering does not reconcile a full tier moderation triad. → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-04 | §31.7 Stickers, media, Alert Studio | v1 | P | P1 | new-record-required · Missing from reviewed L22 evidence: the task claims the is_platform_admin route after 0122, but the TC lacks executed E2E route/RLS staff-vs-channel-admin proof and the review records verification pending with audit-order conflict. → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-05 | §31.7 Stickers, media, Alert Studio | v1 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Staff review admin UI → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-06 | §31.7 Stickers, media, Alert Studio | v1 | X | **P0** | new-record-required · Missing from reviewed L-track evidence: **Viewer sticker / GIF picker on the tip page** → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-07 | §31.7 Stickers, media, Alert Studio | v1 | U | — | mapped-existing · - → `tasks/L01-public-sticker-contract-slice.md` · `tests/TC-L01-public-sticker-contract-slice.md` · `reviews/2026-09-09-L01-public-sticker-contract-slice-decision.md` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-08 | §31.7 Stickers, media, Alert Studio | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Template import rejects inline script / non-schema content outright → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-09 | §31.7 Stickers, media, Alert Studio | v1 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Template catalogue frontend → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-10 | §31.7 Stickers, media, Alert Studio | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: 359 of 600 runtime packages missing; individual authoring required, no mass-copy → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-11 | §31.7 Stickers, media, Alert Studio | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Raw-HTML template shape forbidden at every tier → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-12 | §31.7 Stickers, media, Alert Studio | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: `render_bytes` capped at 2,000,000 → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-13 | §31.7 Stickers, media, Alert Studio | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Asset storage quotas Free none / Pro 100MB / Creator 250MB / Studio 1GB → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-14 | §31.7 Stickers, media, Alert Studio | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Malware scan stage 2 → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-15 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Custom sound upload — **stays off until the whole §18.3 gate closes** → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-22 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Quarantine on upload; unscanned bytes never served, failure state is quarantined → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-23 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Immutable provenance record per asset (uploader, time, IP, client, filename, hash, attestation version, every transition) → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-24 | §31.7 Stickers, media, Alert Studio | v1·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Takedown workflow: intake route, response target, one-action CDN disable, counter-notice, retained evidence → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-25 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Repeat-infringement policy written before the first complaint, up to upload suspension → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-26 | §31.7 Stickers, media, Alert Studio | v1·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Impersonation and voice-imitation prohibition in terms and attestation, same takedown route → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| MED-27 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: One rehearsed end-to-end takedown drill before the flag opens for anyone → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-16 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Built-in themes / theme packs → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-17 | §31.7 Stickers, media, Alert Studio | v1 | P | P2 | new-record-required · Missing from reviewed L-track evidence: Per-event styling beyond `displayStyle` brackets → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-18 | §31.7 Stickers, media, Alert Studio | v1 | P | P2 | new-record-required · Missing from reviewed L-track evidence: Drag/resize/layer tools (numeric config exists) → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-19 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Media and sound libraries → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-20 | §31.7 Stickers, media, Alert Studio | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Curated meme/media queue module → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| MED-21 | §31.7 Stickers, media, Alert Studio | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Lottie + custom branding upload, Studio-tier, live gate. **`bytea` storage is legacy** — new writes go to GCS per §19.1; the `bytea` path stays as the rollback route until backfill completes → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| CMP-01 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-02 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-03 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-04 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-05 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-06 | §31.8 Companion | v1 | U | — | new-record-required · Missing from reviewed L07 evidence: TC L07-03 pairing/revoke/expiry role-scope/audit flow is Not run and the review keeps real pairing/native/device evidence open; no reconciled end-to-end pairing lifecycle proof exists. → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-07 | §31.8 Companion | v1 | X | **P0** | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-08 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-09 | §31.8 Companion | v1 | B | — | new-record-required · Missing from reviewed L07 evidence: Windows XML policy mirrors the rules, but no Windows SDK/.NET compilation, runtime/DPAPI pairing/signing or device evidence exists; the Windows gate remains open. → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-10 | §31.8 Companion | v1 | B | — | new-record-required · Missing from reviewed L-track evidence: Mirror actions (start/stop/screenshot) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-11 | §31.8 Companion | v1 | B | — | new-record-required · Missing from reviewed L-track evidence: Stream actions (go live / end) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-12 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Implicit channel provisioning for Companion-only signup → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-36 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Issue a distinct Companion grant row on Alerts subscription (`0100` mechanism) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-37 | §31.8 Companion | v1 | P | P1 | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-13 | §31.8 Companion | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Stream health panel (all six signals, heartbeat ages) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-14 | §31.8 Companion | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Prepare Stream / go-live checklist (§5.1) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-15 | §31.8 Companion | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Run full test with per-hop report → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-16 | §31.8 Companion | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Live Deck top strip + degraded-mode strip (§5.2) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-17 | §31.8 Companion | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Panic / Clutch Mode → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-18 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Current and next queue item, live → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-19 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-item replay / skip → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-20 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Scene presets → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-21 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Goal controls from Companion → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-22 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Quick note / stream markers → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-23 | §31.8 Companion | v1 | P | P1 | new-record-required · Missing from reviewed L07 evidence: the recent-tip, payment-status and refund-status endpoint/surface/projection path lacks a required web caller and reconciled Companion acceptance proof. → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-24 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Six monetisation push notification types → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-25 | §31.8 Companion | v1 | P | P1 | new-record-required · Missing from reviewed L07 evidence: the authority requires a six-per-type preference matrix; no six-type matrix or acceptance proof exists beyond the three coarse toggles. → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-26 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-27 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Offline queue-of-intent → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-28 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Helper diagnostics (port, OBS version, ws auth state) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-29 | §31.8 Companion | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Disabled-slot explanations naming the failing layer → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-30 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Wrap Stream post-stream workflow (§5.5) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-31 | §31.8 Companion | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Companion rename before any standalone store listing → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-32 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-33 | §31.8 Companion | v1 | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-34 | §31.8 Companion | v1·G | U | — | mapped-existing · - → `tasks/L07-companion-web-mobile-desktop.md` · `tests/TC-L07-companion-web-mobile-desktop.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-35 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Desktop READMEs claim no pairing endpoint exists — stale since `0082`; update them → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-38 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **No purchase surface of any kind in either build** — no price, no upgrade CTA, no iOS link-out; enforced by a CI string/route check, not by review → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-39 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Localisation framework: zero hardcoded user-visible strings (CI-enforced), ICU MessageFormat, no fragment concatenation → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-40 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Hindi as a complete UI language at launch, native-speaker reviewed against a fixed product glossary → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-41 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: `Intl` for every number, currency, date and duration — Indian 2,2,3 rupee grouping → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-42 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Locale as device default with in-app override, persisted and sent on every API call → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-43 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Server-side localisation of API errors, health text and push bodies from request/device locale → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-44 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Pseudo-locale CI build and +40% text-expansion layout tests → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-45 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Bundled Indic fonts with conjunct/matra rendering verified on both platforms → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-46 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Wave-two languages behind registry rows: Marathi, Bengali, Telugu, Tamil, Kannada → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-47 | §31.8 Companion | v1 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Wave-three languages: Gujarati, Malayalam, Punjabi, Odia, Assamese → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-48 | §31.8 Companion | v1 | A | P3 | new-record-required · Missing from reviewed L-track evidence: RTL/Urdu — separate layout track, not a translation task → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-49 | §31.8 Companion | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: APNs + FCM token lifecycle: register, rotate, restore, revoke on sign-out, prune on feedback → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-50 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Two priority classes only (live health failure, payment/delivery failure); everything else normal priority → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-51 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Android notification channels per type → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-52 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Contextual permission prompt (never at launch); denied-permission is a supported state with a settings deep link → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-53 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Foreground reconciliation — no correctness depends on a push arriving → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-54 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Quiet hours with high-priority override → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-55 | §31.8 Companion | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Sign in with Apple** alongside Google Sign-In, with account linking and private-relay addresses handled → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-56 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Optional biometric app lock → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-57 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Session-expiry re-auth sheet returning to the same screen; distinct messaging from control-lease expiry → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-58 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: "Hide sensitive values" toggle honoured app-wide → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-59 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Sign-out clears token, cache, push registration, biometric enrolment and revokes the lease server-side → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-60 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Five-tab IA (Live / Prepare / Queue / Money / More) with the degraded strip persistent across all tabs → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-61 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Deep links resolve to a stateful screen, cold start included → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-62 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Universal Links + App Links with association files hosted and verified on `bharatstudio.in` → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-63 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: First-run flow: sign in → pair → guided Prepare Stream → contextual permissions → first test alert → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-64 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Every empty state authored (no stream, no tips, no queue, no devices, notifications denied, offline, paused) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-94 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Recent Actions on the Live Deck** — session-scoped list of the last actions taken by anyone on this channel, one-tap undo where reversible (§7.5) → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-95 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Object detail on tap follows the §7.2 contract — queue item, tip, supporter, health signal → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-96 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: "Why didn't this fire?" from the Companion queue, same per-hop diagnosis as DSH-17 → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-65 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Enforce iOS 15.1 / Android API 26 floors at install → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-66 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Landscape usable; degraded strip and panic control never hidden → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-67 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Tablet = scaled phone layout with max content width → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-68 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Dynamic Type / font scaling to largest sizes with no truncation or sub-minimum targets → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-69 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Screen-reader labels on every control in the selected language → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-70 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Colour never the only health signal; reduced-motion honoured → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-71 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Dark default, complete light mode, full safe-area handling → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-72 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Release channels: internal → TestFlight/Play internal → staged rollout with crash-rate halt → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-73 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: App-version + build-number scheme recorded against commit and API contract version → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-74 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: API back-compatibility for old builds; breaking an old build is a dated, deliberate act → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-75 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Server-driven forced-upgrade floor (security/protocol only) plus dismissible soft prompt, never mid-stream → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-76 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: OTA JS-bundle policy: signed, versioned, staged, rollback-able; never features, monetisation or reviewed behaviour → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-77 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-release rollback plan; local-state migrations additive or reversible → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-78 | §31.8 Companion | v1·G | B | **P0** | new-record-required · Missing from reviewed L-track evidence: **Reconcile in-app account deletion (store requirement) with the blocked deletion policy — before submission** → `-` · `-` · `-` |  |  |  | active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-79 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Permission purpose strings, specific, in every shipped language → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-80 | §31.8 Companion | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Data-safety / privacy-nutrition declarations matching the published policy exactly → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-81 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: UGC obligations documented for review: report, block, moderate → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-82 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Reviewer demo account with seeded data reaching a live-looking Live Deck → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-83 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Age rating and content descriptors set from moderation reality → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-84 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Offline as a first-class state showing last-known values with their age → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-85 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Offline queue reconciliation per action; irreversible and financial actions refused offline, never queued → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-86 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Exponential reconnect with jitter, always reconciling rather than assuming continuity → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-87 | §31.8 Companion | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Battery and metered-data discipline over a three-hour stream → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | none |
+| CMP-88 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Crash reporting with release tagging, CI symbol upload, crash-free-sessions gate; payloads scrubbed of money, identity and message content → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-89 | §31.8 Companion | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Privacy-respecting product analytics with working opt-out → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-90 | §31.8 Companion | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: §19.4 budgets measured per release on the reference mid-range Android → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-91 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: End-to-end tests both platforms: sign in, pair, prepare, test alert, Clutch, queue action, offline reconcile → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-92 | §31.8 Companion | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: CI builds both platforms every merge, producing installable artifacts → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CMP-93 | §31.8 Companion | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Store release checklist: localised screenshots and descriptions, demo account, declarations → `-` · `-` · `-` |  |  |  |  |  | CMP-E1..E8 both platforms · localisation · crash-free gate | release |
+| CON-01 | §31.9 Connectors and chat | P2·G | U | — | new-record-required · Missing from reviewed L-track evidence: YouTube OAuth token storage, refresh, encryption → `-` · `-` · `-` | tasks/L15-live-platform-connectors-and-chat-commands.md |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-02 | §31.9 Connectors and chat | P2 | X | **P0** | new-record-required · Missing from reviewed L-track evidence: **Connect / disconnect UI** → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-03 | §31.9 Connectors and chat | P2 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Revoked-auth detection + creator prompt** → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-04 | §31.9 Connectors and chat | P2 | U | — | new-record-required · Missing from reviewed L-track evidence: Live status discovery, `streamList` polling, 3-failure fallback with reset → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-05 | §31.9 Connectors and chat | P2·G | U | — | new-record-required · Missing from reviewed L-track evidence: Quota budget, fair share, day-exhaust on 403 → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-06 | §31.9 Connectors and chat | P2 | U | — | new-record-required · Missing from reviewed L-track evidence: Super Chat / Super Sticker / member / milestone / gifted normalisation → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-07 | §31.9 Connectors and chat | P2 | U | — | new-record-required · Missing from reviewed L-track evidence: `!tip`, `!tip 100`, `!tip 100 message` → opaque short link → `-` · `-` · `-` | tasks/L15-live-platform-connectors-and-chat-commands.md |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-22 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Bare `!tip` replies with the short link and no amount; viewer chooses on the page → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-08 | §31.9 Connectors and chat | P2 | B | — | new-record-required · Missing from reviewed L-track evidence: Bot chat acknowledgement (flag default off) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-09 | §31.9 Connectors and chat | P2 | U | — | new-record-required · Missing from reviewed L-track evidence: Connector entitlement counts 0/1/2/3 → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-10 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Connector count / limit shown in UI → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-11 | §31.9 Connectors and chat | P2 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Ingest-failure admin surface UI → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-12 | §31.9 Connectors and chat | P2 | U | — | new-record-required · Missing from reviewed L-track evidence: Financial truth never derived from a platform event — webhook only → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-13 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Member reconciliation via `members.list` (never chat as truth) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-14 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Like goals via `videos.list` (cadence measured, not assumed) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-15 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Controlled broadcast lifecycle: create/bind → verify ingest `active` → testing → live → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-16 | §31.9 Connectors and chat | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Assisted gifting as reminder/deep link only → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-17 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Chat display and filtering — tierable. **Retention is not** (§12.6.2): what we ingest and index is a uniform product decision, identical on every tier → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-18 | §31.9 Connectors and chat | P2 | B | — | new-record-required · Missing from reviewed L-track evidence: Twitch EventSub → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-19 | §31.9 Connectors and chat | P2 | B | — | new-record-required · Missing from reviewed L-track evidence: Kick → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-20 | §31.9 Connectors and chat | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Optional YouTube `/live` support page → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| CON-21 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: YouTube identity/trust model and namespaces (§12.3 identity rules) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-31 | §31.9 Connectors and chat | P2 | A | **P0 rule for Phase 4** | new-record-required · Missing from reviewed L-track evidence: **One fetch, many surfaces** — no surface calls YouTube; the server polls once per channel and fans out over the channel-keyed SSE (§4.2) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-32 | §31.9 Connectors and chat | P2·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: IFrame Player API for overlay and dashboard presence and playback — client-side, official, zero quota → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-33 | §31.9 Connectors and chat | P2·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Official YouTube live-chat **embed** for the creator to read chat in the dashboard and Companion — zero quota, display only, never a data source → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-34 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Stream health from the desktop helper / OBS WebSocket, never from a YouTube call → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-35 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Cadence as a budget: poll only while live, back off when idle, tier by creator size, defined degradation (slow → pause, always with a visible reason) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-36 | §31.9 Connectors and chat | P2·G | A | **P0 for Phase 4** | new-record-required · Missing from reviewed L-track evidence: **Per-call, per-endpoint, per-channel quota instrumentation**, exported as a histogram (RT-06). Ships with the connector — the quota application is worthless without it → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-37 | §31.9 Connectors and chat | P2·G | A | **P0 for Phase 4** | new-record-required · Missing from reviewed L-track evidence: Measure `streamList` against a real Google project: units per hour, per channel, per message volume, and behaviour during a chat burst → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-38 | §31.9 Connectors and chat | P2·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Derive the supported concurrent-creator ceiling at the free allowance and at each increase tier, then file the quota application with measured numbers → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-40 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** | new-record-required · Missing from reviewed L-track evidence: **Subscription registry with reference counting** — a datum is polled only while refcount > 0; reuses the RT-02 channel-keyed subscriber map rather than a second registry → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-41 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Visibility-driven subscribe and unsubscribe: hidden module, inactive scene, background tab, backgrounded Companion → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-42 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Unsubscribe hysteresis (~60s grace) so scene flicking does not thrash subscriptions → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-43 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** | new-record-required · Missing from reviewed L-track evidence: **Cross-channel batching** — one global poller, chunked IDs, one call per chunk instead of one per channel → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-44 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Field batching — request the parts needed together in one call, never two calls for one screen → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-45 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Tip page: live player and chat are click-to-load embeds; a live badge subscribes only while the page has a visitor and drops after idle → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-46 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** | new-record-required · Missing from reviewed L-track evidence: Chat ingestion subscribed **by feature in use**, never by liveness; a tips-and-overlay creator opens no chat connection → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-47 | §31.9 Connectors and chat | P2 | A | **P0 for Phase 4** | new-record-required · Missing from reviewed L-track evidence: Budget manager: per-datum priority, global degradation rather than per-creator starvation, visible slowdown, negative caching for offline channels → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-48 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Cold subscriber gets last-known value with its age immediately; a render never waits on an upstream call → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-49 | §31.9 Connectors and chat | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Anti-pattern enforcement (§4.4.6) — no client calls, no per-surface fetch, no offline polling, no fixed global timer, no per-visitor subscription → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | release |
+| CON-39 | §31.9 Connectors and chat | N | N | — | new-record-required · Missing from reviewed L-track evidence: Page scraping and InnerTube — **never build.** ToS-prohibited automated access, no contract, no stability, unverifiable financial provenance, and it moves the consequence onto the creator's channel (§4) → `-` · `-` · `-` |  |  |  |  |  | post-v1 (Phase 4) | none |
+| ENT-01 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Eight entitlement dimensions, closed set, all enforced → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | none |
+| ENT-02 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Moderator seats 0/0/2/5, new grants only, existing grandfathered → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | none |
+| ENT-03 | §31.10 Entitlements, billing, admin, ops | v1 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Moderator seat management UI → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | release |
+| ENT-04 | §31.10 Entitlements, billing, admin, ops | v1·G | P | P1 | new-record-required · Missing from reviewed L-track evidence: Internal ceilings: pending visuals 20/50/150/500 (500 pending §12.7 verification) · bindings 3/5/10/**50** · presets 1/2/4/**20** · read-only sessions 2/3/5/8 (held pending load evidence) · control sessions 1/1/2/4. *Updated 2026-09-14 to match §30.2.* → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | release |
+| ENT-05 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Grandfathering 12 months + 30-day renewal grace → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | none |
+| ENT-06 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Referral engine with fraud signal → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | none |
+| ENT-07 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Billing panel, upgrade/downgrade/reactivate/payment-method → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | none |
+| ENT-08 | §31.10 Entitlements, billing, admin, ops | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Top-up entitlement additivity, ledger, spend caps → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | release |
+| ENT-09 | §31.10 Entitlements, billing, admin, ops | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: AI credit ledger, classes, reservations (§11.7) → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · isolation | release |
+| ADM-01 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Admin console separate from creator dashboard, consumes platform-admin API only → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
+| ADM-02 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: DLQ inspection, controlled replay/discard, audited, reason required → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
+| ADM-03 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Entitlement + channel-capacity management → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
+| ADM-04 | §31.10 Entitlements, billing, admin, ops | v1 | P | P2 | new-record-required · Missing from reviewed L-track evidence: DB-backed billing plan catalogue with append-only history → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
+| ADM-05 | §31.10 Entitlements, billing, admin, ops | v1 | X | P0 | new-record-required · Missing from reviewed L-track evidence: Reconciliation quarantine review UI → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | release |
+| ADM-06 | §31.10 Entitlements, billing, admin, ops | v1 | X | P1 | new-record-required · Missing from reviewed L-track evidence: Featured-creator curation writer → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | release |
+| ADM-07 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Admin OIDC + MFA, durable admin registry (vs allowlist) → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | release |
+| ADM-08 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Redaction by default; destructive ops need confirmation + reason + audit ref → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
+| ADM-09 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Admin console responsive at 320px/iPad/desktop, keyboard nav → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · LIF-E4..E6 · isolation | none |
+| OPS-01 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | mapped-existing · - → `tasks/L06-scheduler-boundary.md` · `tests/TC-L06-scheduler-boundary.md` · `reviews/2026-08-14-L06-scheduler-boundary-review.md` |  |  |  |  |  | — | none |
+| OPS-02 | §31.10 Entitlements, billing, admin, ops | v1 | X | **P0** | new-record-required · Missing from reviewed L-track evidence: **Schedules actually enabled** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-03 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | mapped-existing · - → `tasks/L06-scheduler-boundary.md` · `tests/TC-L06-scheduler-boundary.md` · `reviews/2026-08-14-L06-scheduler-boundary-review.md` |  |  |  |  |  | — | none |
+| OPS-04 | §31.10 Entitlements, billing, admin, ops | v1·G | B | — | mapped-existing · - → `tasks/L06-scheduler-boundary.md` · `tests/TC-L06-scheduler-boundary.md` · `reviews/2026-08-14-L06-scheduler-boundary-review.md` |  |  |  |  |  | — | release |
+| OPS-05 | §31.10 Entitlements, billing, admin, ops | v1·G | U | — | new-record-required · Missing from reviewed L-track evidence: Email outbox with Resend; invoice, subscription, DPDP export, overlay-expiry mails → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-06 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | new-record-required · Missing from reviewed L09 evidence: no reconciled triad proves each critical alert has an owner and a tested runbook; seven local runbooks are listed, but critical-scenario execution and actionable dashboard policy remain open. → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| OPS-07 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: On-call rotation → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-08 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Activation instrumentation (payout + OBS + first alert) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-09 | §31.10 Entitlements, billing, admin, ops | v1 | P | P0 | new-record-required · Missing from reviewed L09 evidence: deployed scrape/dashboard/threshold evidence remains open, so the seven metrics do not yet form a reconciled executable end-to-end contract. → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-10 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Creator activation funnel and viewer funnel instrumentation → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-11 | §31.10 Entitlements, billing, admin, ops | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Revenue KPIs: tips/viewer-hour, average tip, repeat-supporter rate, TTS-driven tips, threshold uplift, goal-driven tips, `!tip` conversion, challenge and vote revenue → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| OPS-12 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | mapped-existing · - → `tasks/L09-observability-load-failure.md` · `tests/TC-L09-observability-load-failure.md` · `reviews/2026-08-15-L09-observability-review.md` |  |  |  |  |  | — | none |
+| OPS-13 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | mapped-existing · - → `tasks/L09-observability-load-failure.md` · `tests/TC-L09-observability-load-failure.md` · `reviews/2026-08-15-L09-observability-review.md` |  |  |  |  |  | — | none |
+| OPS-14 | §31.10 Entitlements, billing, admin, ops | v1 | B | — | mapped-existing · - → `tasks/L10-release-readiness-and-rollout.md` · `tests/TC-L10-release-readiness-and-rollout.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | — | none |
+| OPS-15 | §31.10 Entitlements, billing, admin, ops | v1 | U | — | mapped-existing · - → `tasks/L08-marketing-support-legal.md` · `tests/TC-L08-marketing-support-legal.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | — | none |
+| MKT-01 | §31.11 Marketing, legal, support | v1 | U | — | new-record-required · Missing from reviewed L08 evidence: the authority requires per-page /alerts, /mirror and /stream information architecture plus a durable 301 matrix; the existing route/redirect coverage is incomplete. → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| MKT-02 | §31.11 Marketing, legal, support | v1·G | U | — | new-record-required · Missing from reviewed L08 evidence: TC lacks provider-fee source-of-truth and dual-sided calculation proof, and Razorpay Technology Partner approval remains pending; provider dependency is unresolved. → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MKT-03 | §31.11 Marketing, legal, support | v1 | U | — | mapped-existing · - → `tasks/L08-marketing-support-legal.md` · `tests/TC-L08-marketing-support-legal.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  |  | — | none |
+| MKT-04 | §31.11 Marketing, legal, support | v1 | U | — | mapped-existing · - → `tasks/L08-marketing-support-legal.md` · `tests/TC-L08-marketing-support-legal.md` · `reviews/2026-08-15-L07-L08-L10-release-surface-review.md` |  |  |  |  | L10 | — | none |
+| MKT-05 | §31.11 Marketing, legal, support | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Watermark claim vs reality — the pricing page says tip page + overlay, and only the overlay has one. §30.6 settles it as correct: build the tip-page line rather than weaken the claim → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MKT-06 | §31.11 Marketing, legal, support | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: `/features` frames Alerts and Companion as co-equal; Companion is bundled → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| MKT-07 | §31.11 Marketing, legal, support | v1·G | B | — | new-record-required · Missing from reviewed L-track evidence: Legal sign-off: pricing/feature claims, DPDP deletion, plaintext reset URL in email → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MKT-08 | §31.11 Marketing, legal, support | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Support surface and staffing → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MKT-09 | §31.11 Marketing, legal, support | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Public copy matches versioned decisions with dated history → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| HUB-01 | §31.13 Live Support Hub | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Mobile support tray, verified payment state, receipts, QR/UPI → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-02 | §31.13 Live Support Hub | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Amount presets → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-03 | §31.13 Live Support Hub | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Five explicit status states (pending → verified → queued → shown → held) → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-04 | §31.13 Live Support Hub | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Safe message preview before checkout → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-05 | §31.13 Live Support Hub | v1 | X | P0 | new-record-required · Missing from reviewed L-track evidence: Approved sticker / sound picker → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-06 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Live supporter wall with opt-in names → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-07 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Free reactions, rate-limited and sampled → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-08 | §31.13 Live Support Hub | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Community goal ladder with milestone tiers → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-09 | §31.13 Live Support Hub | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Goal source labels. The tips label is v1; **Super Chat and membership labels are Phase 4** and must not render a source that cannot yet exist → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-10 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Pick-a-side vote with published rules and close time → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-11 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Stream mission card → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-12 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Live "what changed" feed → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
+| HUB-13 | §31.13 Live Support Hub | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Embedded YouTube player (IFrame Player API — no data scopes, no quota, §4.2). **Phased P2 conservatively**: the launch authority excludes YouTube capabilities and §34 says no YouTube surface before Phase 4; whether a no-API embed is inside that exclusion is open (§33.2) → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
+| HUB-14 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Free lane: one free vote, check-in streak, challenge proposal, cheer card → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-15 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: "Where does my support go?" creator explainer → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-16 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Payment-retry recovery screen → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-17 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Low-bandwidth / no-player mode → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-18 | §31.13 Live Support Hub | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Indian language support → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-19 | §31.13 Live Support Hub | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Accessibility: reduced motion, no autoplay sound, SR labels → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| HUB-20 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Shareable mini-card, campaign links, referral attribution → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
+| HUB-21 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Event-specific layout presets → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
+| HUB-22 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Post-stream supporter recap and receipt export → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | none |
+| HUB-23 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Milestone unlocks framed as a creator promise, never a contract → `-` · `-` · `-` |  |  |  |  |  | HUB-E1..E5 · 3G profile · accessibility | release |
+| DSH-10 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Screen inventory built as named screens** (§7.1), not jobs → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-11 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Detail-view contract** (§7.2): Summary · Timeline · Relations · Actions · Audit, in that order, for every noun → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-12 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Activity Log** (§7.5): one chronological view over every audited action, filterable by actor, type, range and object → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-13 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Platform-staff actions affecting this channel visible to the creator in the Activity Log → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-14 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Activity Log role-scoping by projection and RLS — operational entries without financial amounts → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-15 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Activity Log free and uncapped at every tier (§12.6); only team filtering, saved views and scheduled export are tierable → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-16 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **"Why this number?"** explain panel on every derived figure, showing the computation and its rows → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-17 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **"Why didn't this fire?"** per-hop alert diagnosis naming the failing hop, never "unknown" → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-18 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Trace ID and timeline on every payment and alert row → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-19 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Copy affordances: tip link, short link, overlay URL, QR image, receipt link → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-20 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Send a test alert from any screen → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-21 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: **Show me on stream** — brief real-overlay preview with auto-revert → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
+| DSH-22 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Undo toast with a real window on every reversible action → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-23 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Export-this-view as a background job, never by rendering rows (§12.7) → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-24 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Pin any card to Home → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
+| DSH-25 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Supporter profile** (§7.4): history, streak, badges, shown/hidden messages, consent state, private notes, mute-TTS, block stickers, block, report → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-26 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Supporter amounts follow §12.3 — no public lifetime total; visibility consent governs anything on stream → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-27 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Command palette and global search** across supporters, payments, receipts, assets, modules and actions → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-28 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Support handoff bundle** — redacted diagnostics, no amounts, identities or message content (§12.4) → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-29 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Asset detail shows **where each asset is used** → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | none |
+| DSH-30 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Empty, loading, error and denied states authored for every screen (§7.7) → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| DSH-31 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Denied states name the unlocking tier or the missing role — never a dead control, never a silent hide (§15.3) → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · isolation · role boundaries | release |
+| SAF-01 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **One corpus, one pipeline, every surface** — tips, TTS, chat, display names, sticker captions, lobby names, bot replies, and Super Chat when it lands in Phase 4 → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-02 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: L0 normalisation: NFKC, zero-width and RTL-override stripping, combining-mark flood, homoglyph folding, leet and separator folding, repeated-character collapse → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-03 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Script detection and **phonetic keys per Indic script**, so a slur in Devanagari, Latin transliteration or code-mixed text is one term → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-04 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Original text never destroyed — normalisation produces a parallel matching form → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-05 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: L1 Aho–Corasick over the compiled corpus, global plus per-creator, whole-word and substring rules kept separate → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-06 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: L2 bounded edit distance plus phonetic match for obfuscation → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-07 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: L3 local classifier on our own compute for threats, harassment, scam patterns, raid coordination → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-08 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: L4 AI on the **residual band only** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-09 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Per-surface decisions** — payment, display, TTS, stored record, moderator review are independent and separately audited → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-10 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: URL neutralisation with per-creator allow and deny domains → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-11 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: SSML-injection guard — a message can never become synthesis instructions → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-12 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: PII detection: phone, UPI ID, email, address, card-like strings, plus the no-accidental-doxxing rule → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-13 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Rate, flood, repeated-text and emoji-flood controls; slow, raid and high-toxicity modes → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-14 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Policy presets: family-friendly, gaming, mature audience, sponsor-safe → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-15 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Fails closed for speech, open for money** — safety unavailable means TTS is silent; payment and receipt are never blocked → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-16 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Degraded state visible to the creator, never to the audience → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-17 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Untiered** (§30.1) — no pack, tier or add-on may sell better safety → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-18 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Audit per action: original, normalised, deciding layer, matched rule or score, confidence, **policy version**, human actor — surfaced in the Activity Log → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-19 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Supporter-visible appeal path for a block; reversals audited → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-20 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Verdict cache** keyed `HMAC(secret, normalised ‖ language ‖ policy_version)`, storing verdicts and never text → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-21 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: PII-flagged messages are **never cached** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-22 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Cross-channel cache with creator-specific rules applied **after** the lookup → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-23 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Term-level caching** — an AI verdict on a novel term is promoted into the L1 corpus after review, so it costs nothing again → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-24 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Residual batching within a short window; signal-based escalation (new author, length, mixed script, link, amount) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SAF-25 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Spoken messages get the full ladder; scrolling chat may stop at L3 absent signal — every surface still runs L0–L3 → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SAF-26 | §31.13 Live Support Hub | v1 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Periodic distillation of L3 from accumulated L4 verdicts → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SAF-27 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Negative caching of common benign phrases → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SAF-28 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Compiled per-channel matcher rebuilt on change, held in memory → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-29 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-channel and global AI budgets that stop escalation, **never L0–L3** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-31 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Seed corpus**: English + Hindi/Hinglish, 300–800 reviewed terms each, tiered T1/T2/T3. Public lists are candidates only, never shipped unreviewed → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-32 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Per-term record: surface · language · script · phonetic key · severity · whole-word or substring · source · added-by · reviewed-by · date · policy version → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-33 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Allowlist of legitimate words containing a banned substring** — the Scunthorpe fix → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-34 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Named native-speaker owner per language, who streams → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-35 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Wave-two corpora matching the §5.6.2 language waves → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SAF-36 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Growth flywheel**: offline classification → candidate → native-speaker review → corpus entry → new policy version → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-37 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Near-miss telemetry** — unmatched text within edit-distance 1–2 of a banned term logged as a candidate → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-38 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Corpus changes versioned, audited, reversible; additions name their reviewer, removals name their reason → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-39 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **AI is not in the live path for chat** — deterministic online, AI offline and batched; an exhausted budget degrades discovery, never protection → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-40 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Unicode TR39 confusables mapping, vowel-elision keys, skeleton form, Double Metaphone for Latin and a syllable key for Indic → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-41 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Evidence snapshot at action time**: original, normalised, rule, layer, confidence, policy version, actor, ±N surrounding messages → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-42 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Raw unactioned chat on the shortest retention class; action records and their snapshots on the long one → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-43 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Appeal record stored with the action, including outcome and reviewer → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-44 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Creator-scoped flag and block lists → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-45 | §31.13 Live Support Hub | v1 | N | — | new-record-required · Missing from reviewed L-track evidence: **No global shared blacklist, ever** (§16.3) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SAF-46 | §31.13 Live Support Hub | v1·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Cross-creator risk **signal** only: decaying, unattributed, never auto-actioning, OAuth identity only, never payment identity → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REP-01 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Supporter reputation **derived, never stored as a score** (§19.6) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REP-02 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Inputs: payments minus refunds · tenure · consistency · actioned events · appeal outcomes → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REP-03 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Negative signals private to that creator; positive signals subject to visibility consent; never a public lifetime total → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REP-04 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Consumers: auto-approve trusted supporters · TTS eligibility hints · queue priority · lobby attendance priority · voice-routing named supporter → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| REP-05 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Decays, appealable, never cross-creator negative, never permanent, **never purchasable** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-01 | §31.13 Live Support Hub | v1 | P | **P0** | new-record-required · Missing from reviewed L-track evidence: Reconcile provider-initiated refunds from the webhook, idempotent on the provider event ID — **ships first, needs no new permission** → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-02 | §31.13 Live Support Hub | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: **In-product refund initiation via partner OAuth with a refund scope** on the linked account → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-03 | §31.13 Live Support Hub | v1 | N | — | new-record-required · Missing from reviewed L-track evidence: Never hold creator API keys to refund as them (§25.5) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| REF-04 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Full refund record per §10.10.2 — our id and idempotency key, provider ids, amount, status transitions, speeds requested and processed, reason code and text, initiator, origin, event ids, ARN, timing, failure code, balance context, links to alert, receipt and supporter → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-05 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: State machine: requested → accepted → processing → processed, with rejected, failed and bank-reversed branches; webhook-driven, never time-inferred → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-06 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Cumulative partial-refund tracking; never exceed the payment → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-07 | §31.13 Live Support Hub | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Derived numbers recompute with no special handling — the §19.6 payoff → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| REF-08 | §31.13 Live Support Hub | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: Receipt reflects live refund state (`VID-04`) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| REF-09 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Refund appears in the Activity Log and the payment detail timeline → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-10 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **No on-stream change** — the alert and the TTS that already played are not rewritten → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-11 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Refund of a Compatibility-Routing signal is impossible and **fails loudly** (§25.3) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-12 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Refund ordered behind its payment; never applied to an unrecorded payment → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-13 | §31.13 Live Support Hub | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Chargebacks and disputes are a separate state machine**, provider-driven, with an evidence pack → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-14 | §31.13 Live Support Hub | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Repeated-refund risk signal, private to that creator, never automatic, never cross-creator → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| REF-15 | §31.13 Live Support Hub | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Owner and admin may refund; operator and moderator never → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-16 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Reason required, undo window before submission rather than a confirmation dialog → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-17 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Supporter sees status and expected credit window from the receipt link, with no login → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-18 | §31.13 Live Support Hub | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **No refund copy states a tax consequence** until the CA review closes → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-19 | §31.13 Live Support Hub | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Insufficient-balance and post-settlement refunds surfaced as an explained state, not a generic failure → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| REF-20 | §31.13 Live Support Hub | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Every provider field and behaviour in §10.10 carries a dated source per §27.2 before it is built against → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SAF-30 | §31.13 Live Support Hub | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Metrics as histograms: cache hit rate overall and per language, residual rate, **cost per thousand messages**, terms promoted per week, creator-reported false negatives, L3-vs-L4 agreement → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| CUS-01 | §31.14 Customisation and gating | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Four-switch model (entitled / enabled / configured / active) applied universally → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
+| CUS-02 | §31.14 Customisation and gating | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Per-widget full config surface (§15.2) → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
+| CUS-03 | §31.14 Customisation and gating | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Locked capabilities shown with the unlocking tier, never hidden or dead → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
+| CUS-04 | §31.14 Customisation and gating | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Downgrade preserves configuration; over-limit items read-only → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
+| CUS-05 | §31.14 Customisation and gating | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Preset bundles that are fully editable afterwards → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | none |
+| CUS-06 | §31.14 Customisation and gating | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-source alert styling. UPI-tip styling is v1; a **Super Chat style is Phase 4**, since there is no such source in v1 → `-` · `-` · `-` |  |  |  |  |  | DSH-E1..E5 · role-boundary suite | release |
+| LOB-01 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Session create: game, region, mode, platform, time, seats, reserves, policy → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-02 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Public waitlist; code never on stream → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-03 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Ready check → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-04 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Single-use, short-lived private seat token → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-05 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Code revealed only after readiness confirmed → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-06 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: No-show expiry and automatic reserve promotion → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-07 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Six eligibility modes, policy locked and displayed before joining → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-08 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Redacted audit log incl. moderator override reason → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-09 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Aggregate-only public overlay module → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-10 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Companion operator console → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-11 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Automatic deletion of temporary lobby data → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-12 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Time-bound suspensions with appeal; never keyed on payment identity → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-13 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Session templates → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-14 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Language / region / platform / accessibility filters → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-15 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Voluntary skill bands, friend-group locking → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-16 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Creator squads with attributed operator actions → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-17 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Lobby reputation, no public shaming → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-18 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Post-match pulse with private reporting → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-19 | §31.15 Lobby Engine | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Clip consent before featuring a player → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| LOB-20 | §31.15 Lobby Engine | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Cross-creator combined queues → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-21 | §31.15 Lobby Engine | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Recurring community nights with reminders → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-22 | §31.15 Lobby Engine | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Screened Guest Queue (audio-only, time-boxed) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| LOB-23 | §31.15 Lobby Engine | N | N | — | new-record-required · Missing from reviewed L-track evidence: Paid roulette, wagering, prize pools, paid WebRTC, viewer uploads → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GIV-01 | §31.16 Giveaways and tournaments | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Creator-defined prize, entry method, window, draw method, published up front → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GIV-02 | §31.16 Giveaways and tournaments | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Free entry route always available; no paid-only entry → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GIV-03 | §31.16 Giveaways and tournaments | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Deterministic seeded draw, seed and entrant count recorded → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GIV-04 | §31.16 Giveaways and tournaments | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Override possible but logged and labelled → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GIV-05 | §31.16 Giveaways and tournaments | P3·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Terms: creator is promoter, responsible for eligibility, tax and delivery → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GIV-06 | §31.16 Giveaways and tournaments | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Overlay: entry count, timer, consented winner, no address on stream → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GIV-07 | §31.16 Giveaways and tournaments | P3·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Legal review before any chance-based format ships in India → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| TRN-01 | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Single-elimination brackets up to 8 (Creator) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| TRN-01b | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Double elimination, round robin, points, seeding, sponsor slots (Studio) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| TRN-02 | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Seeding by attendance, creator pick, or published-seed random → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| TRN-03 | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Check-in windows, scheduling, reminders → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| TRN-04 | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Score reporting with dispute note → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| TRN-05 | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Standings overlay module → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| TRN-06 | §31.16 Giveaways and tournaments | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Sponsor slot with exposure log → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| AUD-01 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Custom alert sounds, tier-gated → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-02 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Widget / module / milestone sounds → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-03 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Supporter-triggerable soundboard, cooldown and queue → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-04 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-bracket and per-source sound selection → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-05 | §31.17 Custom audio and creator media | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: BRB / countdown music bed → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| AUD-06 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Rights attestation checkbox with recorded timestamp → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-07 | §31.17 Custom audio and creator media | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Terms text placing copyright liability on the creator → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-08 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Upload audit record, immediate disable, takedown handling → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-09 | §31.17 Custom audio and creator media | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Duration, size and format caps; scan pipeline applied → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-10 | §31.17 Custom audio and creator media | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Asset storage quota enforcement (MED-13 dependency) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| AUD-11 | §31.17 Custom audio and creator media | N | N | — | new-record-required · Missing from reviewed L-track evidence: Shared or discoverable music library → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| RT-01 | §31.18 Performance | v1 | U | **P0** | active-record · - → `active/tasks/RT-01.md` · `tests/TC-RT-01-overlay-idle-replay.md` · `reviews/2026-09-15-rt-01-overlay-idle-replay.md` |  | tests/TC-RT-01-overlay-idle-replay.md · tests/TC-RT-02-overlay-channel-fanout.md | reviews/2026-09-15-rt-01-overlay-idle-replay.md · reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-02 | §31.18 Performance | v1 | P | **P0** | active-record · - → `active/tasks/RT-02.md` · `tests/TC-RT-02-overlay-channel-fanout.md` · `reviews/2026-09-15-rt-02-overlay-channel-fanout.md` |  | tests/TC-RT-02-overlay-channel-fanout.md | reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-03 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L03 evidence: no explicit two-phase visual-then-media event contract exists on the same alert, and late audio drop after the display window closes is unproven. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-04 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L04/L05 evidence: no single composite triad proves the full cross-service chain as one contract, including an independently scheduled leased dispatcher owning recovery; live IAM/Cloud Tasks staging remains open. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-05 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L04/L05 evidence: no proof establishes that only a leased dispatcher scans ready deliveries or that no request handler scans backlog; the exclusivity/lease boundary remains unresolved and private authorization must not be conflated with dispatcher-only ownership. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-06 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L09 evidence: histogram metrics with explicit buckets and per-instance aggregation remain unproven; L09-03 topology scrape/latency is Not run and staging targets are pending. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-07 | §31.18 Performance | v1·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count → `-` · `-` · `-` |  | tests/TC-RT-02-overlay-channel-fanout.md | reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-08 | §31.18 Performance | v1 | X | **P0** | new-record-required · Missing from reviewed L06 evidence: defined/disabled schedules do not satisfy the enabled dispatcher dependency; no approved/rehearsed schedule enablement or live scheduler/IAM evidence exists, and legal approval remains open. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-09 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-10 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-11 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Query timeouts on every read path; a pathological query fails fast rather than holding a connection → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-12 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L03 evidence: no reviewed composite index proof or checked-in EXPLAIN ANALYZE corpus covers every widget-backing query or mandates recheck when changed; the history cursor/order proof does not establish query-plan coverage. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| RT-13 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-channel live-transport cap counted across Canvas and standalone widgets; over-cap widgets degrade to slow snapshot polling with a visible notice (§21.3) → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-01 | §31.18 Performance | v1 | A | P0 | new-record-required · Missing from reviewed L09 evidence: no explicit histogram buckets or cross-instance aggregation prove p95/p99 on every budgeted path; no CI-enforced performance budget/fail threshold exists, and L09-03 staging topology scrape/latency is Not run. Averages/duration totals cannot falsify the p99 budget. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-02 | §31.18 Performance | v1 | A | P0 | new-record-required · Missing from reviewed L03/L16 evidence: no Master Canvas runtime combines modules into one OBS browser source, one connection and one requestAnimationFrame loop; no pure-module composition/error isolation, protected one-per-canvas Free watermark/reserved zone, paid-brand-free composition, or ALQ-18/PRF-02/OVL-E8, OVL-E9 and OVL-E10 local proof exists. → `-` · `-` · `-` |  |  | reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-03 | §31.18 Performance | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Composite-only animation; no layout-triggering properties → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-04 | §31.18 Performance | v1 | A | P0 | new-record-required · Missing from reviewed L03 evidence: no authoritative DOM-cardinality/recycling policy spans Master Canvas modules, no 8-hour OBS soak measures flat node count/memory, and no OVL-E1 proof exists; bounded display grouping/timer cleanup is not DOM recycling or a flat long-run node count. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-05 | §31.18 Performance | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Idle modules fully unsubscribed → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-06 | §31.18 Performance | v1 | A | P0 | new-record-required · Missing from reviewed L03 evidence: no server-side sampling or source-specific rate-limit/backpressure policy exists for live reactions/chat, with no reaction/chat ingress source path or per-source coalescing proof and no PRF-06/raid-load evidence; generic HTTP limiting/presentation settings do not establish reaction/chat sampling. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-07 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Burst coalescing on long-gap replay → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-08 | §31.18 Performance | v1·G | A | P0 | new-record-required · Missing from reviewed L16 evidence: no server-side read-through cache for derived aggregate projections is keyed/bounded per channel/widget or invalidated from durable events; WidgetPoller retains interval polling/fallback, and no cache invalidation, stampede, stale-read, or correctness proof establishes the universal §19.6 requirement. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-09 | §31.18 Performance | v1 | P | P0 | mapped-existing · - → `tasks/L03-alerts-web-and-creator-api.md` · `tests/TC-L03-alerts-web-and-creator-api.md` · `reviews/2026-08-16-L03-corrected-findings-remediation-review.md` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-10 | §31.18 Performance | v1 | P | P1 | new-record-required · Missing from reviewed L03 evidence: no reviewed proof establishes a universal bounded-page cursor contract across every live surface; the history-specific composite implementation does not close that universal/bounded gap. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-11 | §31.18 Performance | v1 | P | P0 | new-record-required · Missing from reviewed L03/L16 evidence: no reviewed composite-index inventory or checked-in EXPLAIN ANALYZE output proves every widget-backing query’s index plan; no query-change recheck guard or PRF-11/RT-12 universal proof exists. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-12 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Asset budgets: Lottie complexity, audio length, server-side image pre-scaling → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-13 | §31.18 Performance | v1 | U | — | new-record-required · Missing from reviewed L-track evidence: No third-party scripts in the overlay → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | none |
+| PRF-14 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-module error boundaries; twice-failed module stays down with a note → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-15 | §31.18 Performance | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Companion: optimistic UI, virtualised lists, no re-render storms → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-16 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Published one-source-vs-many benchmark, re-run in CI → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-17 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L03/L16 evidence: no authoritative end-to-end §12.7 inventory/test proves every surface bounded—dashboard summary-first, per-tab lazy/cursor pagination and >50 virtualised; tip page optional widgets/social after first paint; Master Canvas bounded queue; every widget server-side aggregated/capped; Companion virtualisation/no continuous React state. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-18 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Exports run as background jobs, never by rendering rows into a page → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| PRF-19 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L03/L01 evidence: no every-endpoint field-projection/payload-cap inventory or `select *` enforcement is proven; selected projections do not close the universal endpoint requirement. → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · target concurrency · 8h soak · benchmark | release |
+| WMK-01 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L03/L16 evidence: no Canvas renderer implements exactly one protected top layer after every module outside module/error boundaries; no fault test proves module failure preserves watermark, and no WMK-01/ALQ-18/PRF-02/OVL-E8 local proof exists. → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | release |
+| WMK-02 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L03 evidence: no Canvas editor has a reserved protected fixed-corner safe zone and refuses module placement/resize/overlap into it; no one-watermark coordinate ownership/collision test or WMK-02/OVL-E9 proof exists. → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | release |
+| WMK-03 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Watermark on a standalone widget only when it is the channel's only active overlay source → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | release |
+| WMK-04 | §31.18 Performance | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Tip-page attribution line on Free only (MKT-05) → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | release |
+| WMK-05 | §31.18 Performance | v1·G | A | **P0** | new-record-required · Missing from reviewed L03/L20 evidence: no authoritative per-tier rendering/surface inventory or tests establish zero marketing attribution for every paid tier across overlay/Canvas, standalone widgets, tip page, end-cards, QR, TTS and promotional email; no narrow legal/transactional issuer-identity carve-out enforcement/projection test exists for WMK-05; no WMK-05 all-surface/completeness proof exists. → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | release |
+| WMK-06 | §31.18 Performance | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Branding never injected mid-stream on lapse; Free fallback mark appears only on the next clean overlay reload after pause → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | release |
+| WMK-07 | §31.18 Performance | N | N | — | new-record-required · Missing from reviewed L-track evidence: No external-layer detection, scene inspection or covering-check telemetry — ever → `-` · `-` · `-` |  |  |  |  |  | OVL-E8..E11 | none |
+| CTL-01 | §31.19 Control plane and admin | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Capability registry table with versioned, audited rows → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-02 | §31.19 Control plane and admin | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Resolution order engine (kill → denylist → rollout → tier → override) → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-03 | §31.19 Control plane and admin | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Per-channel resolved blob, versioned and cached; never per-capability queries → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-04 | §31.19 Control plane and admin | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Admin UI: master switch, retier, edit limits, kill → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-05 | §31.19 Control plane and admin | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Impact preview ("affects 214 channels, 3 live") → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-06 | §31.19 Control plane and admin | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Staged effective-time changes → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-07 | §31.19 Control plane and admin | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-08 | §31.19 Control plane and admin | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: One-action revert to previous version → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| ENV-01 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-01.md` · `tests/TC-ENV-01-measurement-environment.md` · `reviews/2026-09-15-env-01-measurement-control.md` |  | tests/TC-ENV-01-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-01-measurement-control.md |  |  | — | release |
+| ENV-02 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-02.md` · `tests/TC-ENV-02-measurement-environment.md` · `reviews/2026-09-15-env-02-measurement-control.md` |  | tests/TC-ENV-02-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-02-measurement-control.md |  |  | — | release |
+| ENV-03 | §31.19 Control plane and admin | v1·G | A | **P0** | active-record · - → `active/tasks/ENV-03.md` · `tests/TC-ENV-03-measurement-environment.md` · `reviews/2026-09-15-env-03-measurement-control.md` |  | tests/TC-ENV-03-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-03-measurement-control.md |  |  | — | release |
+| ENV-04 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-04.md` · `tests/TC-ENV-04-measurement-environment.md` · `reviews/2026-09-15-env-04-measurement-control.md` |  | tests/TC-ENV-04-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-04-measurement-control.md |  |  | — | release |
+| ENV-05 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-05.md` · `tests/TC-ENV-05-measurement-environment.md` · `reviews/2026-09-15-env-05-measurement-control.md` |  | tests/TC-ENV-05-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-05-measurement-control.md |  |  | — | release |
+| ENV-06 | §31.19 Control plane and admin | v1 | A | P1 | active-record · - → `active/tasks/ENV-06.md` · `tests/TC-ENV-06-measurement-environment.md` · `reviews/2026-09-15-env-06-measurement-control.md` |  | tests/TC-ENV-06-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-06-measurement-control.md |  |  | — | release |
+| ENV-07 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-07.md` · `tests/TC-ENV-07-measurement-environment.md` · `reviews/2026-09-15-env-07-measurement-control.md` |  | tests/TC-ENV-07-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-07-measurement-control.md |  |  | — | release |
+| ENV-08 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-08.md` · `tests/TC-ENV-08-measurement-environment.md` · `reviews/2026-09-15-env-08-measurement-control.md` |  | tests/TC-ENV-08-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-08-measurement-control.md · reviews/2026-09-15-rt-02-overlay-channel-fanout.md |  |  | — | release |
+| ENV-09 | §31.19 Control plane and admin | v1 | A | **P0** | active-record · - → `active/tasks/ENV-09.md` · `tests/TC-ENV-09-measurement-environment.md` · `reviews/2026-09-15-env-09-measurement-control.md` |  | tests/TC-ENV-09-measurement-environment.md · tests/TC-STEP-0.25-measurement-environment.md | reviews/2026-09-15-env-09-measurement-control.md |  |  | — | release |
+| CTL-09 | §31.19 Control plane and admin | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Layer 1 correctness dimensions rejected from this panel → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-14 | §31.19 Control plane and admin | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Registry rejects any capability whose subject is a durable creator record (§12.6)** — no row may be created that gates storing, viewing, searching, fetching or exporting one. Enforced in the registry, not by review → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-15 | §31.19 Control plane and admin | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Retention is a single platform-wide value, not a per-tier limit; the schema offers no per-tier retention field to set → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-10 | §31.19 Control plane and admin | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: `GET /v1/public/capability-matrix` published snapshot → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-11 | §31.19 Control plane and admin | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Marketing build reads the snapshot; webhook revalidation → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-12 | §31.19 Control plane and admin | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Marketing sections behind flags (`kind = marketing_section`) → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| CTL-13 | §31.19 Control plane and admin | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Admin MFA + durable admin registry (ADM-07 dependency) → `-` · `-` · `-` |  |  |  |  |  | LIF-E4..E6 · isolation | release |
+| WID-01 | §31.20 New widgets | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Companion tap source (+1 win / +1 loss) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| WID-02 | §31.20 New widgets | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Lobby/tournament auto-fill of results → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| WID-03 | §31.20 New widgets | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Wins This Season, Session Record, Win Streak → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| WID-04 | §31.20 New widgets | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Personal Best, Rank Progress, Season Objective → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| WID-05 | §31.20 New widgets | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Head-to-Head, Scoreboard → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| WID-06 | §31.20 New widgets | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Match Countdown, Tournament Standings, Squad Roster → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| WID-07 | §31.20 New widgets | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Hours Streamed, Milestone Ticker, Top Clip, Recap Card → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| COS-01 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Room create, explicit mutual accept, short-lived grants → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-02 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Public `/live/collab/<id>` page with two IFrame players → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-03 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Eight layout modes → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-04 | §31.21 Co-Stream Room | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Switch Window with published range, countdown, override → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| COS-05 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: One audio source at a time, viewer-switchable → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-06 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Shared event rail, timer, scorecard → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-07 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Side-assigned supporter alerts → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-08 | §31.21 Co-Stream Room | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Chat tabs per creator → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| COS-09 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Companion control room incl. one-tap safe layout → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-10 | §31.21 Co-Stream Room | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: OBS collaboration overlay scene export → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| COS-11 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Contribution selector (A / B / shared goal) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-12 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Instant revoke; page degrades to single or ended state → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-13 | §31.21 Co-Stream Room | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Explicit "feeds are not frame-synced" UI treatment → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| COS-14 | §31.21 Co-Stream Room | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Clip handoff consent → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| COS-15 | §31.21 Co-Stream Room | N | N | — | new-record-required · Missing from reviewed L-track evidence: Silent payment splitting → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SND-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Moment = sound + animation + sticker + TTS style + effect, creator-curated → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SND-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Amount-tiered moment catalogue → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SND-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Loudness normalisation and duration caps → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SND-04 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-sound, per-viewer, stream-wide cooldowns → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SND-05 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Themed packs incl. Indic and festival → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SND-06 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Companion mute / skip / pause / emergency safe mode → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SND-07 | §31.22 Sound Moments and Rules Engine | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: No remote URL execution in the overlay → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| RUL-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Rules engine: thresholds, modes, cooldowns, caps, priority, approval → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| RUL-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Never-interrupt-gameplay mode → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| RUL-03 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Overlay-offline hold-and-replay → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-01 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Completion latch** — `goal_completed` written once, idempotently, with the closing contribution and the derived total. Actions fire from the event, never from a recomputed boolean → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-02 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: A refund never un-completes a goal; it is recorded against it and the progress display shows the true derived figure → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Manual reopen is explicit, audited and reason-required — never an automatic consequence of arithmetic → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-04 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Goal triggers: 100% · percentage and absolute thresholds · first contribution · the closer · biggest single · stretch steps · stalled N minutes · expired unmet · ladder step · all/any goals complete → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-05 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Session triggers: session total · Nth supporter · new top supporter · first-time · returning supporter → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-06 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Platform triggers — Super Chat, membership, gifting, like and viewer milestones → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-07 | §31.22 Sound Moments and Rules Engine | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Community triggers — challenge, lobby, tournament, giveaway → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-08 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Operational triggers — stream start/end, scene change, Clutch enter/leave, sponsor segment → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-09 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-trigger controls: enabled · threshold · once-per-stream / every time / max N · cooldown · minimum contribution · quiet window · which contribution sources count → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-10 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Overlay actions: celebration, confetti, bounded takeover, banner, ticker, progress flourish, module swap, theme swap, closer card, scene preset → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-11 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Audio actions: Sound Moment, sting, TTS announcement **through the §12.2 pipeline**, audio duck → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-12 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Goal-lifecycle actions: complete · **auto-advance the ladder** · **auto-create next** (`+₹X`, `×N`, template, repeat) · **roll overflow in or discard** · convert to stretch · extend · pause · archive · reset → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-13 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Creator actions: Companion push · Live Deck banner · suggested next action · **stream marker** into the Wrap Stream summary → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-14 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Supporter actions: thank-you card naming the closer **with visibility consent** · badge grant · receipt note → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-15 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Outbound actions, **approve-then-send by default**: YouTube chat announcement, Discord, Telegram, WhatsApp opt-in, social card → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-16 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: OBS actions via the local helper: scene switch, source toggle, replay-buffer save, approved Streamer.bot or SAMMI action → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-17 | §31.22 Sound Moments and Rules Engine | v1 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Sponsor actions: reveal card, log exposure with timestamp for proof-of-delivery → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-18 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Ordered action sequences with per-step delays**, not a set → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-19 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Conditions: only live · named scenes · not in Clutch · not during a sponsor segment · tier · overlay connected · outside quiet hours → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-20 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Interlocks, not creator-configurable**: Clutch suppresses loud and full-screen and defers rather than drops · never interrupt an alert mid-play · never-interrupt-gameplay holds takeovers · all text through §12.2 · our rate limits, not the platform's rejection → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-21 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Prepare-not-fire default for anything outbound or public (§5.4); low-risk local actions may auto-fire → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-22 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Text templates with `{goal_name}` `{target}` `{raised}` `{remaining}` `{percent}` `{closer}` `{top_supporter}` `{supporter_count}` `{session_total}` `{next_goal}`, per language → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-23 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Every action configurable to §15.2 depth — sound, animation, duration, easing, safe-zone position, colour, size, or absent → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-24 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Sequence preview** fires the whole composition on the overlay in a marked test mode that auto-reverts → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-25 | §31.22 Sound Moments and Rules Engine | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Presets — Quiet · Standard · Hype — each fully editable afterwards (§15.3) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| GOA-26 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Overflow rolled into the next goal or discarded, creator's choice, recorded either way → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-27 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Goal detail view follows the §7.2 contract, with a timeline of every contribution and every rule that fired → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-28 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **"Why this number?"** explains a goal total from its contributions including refunds (§7.3) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| GOA-29 | §31.22 Sound Moments and Rules Engine | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: YouTube goal actions are Phase 4 and narrower than expected: announce, pin, one title update per stream, poll. **Never a purchase or a gift** (§4) → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| SEC-01 | §31.22 Sound Moments and Rules Engine | v1 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Short-lived signed overlay capabilities with renewal → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SEC-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Session/device binding where practical → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| SEC-03 | §31.22 Sound Moments and Rules Engine | v1 | P | P1 | new-record-required · Missing from reviewed L-track evidence: Scheduled rotation; never in screenshots, logs or tickets → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MIG-01 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Shadow mode with a migration report (delivered, missed, latency, unsupported) → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MIG-02 | §31.22 Sound Moments and Rules Engine | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Test/sandbox mode that never reaches viewers → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| MIG-03 | §31.22 Sound Moments and Rules Engine | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Global emergency-disable button → `-` · `-` · `-` |  |  |  |  |  | — | release |
+| RTE-01 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: Routing abstraction: a route is a signal source, not a rail → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-02 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: Health-state machine (active / degraded / paused / direct available) → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-03 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: `routed_signal_received → alert_queued → alert_delivered` state class, distinct from `verified_payment` → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-04 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: Capability restrictions in routing mode (§25.3) enforced server-side → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-05 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: Per-provider kill switch with confidence threshold → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-06 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: Explicit in-product acceptance of the Beta terms on enabling a route → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-07 | §31.24 Payment routing | R | A | P1 | new-record-required · Missing from reviewed L-track evidence: Duplicate/false-signal detection disabling auto-alerts → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| RTE-08 | §31.24 Payment routing | R | A | P2 | new-record-required · Missing from reviewed L-track evidence: Migration prompt when a Direct integration becomes available → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-09 | §31.24 Payment routing | R | B | P2 | new-record-required · Missing from reviewed L-track evidence: Paytm Business route — **Gated on §25.6 signal mechanism** → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-10 | §31.24 Payment routing | R | B | P3 | new-record-required · Missing from reviewed L-track evidence: Google Pay Business route (assisted activation) — **Gated on §25.6** → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-11 | §31.24 Payment routing | R | B | P2 | new-record-required · Missing from reviewed L-track evidence: PhonePe Supervisor route — **Consent-gated on C1–C7** → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-12 | §31.24 Payment routing | R | B | P2 | new-record-required · Missing from reviewed L-track evidence: HDFC Cashier route — **Consent-gated on C1–C7** → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-13 | §31.24 Payment routing | N | N | — | new-record-required · Missing from reviewed L-track evidence: Amazon Pay consumer-credential route → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-14 | §31.24 Payment routing | N | N | — | new-record-required · Missing from reviewed L-track evidence: Generic QR fallback / "mark as paid" → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-15 | §31.24 Payment routing | R | A | P2 | new-record-required · Missing from reviewed L-track evidence: Consent flow: explicit, unbundled, revocable, re-confirmed on scope change → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-16 | §31.24 Payment routing | R | A | P2 | new-record-required · Missing from reviewed L-track evidence: KMS/HSM envelope encryption for any delegated secret, no human read path → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| RTE-17 | §31.24 Payment routing | R | A | P2 | new-record-required · Missing from reviewed L-track evidence: Credential-compromise incident procedure, rehearsed → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| LIF-01 | §31.25 Subscription lifecycle | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Five-state lifecycle (active / grace 14d / paused / retained 90d / expired) → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-02 | §31.25 Subscription lifecycle | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Grace-period notices in dashboard and Companion, never on stream → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-03 | §31.25 Subscription lifecycle | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Paused: connectors stop, configuration read-only, nothing deleted → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-04 | §31.25 Subscription lifecycle | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Retained 90d applies to **encrypted connector secrets only**; configuration, mappings, templates and durable records persist under the uniform retention policy (§12.6.2) and stay exportable → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-05 | §31.25 Subscription lifecycle | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Expired: credential revocation and paid-only secret deletion, after repeated notice → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-06 | §31.25 Subscription lifecycle | v1 | A | **P1** | new-record-required · Missing from reviewed L-track evidence: Overlay quiet safe state — no payment wall, no on-stream branding change → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-07 | §31.25 Subscription lifecycle | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Never-charged-for list enforced (receipts, exports, recovery, disconnect, security) — and the full §12.6 durable-record set in every lifecycle state including Expired → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-08 | §31.25 Subscription lifecycle | v1·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Renewal restores configuration without reconnecting, unless the token expired → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| LIF-09 | §31.25 Subscription lifecycle | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Desktop bridge caches a signed entitlement for 24h → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | none |
+| LIF-10 | §31.25 Subscription lifecycle | v1 | P | P0 | new-record-required · Missing from reviewed L-track evidence: Free and native behaviour independent of subscription and Platform status → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 · durable-record access | release |
+| SOC-01 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Event model: 8 relayable event types, approve-then-send default → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-02 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Per-destination queue with cooldown; never send-per-event → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-03 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Obey returned rate-limit headers (Discord) rather than hard-coded limits → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-04 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Health states per destination, mirroring §25.2 → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-05 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Discord webhook + rich embeds + bot commands → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-06 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: YouTube: broadcast metadata, chat announcements, polls, pinned moments → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-07 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: YouTube post-stream wrap with timestamps → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-08 | §31.26 Social Relay | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Instagram: Reels/feed publish, clip-to-Reel draft, comment inbox → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-09 | §31.26 Social Relay | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: WhatsApp: opt-in, approved templates, 24h window respected, template cost shown → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-10 | §31.26 Social Relay | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Twitch EventSub + Channel Point mapping → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-11 | §31.26 Social Relay | P3·G | A | P3 | new-record-required · Missing from reviewed L-track evidence: Kick OAuth 2.1 connector within granted scopes → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| SOC-12 | §31.26 Social Relay | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Snapchat Creative Kit hand-off, creator taps final share → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-13 | §31.26 Social Relay | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Telegram bot channel alerts → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-14 | §31.26 Social Relay | P3·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Upload-forced-private disclosure until Google audits the project → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | release |
+| SOC-15 | §31.26 Social Relay | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Lapse: manual share kept, auto-send stopped, no message to the audience → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-16 | §31.26 Social Relay | N | N | — | new-record-required · Missing from reviewed L-track evidence: Auto-posting every tip/follower/alert anywhere → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| SOC-17 | §31.26 Social Relay | N | N | — | new-record-required · Missing from reviewed L-track evidence: YouTube Community posts, IG personal accounts, unsolicited DMs, WhatsApp groups, Snapchat background posting → `-` · `-` · `-` |  |  |  |  |  | none — phase R or blocked | none |
+| PCK-01 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Pack as a capability-registry row, additive, lifecycle-aware → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-02 | §31.27 Packs and creator-ops | P3 | A | P1 | new-record-required · Missing from reviewed L-track evidence: AI Credits pack — ₹49/₹149/₹399, paid tiers only. Ships once the **measured** cost model exists; the ledger half is in `0081` → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
+| PCK-03 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Socials Pack — ₹129/mo, Creator+. Target initial set, but cannot precede Social Relay (Phase 7) → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-04 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Events Pack — ₹129/mo, Creator+. Hidden until lobby/tournament features exist → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-05 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-06 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **Nearest to ready**; needs MED-13/AUD-10 enforcement first → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-07 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-08 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Multi-Channel Pack — ₹199/mo per added channel, Creator+. Target initial set, but **last of the four to be ready**: blocked on the tenant-isolation suite (§37.6). The ₹598-vs-₹599 comparison with Studio is deliberate (§28.3.3) → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-09 | §31.27 Packs and creator-ops | P3·G | A | **P1** | new-record-required · Missing from reviewed L-track evidence: **Finance Pack** — statement, GST-ready export, TDS notes, payout reconciliation. Hidden until the CA/tax evidence row closes; sells the *prepared statement*, never access to the underlying records → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
+| PCK-10 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Pack attach-rate reporting to inform future tier composition → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-11 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Hidden packs exist as registry rows so they become visible without a release → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-12 | §31.27 Packs and creator-ops | P3 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: No pack, top-up or tier may sell retention, history depth, record search or export — enforced by CTL-14 → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
+| PCK-13 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Pack system launches with whatever is ready — arrival order Storage → AI Credits → Socials → Multi-Channel — not held for a fixed set of four → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| PCK-14 | §31.27 Packs and creator-ops | P3·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: A lapsed pack pauses added capacity only; over-quota assets go read-only and stay viewable and exportable → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | release |
+| PCK-15 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Multi-Channel Pack blocked until the §37.6 tenant-isolation suite passes → `-` · `-` · `-` |  |  |  |  |  | LIF-E1..E3 · DSH-E4 | none |
+| JOB-01 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Content calendar + public schedule page with notify-me → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-02 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Consistency view: streak, hours, rest days framed kindly → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-03 | §31.27 Packs and creator-ops | P3 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Sponsor deliverable tracker with proof → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-04 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Clip request queue → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-05 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Clip-to-social pipeline ending in a draft, never auto-post → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-06 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Title/thumbnail performance against our own stream records → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-07 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Shareable gear/setup profile → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-08 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Collab record → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-09 | §31.27 Packs and creator-ops | P3 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Community FAQ auto-answers in chat → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-10 | §31.27 Packs and creator-ops | N | N | — | new-record-required · Missing from reviewed L-track evidence: Editor payouts / staff revenue splitting → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| JOB-11 | §31.27 Packs and creator-ops | N | N | — | new-record-required · Missing from reviewed L-track evidence: Full CRM · scheduled cross-posting to all networks · analytics competing with YouTube Studio → `-` · `-` · `-` |  |  |  |  |  | — | none |
+| INT-01 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: **Declarative Canvas Package format** — signed, versioned, runtime-pinned; no JS, no network fetch, no external font or asset URL, no executing CSS, no runtime-reaching expressions → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-02 | §31.28 Interop, packages and bridges (§9) | P2·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Package validator and signature verification at import and at render → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | release |
+| INT-03 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Allowed-animation set — animations are chosen, never authored as code → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-04 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: First-party curated package library authored by us → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-05 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Private creator packages, tenant-scoped, never shown to another creator → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-06 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Asset import (SVG, PNG, WebP, audio, video, Lottie) on the §18.3 gate: attestation, quarantine, scan, provenance, takedown → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-07 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Transcode, normalise and pre-scale on import; content-addressed tenant-scoped storage (§19.1) → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-08 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Migration wizard: inventory → map → side-by-side preview and diff → publish on approval → reversible → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-09 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Unmapped items named explicitly; an uncertain mapping shown as uncertain → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-10 | §31.28 Interop, packages and bridges (§9) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Connector outbox per destination: queue, backoff, dead-letter, kill switch, idempotency key, redacted delivery log → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-11 | §31.28 Interop, packages and bridges (§9) | P2 | A | **P0 rule, P2 build** | new-record-required · Missing from reviewed L-track evidence: A bridge failure never delays, cancels, duplicates or alters a BharatStudio alert → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | release |
+| INT-12 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Streamlabs bridge — **selected low-frequency event types only**, rate-limited and coalesced below the documented ~2/min guidance, labelled a transition tool → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-13 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Streamer.bot local adapter in the Companion helper: `localhost` only, explicit pairing, creator-chosen action allow-list → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-14 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: SAMMI local adapter, same shape → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-15 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Mix It Up local adapter, same shape → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-16 | §31.28 Interop, packages and bridges (§9) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: StreamElements configuration migration only → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-17 | §31.28 Interop, packages and bridges (§9) | R | B | — | new-record-required · Missing from reviewed L-track evidence: StreamElements event bridge — **gate:** confirmed API/partner position → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-18 | §31.28 Interop, packages and bridges (§9) | R | B | — | new-record-required · Missing from reviewed L-track evidence: Third-party paid marketplace publishing — **gate:** author payouts, GST on third-party digital goods, content review at scale, takedown and dispute handling, defensible "verified" badge → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| INT-19 | §31.28 Interop, packages and bridges (§9) | P2 | A | **P0** | new-record-required · Missing from reviewed L-track evidence: Never embed a third-party browser-source URL, HTML, JS, CSS or iframe in the Canvas — enforced by the package validator, not by review → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | release |
+| INT-20 | §31.28 Interop, packages and bridges (§9) | N | N | — | new-record-required · Missing from reviewed L-track evidence: Never scrape a competitor dashboard, import a browser-source secret, or execute copied widget code → `-` · `-` · `-` |  |  |  |  |  | INT-E1..E7 · package fuzz corpus | none |
+| CST-01 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Three-level model (0 presets / 1 safe presentation / 2 advanced / 3 brand and team) as registry rows, retierable without a release → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-02 | §31.29 Customisation depth by tier (§15.4) | P2·G | A | **P0** | new-record-required · Missing from reviewed L-track evidence: **Protected string class enforced by the customisation system** — payment, legal, consent, security and error text are never exposed for override → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-03 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Overlay level 1: free colour, our fonts, position and anchor, show/hide, z-order, opacity, radius, animation, reduced-motion variant, performance mode → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-04 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Amount / name / message rendering controls incl. hidden amounts and bracket-name-only → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-05 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Indic script fallback order per text role** → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-06 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Overlay level 2: font per role, per-bracket and per-source styling, burst behaviour, do-not-interrupt windows → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-07 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Per-scene-profile placement and theming; overlay theme follows the OBS scene → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-08 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Per-aspect-ratio variants (16:9 / 9:16 / 4:3) of one canvas → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-09 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: **Conditional themes** — festival date ranges, time of day → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-10 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: **Sponsor-safe mode** — swap to a neutral theme for a segment and back → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-11 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: **Adversarial preview** — long Indic name, 500-char message, emoji flood → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-12 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: **Brand kit** — palette, type, logo saved once, applied across every surface → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-13 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Multi-surface templates and package authoring with team approval → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-14 | §31.29 Customisation depth by tier (§15.4) | P2·G | A | P1 | new-record-required · Missing from reviewed L-track evidence: Tip page level 1: cover image, avatar shape, tagline, lane order, labelled amount presets, privacy display → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-15 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Tip page level 2: message settings, pack selection, event layouts, campaign and referral pages, multilingual copy sets → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-16 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Tip page level 3: full theme with background media, multiple campaign pages with own goal, copy, countdown and schedule → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-17 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Per-page OG image, title and description → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-18 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Dashboard: theme, accent, density, landing tab, notification and locale preferences → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-19 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Dashboard: pinned cards, **named saved views**, saved export column sets, shortcut map → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-20 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Dashboard: logo and brand accent, per-role default views. **No background images at any tier** → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-21 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Moderator **preferences** — layout, columns, density, quick-action order → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-22 | §31.29 Customisation depth by tier (§15.4) | P2·G | A | P2 | new-record-required · Missing from reviewed L-track evidence: Moderator **policies** — blocked terms per language, link allow/deny, auto-hold, escalation, canned responses, handover notes → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-23 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Team-managed policy libraries, approval workflows, centrally set moderator layouts → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-24 | §31.29 Customisation depth by tier (§15.4) | P2 | A | **P0 rule** | new-record-required · Missing from reviewed L-track evidence: **Permission classes are never customisable** — presets and libraries only inside owner/admin/operator/moderator/viewer → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-25 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Companion: top-strip stats, health signals shown, saved deck presets → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-26 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Companion accessibility at level 0 — one-hand mode, colour-blind palette, haptics, language override → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-27 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Companion team decks pushed to every operator → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-28 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Receipts and transactional mail: creator logo, accent, thank-you copy per language, reply-to, brand kit — inside §30.6.4 → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | none |
+| CST-29 | §31.29 Customisation depth by tier (§15.4) | P2 | A | **P0 rule** | new-record-required · Missing from reviewed L-track evidence: No customisation increases what a live surface loads (§12.7); themes are data the renderer already holds → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| CST-30 | §31.29 Customisation depth by tier (§15.4) | P2 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Every theme passes contrast and +40% text-expansion checks (§37.7) — a failing theme is a defect, not a taste question → `-` · `-` · `-` |  |  |  |  |  | OVL-E1..E12 · HUB-E1..E5 · accessibility · +40% expansion | release |
+| BOT-01 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Command engine: names, aliases, cooldowns, role permissions → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-02 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Scheduled and timed messages → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-03 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Six-area UI and no more (Commands, Moderation, Automations, Languages, Connected channels, Import) → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-04 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Deterministic multilingual aliases with Unicode and transliteration matching → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-05 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Localised replies per channel or per the viewer's command language → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-06 | §31.30 BharatStudio Bot (§36) | P2 | A | **P0 with TTS-06** | new-record-required · Missing from reviewed L-track evidence: Blocked-term lists by language including transliterated variants — **one corpus shared with §12.2 TTS safety, never a second list** → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | release |
+| BOT-07 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Deterministic spam, flood, repeated-text, emoji and link controls → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-08 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Import wizard for simple commands from creator-supplied exports; honest "cannot import" table → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-09 | §31.30 BharatStudio Bot (§36) | N | N | — | new-record-required · Missing from reviewed L-track evidence: Never import scripts, raw JS, shell commands, arbitrary HTTP calls or third-party credentials → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-10 | §31.30 BharatStudio Bot (§36) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: Automation recipes from a narrow allow-list of actions → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-11 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: One event action at first release: command → overlay or Companion action → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-12 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Rate-limited and coalesced writes; degrade to silence with a visible notice, never a delayed backlog dump → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-13 | §31.30 BharatStudio Bot (§36) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: AI layer on §11 credits: translate, summarise, suggest, classify — **recommend or soft-action only** → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-14 | §31.30 BharatStudio Bot (§36) | P2 | A | P3 | new-record-required · Missing from reviewed L-track evidence: AI audit record: original text, action, reason, confidence, policy version, appeal and reversal path → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-15 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Moderation correctness untiered (§30.1); a Free creator's chat is not less safe → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-16 | §31.30 BharatStudio Bot (§36) | P2 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Bot UI languages follow the §5.6.2 waves; no separate language set → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | none |
+| BOT-17 | §31.30 BharatStudio Bot (§36) | P2·G | B | — | new-record-required · Missing from reviewed L-track evidence: Blocked on the Google chat-write scope (`CON-08`, §32) and on YouTube being post-v1 → `-` · `-` · `-` |  |  |  |  |  | BOT-E1..E5 · rate-limit compliance · shared corpus with TTS | release |
+| STO-01 | §31.31 Storage and media platform | v1 | A | **P0 for audio** | new-record-required · Missing from reviewed L-track evidence: GCS + CDN with content-addressed keys and signed URLs → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| STO-02 | §31.31 Storage and media platform | v1 | A | P0 | new-record-required · Missing from reviewed L-track evidence: Postgres holds metadata, moderation state and attestation only → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| STO-03 | §31.31 Storage and media platform | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Normalisation pipeline (audio loudness, GIF→MP4/WebM, image pre-scale) → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
+| STO-04 | §31.31 Storage and media platform | v1 | A | P2 | new-record-required · Missing from reviewed L-track evidence: Tenant-scoped dedup (`channel_id` + sha256); global dedup only for BharatStudio-owned or explicitly licensed assets (§19.1) → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | none |
+| STO-05 | §31.31 Storage and media platform | v1 | A | P1 | new-record-required · Missing from reviewed L-track evidence: Keep existing Lottie bytea working; new media to GCS; opportunistic backfill → `-` · `-` · `-` |  |  |  |  |  | INT-E4 · asset serving · takedown drill | release |
 
 ## Phase distribution
 

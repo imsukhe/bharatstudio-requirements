@@ -1,8 +1,8 @@
 # Build bootstrap authority — the two steps that precede the build plan
 
-**Status:** `Proposed — requires owner approval before any lane starts`
-**Owner:** Project owner
-**Date:** 2026-09-14
+**Status:** `Approved — semantic Step 0 closure recorded 2026-09-15; capability lifecycle remains open`
+**Owner:** Sukhdev Singh
+**Date:** 2026-09-15
 **Scope:** The governance work that must exist before `FULL-PRODUCT-DEFINITION.md` §34
 becomes a schedulable plan
 **Companions:** [`00_LAUNCH_SCOPE_AUTHORITY.md`](./00_LAUNCH_SCOPE_AUTHORITY.md) ·
@@ -29,29 +29,34 @@ steps that produce it:
 | Step | Work |
 |---|---|
 | **Step −1** | Approve and link the external-evidence register (§2 below) |
-| **Step 0** | Build the register-ID ↔ L-track mapping and write the `active/` records |
+| **Step 0** | Close the register-ID ↔ L-track semantic mapping; create capability `active/` records just in time |
 
 The exemption covers **those two steps only**. It is not a precedent, it does not extend
 to any capability row, and each exempt step carries its own task record in
 `active/tasks/` with the same ten fields — the difference is that the record is written
 *as* the step, not before it.
 
-**Nothing else may start until Step 0 closes.** That is the same rule §34 already states;
-this file makes it enforceable by giving Step 0 an authority to be approved under.
+**Nothing else may start until Step 0 closes.** Step 0 closes semantically when every §31
+ID is classified as `mapped-existing` or `new-record-required` with item-specific
+missing behavior and `-` targets. `active-record` task/test/review records are created
+just in time immediately before the corresponding capability lane starts; no 717 stubs
+are created in advance. That is the same rule §34 already states; this file makes it
+enforceable by giving Step 0 an authority to be approved under.
 
 ## 2. Step −1 — the external-evidence register must become effective
 
 `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` declares itself
-`Proposed operational authority` and `Not effective until approved and linked from the
-master release authority`. Until that happens it **does not govern**, which means every
-plan that cites it as the home of external evidence is citing an authority that is not
-yet in force.
+`Effective operational evidence authority as of 2026-09-15` and is linked from the
+master release authority. It governs the evidence register operationally, but provider,
+legal, tax, store, staging and production rows remain open release gates.
 
 Closing Step −1 requires, in order:
 
 1. Owner approval of the register as written, or an amended version.
 2. An explicit link and status line in `01_MASTER_RELEASE_AUTHORITY.md` adopting it.
-3. A named owner per evidence row — the register lists role names today, not people.
+3. A named owner per evidence row — Sukhdev Singh is the accountable owner for each
+   row; specialist reviewers remain required where the row names Payments, Legal/CA,
+   Security, Support or Infrastructure review.
 
 Until all three are done, `FULL-PRODUCT-DEFINITION.md` §37.8's rule that external
 evidence lives only in that register is a statement about a file with no force.
@@ -79,7 +84,7 @@ Phase 0.5, and it must exist **before** Phase 0.5 can produce exit evidence:
 | Network profiles | 4G and 3G shaping, per §37.4 |
 | The pass/fail artefact pipeline | The JSON document §37.4 specifies, produced automatically per run |
 
-**Owner:** unassigned — this is the first named gap this file exists to surface.
+**Owner:** Sukhdev Singh
 **Exit:** one full §37.5 target-concurrency run completes and emits a valid artefact,
 before any Phase 0.5 row claims an exit number.
 

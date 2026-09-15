@@ -3171,6 +3171,13 @@ features, and they outrank every feature in §34 Phase 1. Until all four close, 
 — marketing site, store listing, pricing page or investor material (§20.4 enforces it
 through the snapshot).
 
+**Progress, 2026-09-16.** RT-01 and RT-02 are **corrected in code and verified locally**
+(`active/tasks/RT-01.md`, `active/tasks/RT-02.md`). RT-03, RT-04 and RT-05 are untouched,
+so the claim ban above stands in full — and it would stand anyway, because RT-07 is the
+row that turns any performance sentence into something sayable, and RT-07 is blocked on a
+staging environment that does not exist yet. **A passing local suite is not a load
+result.** Nothing here may be cited as performance evidence (§35.1 rule 6).
+
 #### RT-01 · Idle overlays poll the database every two seconds
 
 `apps/api/src/routes/overlay.ts:18` — the SSE route runs a 25-second stream window with
@@ -3182,6 +3189,11 @@ tip, dashboard read or webhook.
 connection is held open with a heartbeat; state moves only when an event for that
 channel arrives. Polling returns only as a **jittered slow fallback after a
 disconnect**, never as the steady state.
+
+**Corrected 2026-09-15, locally verified.** The idle loop no longer touches the store: a
+wait that times out with the listener connected continues without a query. Jittered
+polling is entered only from listener failure or disconnect. Evidence:
+`tests/TC-RT-01-overlay-idle-replay.md`.
 
 #### RT-02 · One event wakes every overlay on the instance
 
@@ -3195,6 +3207,18 @@ channel's subscribers wake; each replays once and the result is shared across th
 channel's sessions rather than fetched per session. Per-instance subscriber and
 admission limits are explicit, and a rejected admission is a clear, retryable state, not
 a silent hang.
+
+**Corrected 2026-09-16, locally verified.** The waiter registry is keyed by channel, so a
+notification for one channel cannot wake another's sessions; replay is single-flighted per
+`channel + cursor + limit`; and every session re-validates **its own** token on every wake,
+so a shared read never carries another session's authorization. One consequence was not
+obvious and needed a migration: `app_private.get_overlay_events` used to build
+`ttsAudioUrl` from the *calling* session's overlay id, so a shared row would have handed
+one session a URL pointing at another's. Migration `0127` returns the resolved artifact id
+as its own column and the URL is composed per session. The admission ceilings ship
+**unset** — no authority states a number, and one is not inferable from the 2,000-overlay
+design target; the value waits on ENV-08, which is blocked. Evidence:
+`tests/TC-RT-02-overlay-channel-fanout.md`.
 
 #### RT-03 · TTS delays the visual alert
 
@@ -5890,8 +5914,8 @@ surfaces had no rows.*
 
 | ID | Item | Phase | State | Pri |
 |---|---|:-:|:-:|:-:|
-| RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | v1 | X | **P0** |
-| RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits | v1 | X | **P0** |
+| RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | v1 | U | **P0** |
+| RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits. **P, not U**: fanout and deduplicated replay are done and locally verified; the admission **ceiling values** ship unset because no authority states one, and they wait on ENV-08 | v1 | P | **P0** |
 | RT-03 | Two-phase release: visual out immediately, TTS/media as a second event on the same alert; late audio dropped, never played over a different alert | v1 | X | **P0** |
 | RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | v1 | X | **P0** |
 | RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | v1 | X | **P0** |
@@ -5955,7 +5979,7 @@ surfaces had no rows.*
 | ENV-06 | Network shaping for the 4G and 3G profiles in §37.4 | v1 | A | P1 |
 | ENV-07 | Pass/fail artefact pipeline emitting the §37.4 JSON document per run | v1 | A | **P0** |
 | ENV-08 | Exit: one full §37.5 target-concurrency run completes and emits a valid artefact, before any Phase 0.5 row claims an exit number | v1 | A | **P0** |
-| ENV-09 | **Owner for the environment lane — unassigned** | v1 | A | **P0** |
+| ENV-09 | **Owner for the environment lane — Sukhdev Singh** | v1 | A | **P0** |
 | CTL-09 | Layer 1 correctness dimensions rejected from this panel | v1 | A | P0 |
 | CTL-14 | **Registry rejects any capability whose subject is a durable creator record (§12.6)** — no row may be created that gates storing, viewing, searching, fetching or exporting one. Enforced in the registry, not by review | v1 | A | **P0** |
 | CTL-15 | Retention is a single platform-wide value, not a per-tier limit; the schema offers no per-tier retention field to set | v1 | A | **P0** |
@@ -6330,7 +6354,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Package marketplace** | **Slowed deliberately.** First-party curated packages and private creator packages only. Third-party **paid** publishing is phase R: it is a second money flow with author payouts, GST on third-party digital goods, content review at scale, takedowns, disputes, and a "verified" badge we would have to defend. Nothing else in the interop layer depends on it. |
 | **BharatStudio Bot** | **An automation product, not another dashboard** (§36). Six areas and no more. First release is six things done well: commands with aliases/cooldowns/roles, scheduled messages, English/Hindi/Hinglish, deterministic spam and link controls, a simple import wizard, and one event action. Multilingual is **deterministic first** — transliteration-matched aliases and per-language blocked terms — with AI as an optional, quota'd layer that **recommends or soft-actions and never bans**. The blocked-term corpus is **one list shared with §12.2 TTS safety**, never a second. Never imports scripts, raw JS, shell commands or third-party credentials. P2 at the earliest, blocked on the Google chat-write scope and on YouTube being post-v1. |
 | **Bootstrap exemption** | **Steps −1 and 0 are exempt from the §31.0 ten-field precondition**, narrowly and by name, under `07_BUILD_BOOTSTRAP_AUTHORITY.md` §1 — they are the steps that produce those records, so requiring one first was a deadlock, not a standard. The exemption covers no capability row and sets no precedent, and each exempt step carries its own ten-field record written *as* the step. |
-| **The environment is its own lane** | **A non-production measurement environment is not blocked; production deployment is** (bootstrap authority §3). Conflating them made the Phase 0.5 exit criteria unreachable. Step 0.25 provisions Cloud Run at production configuration, a database seeded to §37.4 size, provider sandboxes, the OBS harness, the device lab, network shaping and the pass/fail artefact pipeline — **before** any Phase 0.5 row claims an exit number. Owner unassigned. |
+| **The environment is its own lane** | **A non-production measurement environment is not blocked; production deployment is** (bootstrap authority §3). Conflating them made the Phase 0.5 exit criteria unreachable. Step 0.25 provisions Cloud Run at production configuration, a database seeded to §37.4 size, provider sandboxes, the OBS harness, the device lab, network shaping and the pass/fail artefact pipeline — **before** any Phase 0.5 row claims an exit number. Owner: Sukhdev Singh. |
 | **Freeze checkpoint** | Before any schema freeze, public copy freeze or store submission, five areas are reviewed against current assumptions with a written go/no-go each: payment boundary · deletion and retention · mobile purchase boundary · tax representation · consent wording. **A freeze without this review is not approved.** This is what makes "file external gates after the build" a managed risk rather than an unbounded one. |
 | **External filings sequencing** | **Owner decision 2026-09-14: none of the external gates blocks development, and all are filed after the build works.** Razorpay Technology Partner approval, legal counsel, the CA/tax review and Google OAuth verification are **release gates, not build gates** (§1.9 phase **G**), and the owner has chosen to file them once the decided scope is built and working, accepting that minor changes may follow from their feedback. Two obligations follow and are not optional: (a) **build to best practice as if each review had already happened** — DPDP-shaped data handling, GST-inclusive pricing arithmetic, terms and refund wording drafted to be reviewable rather than rewritten; and (b) **make no claim that depends on a filing that has not happened** — no "Razorpay partner", no tax representation beyond the GST-inclusive arithmetic already published, no verified-OAuth claim. The launch date moves with the filing cycle, not with the code. |
 | **Client-side scraping and InnerTube** | **Never build** (CON-39). "Just fetching" is accurate for one request and inaccurate for a scheduled client: the ToS prohibits automated access outside the API, and the API's quota *is* the permitted path. Moving the traffic to the creator's browser and IP does not change what the terms permit — it moves the consequence onto **their** channel, for our product's benefit. The valuable data (chat, Super Chat, members) is not reachable by public fetching at all; it needs InnerTube, which requires impersonating the official client. And what *is* publicly reachable — viewer count, likes — costs 1 unit, so the trade is bad before ethics enter it. **The permitted client-side path is the IFrame Player API and the official chat embed** (CON-32, CON-33), which are free and cover presence, playback and chat *display*. |
@@ -6460,7 +6484,7 @@ deadlock.
 
 ```text
 Step −1  Approve and link the external-evidence register        (governance)
-Step  0  Register ↔ L-track mapping + active/ records           (governance)
+Step  0  Register ↔ L-track semantic mapping; JIT active records (governance)
 Step  0.25  Provision the production-shaped NON-production
             measurement environment                            (infrastructure)
 Phase 0 + 0.5  Foundation and runtime remediation,
@@ -6469,20 +6493,18 @@ Phase 1–2      Surfaces, then E2E / load / OBS / device rehearsal
 Then           External filings · staging evidence · release decision
 ```
 
-**Step −1 exists because the register that governs external evidence does not yet
-govern.** `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` says of itself: *Proposed
-operational authority* and *Not effective until approved and linked from the master
-release authority*. Every plan that names it as the home of external evidence — including
-§37.8 — is citing a file with no force until it is approved, linked from
-`01_MASTER_RELEASE_AUTHORITY.md`, and given a named owner per row rather than a role name.
+**Step −1 existed because the register that governs external evidence had not yet
+governed.** On 2026-09-15 the owner approved it, the master release authority linked it,
+and Sukhdev Singh became accountable for every row. The register is now effective as an
+operational evidence authority, while its provider, legal, tax, store and production
+rows remain open release gates. It still cannot self-approve external evidence.
 
 **Step 0.25 resolves a circularity.** Phase 0.5 blocks Phase 1 and needs OBS and load
 evidence; §37.4 requires a production-shaped environment to produce it; §32 lists
 deployment as blocked. The resolution is that **a non-production environment is not
 blocked — production deployment is**, and the environment is its own scheduled lane with
 its own owner rather than a by-product of Phase 0.5. Deliverables and exit criteria are
-in the bootstrap authority §3. **Its owner is currently unassigned, and that is the first
-named gap in this plan.**
+in the bootstrap authority §3. **Its owner is Sukhdev Singh.**
 
 **A freeze checkpoint sits before anything irreversible.** Filing external gates after the
 build is an accepted schedule risk; it is only safe with a review before any schema
@@ -6491,17 +6513,23 @@ and retention, the mobile purchase boundary, tax representation and consent word
 Bootstrap authority §4 carries the checklist and requires a written go/no-go per area.
 
 **Step 0 — join the two ID systems, before any lane starts.** This repository already
-holds 62 task records, 62 test records and 72 reviews, keyed on the **L-track** system;
+holds task, test and review records, keyed on the **L-track** system;
 the §31 register is keyed on area prefixes, and almost nothing references both
 (`TRACEABILITY.md`). So the first task is a **mapping**: register ID → the existing
 L-track record that already covers it, and a new `active/` record with the ten §31.0
-fields only where none does. Two consequences, both load-bearing:
+fields created just in time before implementation only where none does. Two consequences, both load-bearing:
 
-- **Prior evidence becomes creditable.** Some register rows are already covered by work
-  that has a task record, a test record and a review. Right now none of it counts,
-  because nothing can be joined to it.
-- **Until the mapping exists, §34 below is a proposed roadmap, not a schedulable plan**,
-  and the §31.0 ten-field contract is satisfied by zero rows.
+- **Prior evidence is selectively creditable.** The semantic map conditionally credits
+  only the `mapped-existing` rows to reviewed task/test/review trios. The remaining
+  rows stay `new-record-required`; see [`TRACEABILITY.md`](./TRACEABILITY.md) for the
+  generated live counts. They need a real ten-field active record created
+  just in time before their lane starts. Neither category is capability-completion
+  evidence.
+- **The semantic mapping is conditionally closed; capability implementation remains open.**
+  Rows marked `new-record-required` are not schedulable until their ten-field
+  active task/test/review records are created just in time before implementation;
+  no all-rows stub set is created in advance. This is governance evidence only and
+  makes no capability-completion or release-readiness claim.
 
 The two checks that are **Blocked** in §35.3 — missing row metadata and reading the phase
 from the `active/` record rather than only the register column — become implementable as
@@ -6509,9 +6537,10 @@ part of this, and should land with it rather than after it.
 
 Step 0 has a task record with all ten fields:
 [`active/tasks/STEP-0-register-mapping.md`](./active/tasks/STEP-0-register-mapping.md).
-**Its owner is unassigned**, which is the second named gap. It is deliberately *not*
-scoped to fill ten fields for every row — that would be documentation theatre. Rows are
-recorded when a lane takes them; the mapping exists so taking one is cheap.
+**Its owner is Sukhdev Singh**, and the mapping is being validated as a separate
+fail-closed artifact. It is deliberately *not* scoped to fill ten fields for every row
+before a lane takes them — that would be documentation theatre. Rows are recorded when a
+lane takes them; the mapping exists so taking one is cheap.
 
 **Phase 0.5 — runtime remediation, and it blocks Phase 1.** RT-01 to RT-13. These are
 corrections to code that already runs in front of real payments, and every one of them
@@ -6667,7 +6696,7 @@ corrected — not the other way round.
 | **`tools/traceability.py` hard-coded zero acceptance, review and evidence** and asserted "no build work has started", while the repository holds 62 task records, 62 test records and 72 reviews it never looked at | Rewritten to scan `tasks/`, `tests/`, `reviews/`, `done/` and `active/` and report only what it finds. The real finding — two ID systems that do not meet — replaces the false zero |
 | **§35.4 restated a register count in prose** that the generator had already moved past | Counts live only in `TRACEABILITY.md`; a checker rule now fails the build on any count hard-coded near the words "requirement", "register" or "rows" |
 | **§31.0 still said any provider or legal dependency inherits phase R**, after §1.9 split G from R | Corrected — a provider or legal dependency is **G** unless building it at all needs the external party's permission first |
-| **§34 Step 0 was "generate stubs"**, which would have produced 633 empty files and buried the existing corpus | Step 0 is now the **mapping** first, with new records only where nothing exists |
+| **§34 Step 0 was "generate stubs"**, which would have produced 633 empty files and buried the existing corpus | Step 0 is now semantic mapping first; capability records are created just in time only when a lane takes a row |
 | **§1.9 required a phase label on every register row; the register had no phase column**, so §35.3's phase check was Blocked and the build/research boundary was unenforceable | A **Phase column** added to all register rows by `tools/assign_phases.py` from printed rules, and the phase check is now **Running** — invalid phases fail, and an R or N row named in a §34 build phase fails |
 | **§31.0's scope-phase field omitted the G state** that §1.9 had just defined | Field rewritten to `v1 · P2 · P3 · R · N` with the `·G` release-gated suffix, and it names the register column as the machine-checkable home |
 | **The traceability generator looked for evidence only in `done/`**, while §35.4 names `active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` as the authority — so a closed provider or legal row would still have read as empty | The generator now scans `active/launch/` as an evidence corpus and reports it as its own column |
@@ -6676,7 +6705,7 @@ corrected — not the other way round.
 | **`VID-11` reported a DPDP deletion capability as usable** while §33.1 blocks deletion and §32 lists it as unblocked-by-legal-only | State corrected to **B**, with the row stating that the split logic exists in code, no flow ships or is promised, and deactivation is what ships. `VID-21` archival deletion corrected the same way — an engineering preference is not an approved policy |
 | **`HUB-13`, a no-API YouTube embed, was phased `v1`** | Phased **P2 conservatively** and raised as §33.2 item 13: whether the launch authority's exclusion covers embeds or only data and scopes is a question for the authority, not for this document to assume |
 | **The v1-scope scan checked only Phase 0** while §1.9 makes Phases 0–2 v1 | Widened |
-| **§34 Step 0 was mandatory "before any lane starts" and had no authority, owner, record or acceptance** — the plan's own first gate was unstartable under its own rules | `active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md` defines a narrow bootstrap exemption for Steps −1 and 0, and `active/tasks/STEP-0-register-mapping.md` carries all ten fields. Owner still unassigned, and now named as a gap rather than hidden |
+| **§34 Step 0 was mandatory "before any lane starts" and had no authority, owner, record or acceptance** — the plan's own first gate was unstartable under its own rules | `active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md` defines a narrow bootstrap exemption for Steps −1 and 0, and `active/tasks/STEP-0-register-mapping.md` carries all ten fields. Owner assigned to Sukhdev Singh; remaining lifecycle-record work is explicit |
 | **Performance validation was circular** — Phase 0.5 needed OBS and load evidence, §37.4 needed a production-shaped environment, §32 listed deployment as blocked | Resolved by distinguishing **non-production measurement from production deployment**. Step 0.25 is a scheduled infrastructure lane with named deliverables and an exit criterion |
 | **§32 grouped YouTube OAuth, YouTube quota and the Razorpay Route enquiry under "everything production"** — which would have held the Alerts and Companion launch behind Phase 4 and Enterprise work | Split into three rows: v1 release gates, YouTube-capability-only gates, and Enterprise-only gates. The external register had always scoped them correctly |
 | **The plan relied on an evidence register that declares itself not effective** until approved and linked from the master release authority | **Step −1** added: approve it, link it from `01`, and give each row a named owner rather than a role name |
@@ -6773,7 +6802,7 @@ the build:
 | **Post-v1 references in v1 sections** | A **Phase 0, 0.5, 1 or 2** entry references a post-v1 capability | **Partial.** Keyword list. *Corrected 2026-09-14 — it previously scanned Phase 0 only, while §1.9 makes Phases 0–2 v1* |
 | **Scope semantics** | A row whose text names a YouTube capability (YouTube, Super Chat, chat-write, live chat, `streamList`) carries a `v1` phase · a deletion capability is marked usable while §33.1 blocks deletion | **Running.** This is the check that phase *syntax* validation cannot do: a prefix classifier cannot see that a `VID-`, `ENG-`, `HUB-` or `CUS-` row is really YouTube work. It found five such rows on its first run, three of which no reviewer had spotted |
 | **Orphan corrections** | A correction is logged while its superseded text survives in the body | **Warn.** Heuristic — it compares inline correction markers against §35.2 rows and cannot locate the surviving text |
-| **Missing row metadata** | A register row lacks any of the ten §31.0 fields in its `active/` record | **Blocked.** No per-row `active/` records exist yet; this check is the second half of §34 Step 0 and lands with them |
+| **Missing row metadata** | A taken register row lacks any of the ten §31.0 fields in its `active/` record | **Running.** `new-record-required` rows remain JIT with `-` targets; taken rows fail closed until their active record is complete |
 | **Phase-label integrity** | A row has no phase label, carries one outside the values defined in §1.9, or a row labelled R or N is scheduled in a §34 build phase | **Running.** The register gained a Phase column on 2026-09-14; `tools/assign_phases.py` records how each value was derived |
 | **Stale external claim** | A platform-map row (§27.2) or gateway-fee figure (§12.5.1) is older than its freshness window | **Blocked.** No row carries a source date yet — the §27.2 requirement was added after that table was written |
 | **Table shape** | A row in any table has a different column count from the rest of that table — which is how a malformed duplicate row survived in this very table | **Running** |
@@ -6805,22 +6834,25 @@ index drifts exactly the way Part 7 did.
 in that file and are deliberately not restated here**, because a number copied into prose
 goes stale the moment the register changes — which it already did once.
 
-**What it found, and it is not what an earlier version of this section asserted.** That
+**Historical finding before the 2026-09-15 Step 0 map — superseded.** What it found,
+and it is not what an earlier version of this section asserted. That
 version said the index showed zero acceptance records, zero reviews and zero evidence
 "because no build work has started". Both halves were wrong. This repository contains
-**62 task records, 62 test records and 72 reviews** from substantial prior work, and the
-generator was not looking at `tests/` or `reviews/` at all.
+Existing task, test and review records come from substantial prior work; the generator
+now scans all of those corpora and reports their actual coverage.
 
 The real finding is sharper: **two ID systems that do not meet.** The existing corpus is
 keyed on the **L-track** system (`L01`…`L32`, plus `WP-`, `FORM-`, `FRD-` work-package
 identifiers). The §31 register is keyed on **area prefixes** (`PAY-`, `CMP-`, `RT-`…).
-Almost nothing references both, so the two bodies of work cannot be joined, and prior
-evidence cannot currently be credited to any register row.
+The semantic map now joins the reviewed trios for its mapped-existing rows; the
+remaining rows stay new-record-required until their JIT records exist. Local evidence
+remains subject to self-review and does not satisfy external or release gates.
 
-**So the first Step 0 task is the mapping, not stub generation** — register ID → the
+**Step 0 semantic mapping is conditionally closed; capability implementation lifecycle remains open** —
+register ID → the
 L-track record that already covers it, and a new `active/` record only where none does.
-Until that mapping exists, §34 is a proposed roadmap rather than a schedulable plan, and
-the §31.0 ten-field contract is satisfied by zero rows.
+Rows marked `new-record-required` remain unschedulable until a lane creates and verifies
+their ten-field records.
 
 ### 35.5 Splitting this file — agreed, and deliberately sequenced after the fixes
 

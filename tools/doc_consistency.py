@@ -5,12 +5,14 @@ Implements the checks §35.3 requires. Exit code 1 on any ERROR; WARNs do not fa
 Run:  python3 tools/doc_consistency.py
 """
 from __future__ import annotations
-import re, sys, pathlib, collections
+import re, sys, pathlib, collections, os
 
-ROOT = pathlib.Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(os.environ.get("BHARATSTUDIO_DOC_ROOT", pathlib.Path(__file__).resolve().parent.parent)).resolve()
 DOC = ROOT / "FULL-PRODUCT-DEFINITION.md"
 AUTH = sorted((ROOT / "active" / "launch").glob("*.md"))
 TASKS = sorted((ROOT / "tasks").glob("*.md")) if (ROOT / "tasks").is_dir() else []
+MAPPING = ROOT / "active" / "traceability" / "register-map.tsv"
+COVERAGE = ROOT / "active" / "traceability" / "coverage-index.tsv"
 
 errors: list[str] = []
 warns: list[str] = []
@@ -298,6 +300,51 @@ def check_scope_semantics() -> None:
                 "blocks deletion: no flow ships or is promised")
 
 
+def check_missing_row_metadata() -> None:
+    """Mapped/taken rows must have real, complete lifecycle records."""
+    if not MAPPING.exists():
+        err("missing-row-metadata", "Step 0 mapping file is missing")
+        return
+    documented = {line.split("\t", 1)[0] for line in COVERAGE.read_text(encoding="utf-8").splitlines() if line and not line.startswith("#")} if COVERAGE.exists() else set()
+    for n, raw in enumerate(MAPPING.read_text(encoding="utf-8").splitlines(), 1):
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        cells = raw.split("\t")
+        if len(cells) != 9:
+            continue  # traceability.py reports the structural error
+        rid, _phase, _state, lifecycle, basis, missing_behavior, task, acceptance, review = cells
+        if lifecycle not in {"mapped-existing", "active-record", "new-record-required"}:
+            err("missing-row-metadata", f"line {n}: {rid} has invalid lifecycle {lifecycle}")
+            continue
+        if rid in documented and lifecycle == "new-record-required":
+            err("missing-row-metadata", f"line {n}: {rid} is documented in coverage-index but downgraded")
+        if not basis:
+            err("missing-row-metadata", f"line {n}: {rid} missing mapping-basis")
+        if lifecycle == "mapped-existing" and (len(basis.strip()) < 20 or "§" not in basis or not any(word in basis.lower() for word in ("covers", "maps", "evidence"))):
+            err("missing-row-metadata", f"line {n}: {rid} mapped-existing lacks human evidence basis")
+        if lifecycle == "new-record-required":
+            detail = missing_behavior.split(":", 1)[1].strip() if missing_behavior.startswith("Missing from reviewed ") and ":" in missing_behavior else ""
+            if not (basis.startswith("Manual inventory: ") or basis.startswith("Reviewed ")) or not missing_behavior.startswith("Missing from reviewed ") or not detail or detail.lower().startswith("none-found"):
+                err("missing-row-metadata", f"line {n}: {rid} new-record-required lacks item-specific unfulfilled behavior")
+            if any(target != "-" for target in (task, acceptance, review)):
+                err("missing-row-metadata", f"line {n}: {rid} new-record-required has evidence targets")
+            continue
+        for target, prefix in ((task, "active/tasks/" if lifecycle == "active-record" else "tasks/"), (acceptance, "tests/"), (review, "reviews/")):
+            if target == "-" or not target.startswith(prefix) or not (ROOT / target).is_file():
+                err("missing-row-metadata", f"line {n}: {rid} {lifecycle} target missing/unsafe: {target}")
+        task_file = ROOT / task
+        if lifecycle == "active-record" and task_file.is_file():
+            body = task_file.read_text(encoding="utf-8")
+            required = ("Scope phase", "Owner", "Tier and gate", "Personal-data class",
+                        "Provider or legal dependency", "Failure behaviour", "Kill switch",
+                        "Acceptance test", "Evidence location", "Rollback")
+            missing = [field for field in required if f"**{field}**" not in body]
+            if missing:
+                err("missing-row-metadata", f"{rid} task lacks ten-field metadata: {', '.join(missing)}")
+        if lifecycle == "active-record" and task_file.stem != rid:
+            err("missing-row-metadata", f"{rid} active-record task filename must be {rid}.md")
+
+
 # 10 ── prose must not restate generated counts -----------------------------------
 def check_restated_counts() -> None:
     # a bare count near the words requirement / register / rows, ignoring years,
@@ -310,6 +357,50 @@ def check_restated_counts() -> None:
         if near.search(line):
             err("restated-count", f"line {n}: a register row count is hard-coded in prose — cite TRACEABILITY.md instead")
 
+def check_jit_policy() -> None:
+    authority = (ROOT / "active/launch/07_BUILD_BOOTSTRAP_AUTHORITY.md").read_text(encoding="utf-8")
+    task = (ROOT / "active/tasks/STEP-0-register-mapping.md").read_text(encoding="utf-8")
+    master = text
+    if re.search(r"\b(?:none of it counts|cannot currently be credited)\b", master, re.I):
+        err("jit-policy", "master contains an unqualified pre-map evidence-credit claim")
+    for label, body in (("authority", authority), ("task", task), ("master", master)):
+        if "just in time" not in body.lower() or "new-record-required" not in body:
+            err("jit-policy", f"{label} does not state JIT active-record semantics")
+        if "all-rows" not in body.lower() and label != "authority":
+            err("jit-policy", f"{label} does not prohibit all-row active stubs")
+        blanket = re.compile(
+            r"\b(?:every|all)\s+(?:the\s+)?(?:register\s+)?rows?\s+"
+            r"(?:carries?|must\s+(?:carry|have)|requires?)\b"
+            r"[^.\n]{0,120}\b(?:active[/ ]*records?|ten[- ]field|stubs?)\b", re.I)
+        if blanket.search(body):
+            err("jit-policy", f"{label} contains a blanket all-row active-record/stub policy")
+
+def check_step0_master_counts() -> None:
+    """Keep live master prose count-free; TRACEABILITY is the count authority."""
+    if re.search(r"\b\d+\s+mapped-existing\b|\b\d+\s+new-record-required\b", text, re.I):
+        err("step0-master-counts", "master contains hard-coded Step 0 lifecycle counts; cite TRACEABILITY.md")
+
+def check_environment_reviews() -> None:
+    tokens = {"ENV-01":"Cloud Run", "ENV-02":"PostgreSQL 16", "ENV-03":"Razorpay", "ENV-04":"OBS", "ENV-05":"Android", "ENV-06":"3G/4G", "ENV-07":"p50/p95/p99", "ENV-08":"target-concurrency", "ENV-09":"Sukhdev Singh"}
+    command_tokens = {
+        "ENV-01": "validate-measurement-manifest.mjs",
+        "ENV-02": "run-local-measurement.sh",
+        "ENV-03": "validate-measurement-manifest.mjs",
+        "ENV-04": "validate-measurement-manifest.mjs",
+        "ENV-05": "validate-measurement-manifest.mjs",
+        "ENV-06": "validate-measurement-manifest.mjs",
+        "ENV-07": "run-local-measurement.sh",
+        "ENV-08": "run-local-measurement.sh",
+        "ENV-09": "bootstrap_check.py",
+    }
+    for rid, token in tokens.items():
+        path = ROOT / "reviews" / f"2026-09-15-{rid.lower()}-measurement-control.md"
+        body = path.read_text(encoding="utf-8") if path.exists() else ""
+        if token.lower() not in body.lower(): err("env-review", f"{rid} review missing control token {token}")
+        if command_tokens[rid].lower() not in body.lower(): err("env-review", f"{rid} review missing executable command token {command_tokens[rid]}")
+        if "execution remains open" in body.lower(): err("env-review", f"{rid} retains stale execution remains open wording")
+        if "Blocked" in body and "Conditionally complete" in body.split("**Disposition:**",1)[-1].splitlines()[0]: err("env-review", f"{rid} has blocked/conditionally-complete lifecycle contradiction")
+
 
 CHECKS = [
     check_duplicate_ids, check_duplicate_sections, check_cross_refs,
@@ -317,6 +408,10 @@ CHECKS = [
     check_authority_values, check_v1_sections, check_orphan_corrections,
     check_restated_counts, check_phase_integrity, check_table_shape,
     check_scope_semantics,
+    check_missing_row_metadata,
+    check_jit_policy,
+    check_step0_master_counts,
+    check_environment_reviews,
 ]
 
 for fn in CHECKS:

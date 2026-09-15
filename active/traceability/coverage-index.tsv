@@ -1,0 +1,68 @@
+# Documented local coverage index. Any listed ID must not be downgraded to new-record-required.
+# id	basis	 task	acceptance	review
+PAY-01	L04 documented atomic payment path	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-02	L04 documented webhook verification and dedup	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-03	L04 documented payment amount enforcement	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-04	L04 documented intent expiry	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-05	L04 documented idempotency	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-06	L04 documented consent projection	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-07	L04 documented reconciliation	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-08	L04 documented refunds/disputes	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+PAY-09	L04 documented default binding	tasks/L04-go-payment-boundary.md	tests/TC-L04-go-payment-boundary.md	reviews/2026-08-14-L04-provider-boundary-review.md
+CMP-01	L07 documented control lease	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-02	L07 documented state/layout contract	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-03	L07 documented layout limits	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-07	L07 documented mobile handler wiring	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-26	L07 documented session revoke	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+ALQ-01	L05 documented durable multi-queue delivery/outbox boundary	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+ALQ-02	L05 documented SSE cursor replay and browser acknowledgement	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+CMP-04	L07 documented action catalogue and entitlement/activation separation	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-32	L07 documented privacy-minimised notification payloads	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-33	L07 documented device-only secure session storage	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-34	L07 documented encrypted fingerprinted push-token storage	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+ALQ-03	L05 documented cross-replica LISTEN/NOTIFY wake-up	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+ALQ-07	L05 documented no-drop delivery guarantee	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+ALQ-08	L05 documented immutable multi-queue delivery snapshots	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+ALQ-09	L05 documented per-binding duplicate consent guard	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+TTS-05	L05 documented bounded nonblocking TTS playback	tasks/L05-go-alert-worker-and-cloud-tasks.md	tests/TC-L05-go-alert-worker-and-cloud-tasks.md	reviews/2026-08-14-L05-worker-boundary-review.md
+ALQ-12	L03 documented overlay token transport and session lifecycle	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-14-L03-definition-review.md
+ALQ-13	L03 documented safe anchors and bounded placement policy	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-14-L03-definition-review.md
+ALQ-14	L03 documented long-message and multiline rendering policy	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-14-L03-definition-review.md
+ALQ-04	L03 documented direct listener and durable replay boundary	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-14-L03-definition-review.md
+ALQ-05	L03 documented server/client queue mode semantics	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-16-L03-corrected-findings-remediation-review.md
+ALQ-06	L03 documented quiet/approval/rate/hold/no-drop semantics	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-16-L03-corrected-findings-remediation-review.md
+ALQ-10	L03 documented moderation and audited DLQ controls	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-16-L03-corrected-findings-remediation-review.md
+ALQ-11	L03 documented role-scoped financial/content/status reads	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-16-L03-corrected-findings-remediation-review.md
+TTS-02	L03 documented local quota and fallback boundary	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-09-13-reachability-register.md
+TTS-04	L03 documented local browser/chime fallback boundary	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-09-13-reachability-register.md
+OPS-01	L06 documented scheduler definitions and operations	tasks/L06-scheduler-boundary.md	tests/TC-L06-scheduler-boundary.md	reviews/2026-08-14-L06-scheduler-boundary-review.md
+OPS-03	L06 documented schedule idempotency	tasks/L06-scheduler-boundary.md	tests/TC-L06-scheduler-boundary.md	reviews/2026-08-14-L06-scheduler-boundary-review.md
+OPS-04	L06 documented disabled archive schedules	tasks/L06-scheduler-boundary.md	tests/TC-L06-scheduler-boundary.md	reviews/2026-08-14-L06-scheduler-boundary-review.md
+OPS-12	L09 documented trace discipline	tasks/L09-observability-load-failure.md	tests/TC-L09-observability-load-failure.md	reviews/2026-08-15-L09-observability-review.md
+OPS-13	L09 documented safe metric labels	tasks/L09-observability-load-failure.md	tests/TC-L09-observability-load-failure.md	reviews/2026-08-15-L09-observability-review.md
+OPS-14	L10 documented manifest placeholder blocking	tasks/L10-release-readiness-and-rollout.md	tests/TC-L10-release-readiness-and-rollout.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+OPS-15	L08 documented static security headers	tasks/L08-marketing-support-legal.md	tests/TC-L08-marketing-support-legal.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+MKT-03	L08 documented competitor exclusion	tasks/L08-marketing-support-legal.md	tests/TC-L08-marketing-support-legal.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+MKT-04	L08 documented Enterprise exclusion	tasks/L08-marketing-support-legal.md	tests/TC-L08-marketing-support-legal.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+VID-01	L04/L14 documented anonymous payment identity writer	tasks/L04-L14-anonymous-payment-identity-attribution.md	tests/TC-L04-L14-anonymous-payment-identity-attribution.md	reviews/2026-09-14-L04-L14-anonymous-payment-identity-attribution-decision.md
+VID-02	L04/L14 documented supporter relation writer	tasks/L04-L14-anonymous-payment-identity-attribution.md	tests/TC-L04-L14-anonymous-payment-identity-attribution.md	reviews/2026-09-14-L04-L14-anonymous-payment-identity-attribution-decision.md
+VID-03	L14 documented receipt minting	tasks/L14-viewer-identity-and-supporter-history.md	tests/TC-L14-viewer-identity-and-supporter-history.md	reviews/2026-09-08-L14-local-completion-and-claim-boundary-review.md
+VID-04	L14 documented opaque receipt and refund reflection	tasks/L14-viewer-identity-and-supporter-history.md	tests/TC-L14-viewer-identity-and-supporter-history.md	reviews/2026-09-08-L14-local-completion-and-claim-boundary-review.md
+VID-06	L14 documented first-claim-wins identity	tasks/L14-viewer-identity-and-supporter-history.md	tests/TC-L14-viewer-identity-and-supporter-history.md	reviews/2026-09-08-L14-local-completion-and-claim-boundary-review.md
+VID-08	L14 documented private searchable profile	tasks/L14-public-viewer-privacy-and-bounds-hardening.md	tests/TC-L14-public-viewer-privacy-and-bounds-hardening.md	reviews/2026-09-09-L14-public-viewer-privacy-and-bounds-hardening-decision.md
+VID-09	L14 documented viewer-scoped newest-100 bounds	tasks/L14-public-viewer-privacy-and-bounds-hardening.md	tests/TC-L14-public-viewer-privacy-and-bounds-hardening.md	reviews/2026-09-09-L14-public-viewer-privacy-and-bounds-hardening-decision.md
+ENG-01	L16 documented interaction catalogue and tier counts	tasks/L16-interaction-menu-goals-and-widgets.md	tests/TC-L16-interaction-menu-goals-and-widgets.md	reviews/2026-09-08-L16-widget-completion-review.md
+ENG-02	L16 documented widget catalogue and tier counts	tasks/L16-interaction-menu-goals-and-widgets.md	tests/TC-L16-interaction-menu-goals-and-widgets.md	reviews/2026-09-08-L16-widget-completion-review.md
+ENG-03	L16 documented goal progress windows	tasks/L16-interaction-menu-goals-and-widgets.md	tests/TC-L16-interaction-menu-goals-and-widgets.md	reviews/2026-09-08-L16-widget-completion-review.md
+ENG-04	L16 documented widget pages	tasks/L16-interaction-menu-goals-and-widgets.md	tests/TC-L16-interaction-menu-goals-and-widgets.md	reviews/2026-09-08-L16-widget-completion-review.md
+ENG-05	L16 documented leaderboard privacy bounds	tasks/L16-interaction-menu-goals-and-widgets.md	tests/TC-L16-interaction-menu-goals-and-widgets.md	reviews/2026-09-08-L16-widget-completion-review.md
+ENG-06	L16 documented overlay token and SSE invalidation	tasks/L16-overlay-widget-response-integrity.md	tests/TC-L16-overlay-widget-response-integrity.md	reviews/2026-09-09-L16-overlay-widget-response-integrity-decision.md
+ENG-07	L16 documented paid vote payment binding and refund tally	tasks/L16-interaction-menu-goals-and-widgets.md	tests/TC-L16-interaction-menu-goals-and-widgets.md	reviews/2026-09-14-L16-public-paid-vote-reachability-decision.md
+ENG-08	L16 documented vote option cardinality procedure	tasks/L16-vote-option-cardinality-and-overlay-contract-alignment.md	tests/TC-L16-vote-option-cardinality-and-overlay-contract-alignment.md	reviews/2026-09-09-L16-vote-option-cardinality-and-overlay-contract-alignment-decision.md
+CHL-01	L17 documented non-refundable challenge state/progress/overlay slice	tasks/L17-paid-challenges.md	tests/TC-L17-paid-challenges.md	reviews/2026-09-08-L17-nonrefundable-challenge-decision.md
+CMP-05	L07 documented finite Companion actions and unsupported command rejection	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+CMP-37	L07 documented Free Companion actions and control lease	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+MED-01	L01 documented sticker projection and server revalidation	tasks/L01-public-sticker-contract-slice.md	tests/TC-L01-public-sticker-contract-slice.md	reviews/2026-09-09-L01-public-sticker-contract-slice-decision.md
+MED-07	L01 documented opaque catalogue/sticker response without viewer asset bytes or media URLs	tasks/L01-public-sticker-contract-slice.md	tests/TC-L01-public-sticker-contract-slice.md	reviews/2026-09-09-L01-public-sticker-contract-slice-decision.md
+CMP-08	L07 documented local macOS OBS WebSocket-v5 boundary and Swift tests	tasks/L07-companion-web-mobile-desktop.md	tests/TC-L07-companion-web-mobile-desktop.md	reviews/2026-08-15-L07-L08-L10-release-surface-review.md
+PRF-09	L03 documented direct database URL validation and replay safety	tasks/L03-alerts-web-and-creator-api.md	tests/TC-L03-alerts-web-and-creator-api.md	reviews/2026-08-16-L03-corrected-findings-remediation-review.md

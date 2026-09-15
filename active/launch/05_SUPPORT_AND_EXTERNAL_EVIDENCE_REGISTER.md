@@ -1,9 +1,9 @@
 # Support and external-evidence register — Alerts v1
 
-**Status:** `Proposed operational authority; not a legal approval and not a release approval`
-**Owner:** Project owner; Support, Payments, Security, Product and Legal/CA reviewers
+**Status:** `Effective operational evidence authority as of 2026-09-15; not a legal approval and not a release approval`
+**Owner:** Sukhdev Singh (accountable); Support, Payments, Security, Product and Legal/CA reviewers
 **Scope:** BharatStudio Alerts and bundled Companion v1 only
-**Effective date:** Not effective until approved and linked from the master release authority
+**Effective date:** 2026-09-15 — owner approval and linkage recorded in the master release authority
 
 This is the single working register for launch support operations and external
 reviews. It records what must be proven; it does not turn an unreviewed tax,
@@ -62,15 +62,15 @@ trace/case link to the owning durable record and an operator audit entry.
 
 | Evidence area | Required decision/evidence | Owner | Status before public launch |
 |---|---|---|---|
-| Razorpay Technology Partner / connected-account capability | Written provider approval and enabled test/live account capability for the exact creator-direct flow | Payments + provider | Open; no live routing claim |
-| Razorpay webhook/order/refund behavior | Dated sandbox evidence for signature, event ID, order status, refund, retry and connected-account attribution | Payments | Local contract pass; provider staging open |
-| Tax/GST/TDS/payment classification | Written CA/tax counsel conclusion for the actual money flow, settlement and records | Owner + CA | Open; do not infer from code |
-| Privacy/DPDP and retention | Approved policy, purpose/access/retention/deactivation wording and rights-handling process | Privacy/legal owner | Open; public index is not final policy |
-| Terms/acceptable use/refunds | Dated approved terms, refund rules, creator responsibilities and historical-version handling | Legal/product | Open |
-| App-store compliance | Apple/Google declarations, permissions, account and payment-boundary review for Companion | Mobile owner + legal | Open; store review not run |
-| Public domain/SSL/email | Domain ownership, HTTPS, support/privacy mailbox, DNS and rollback evidence | Infra/support | Open |
-| Support operations | Staffed coverage, case system, escalation owners, redaction, incident drill and response targets | Support owner | Internal targets proposed; rehearsal open |
-| Analytics/SEO consent | Privacy-safe analytics configuration, consent behavior and public crawl/security scan | Marketing/privacy | Local static checks pass; deployment scan open |
+| Razorpay Technology Partner / connected-account capability | Written provider approval and enabled test/live account capability for the exact creator-direct flow | Sukhdev Singh (with Payments + provider reviewer) | Open; no live routing claim |
+| Razorpay webhook/order/refund behavior | Dated sandbox evidence for signature, event ID, order status, refund, retry and connected-account attribution | Sukhdev Singh (with Payments reviewer) | Local contract pass; provider staging open |
+| Tax/GST/TDS/payment classification | Written CA/tax counsel conclusion for the actual money flow, settlement and records | Sukhdev Singh (with CA/tax counsel) | Open; do not infer from code |
+| Privacy/DPDP and retention | Approved policy, purpose/access/retention/deactivation wording and rights-handling process | Sukhdev Singh (with privacy/legal reviewer) | Open; public index is not final policy |
+| Terms/acceptable use/refunds | Dated approved terms, refund rules, creator responsibilities and historical-version handling | Sukhdev Singh (with legal/product reviewer) | Open |
+| App-store compliance | Apple/Google declarations, permissions, account and payment-boundary review for Companion | Sukhdev Singh (with mobile/legal reviewers) | Open; store review not run |
+| Public domain/SSL/email | Domain ownership, HTTPS, support/privacy mailbox, DNS and rollback evidence | Sukhdev Singh (with infra/support reviewer) | Open |
+| Support operations | Staffed coverage, case system, escalation owners, redaction, incident drill and response targets | Sukhdev Singh (with support reviewer) | Internal targets proposed; rehearsal open |
+| Analytics/SEO consent | Privacy-safe analytics configuration, consent behavior and public crawl/security scan | Sukhdev Singh (with marketing/privacy reviewer) | Local static checks pass; deployment scan open |
 
 An item may move from `Open` only when the dated evidence, reviewer, scope,
 finding, disposition and follow-up are attached. Legal/provider rows require
@@ -106,4 +106,3 @@ The actual launch critical path is these four external items. All four are
 No code or test status changes any of these four. All four require external
 provider or professional evidence this repository does not and cannot
 self-approve, per `governance/AGENTS.md` and Section 4 above.
-

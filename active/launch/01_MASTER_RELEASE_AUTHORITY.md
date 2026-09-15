@@ -391,6 +391,11 @@ The following cannot be closed from local tests or assumptions:
 
 The canonical support and external-evidence register is
 [`05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`](./05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md).
+**Bootstrap adoption (2026-09-15):** the owner, Sukhdev Singh, approved that register
+as the effective operational evidence authority for v1. It is linked here; its rows
+carry Sukhdev Singh as accountable owner, with specialist reviewers retained where
+specified. This does not convert external evidence into local evidence or lift any
+release gate.
 
 ## 6. Go/no-go rule
 
