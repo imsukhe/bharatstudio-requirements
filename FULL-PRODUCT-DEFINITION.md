@@ -2328,11 +2328,18 @@ Each decision is independent and separately audited:
   payment decision need explicit creator or moderator policy.
 - A supporter-visible appeal path exists for a block, and a reversal is itself audited.
 
-**Audio never delays or blocks the picture.** A TTS failure, timeout, quota exhaustion
-or safety rejection changes only whether a voice speaks. The visual alert is released,
-displayed, acknowledged and recorded regardless, and it never waits for synthesis —
-the two-phase release in §19.0 RT-03 is how this rule is actually implemented, and the
-current worker violates it.
+**Audio never blocks the picture, and its delay is bounded.** *Amended by owner decision
+2026-09-16; the earlier absolute — "never waits for synthesis" — was replaced because it
+bought latency at the cost of desync, and desync is what a creator actually sees.* A TTS
+failure, quota exhaustion or safety rejection changes only whether a voice speaks. The
+visual alert is released, displayed, acknowledged and recorded regardless.
+
+What is bounded rather than forbidden is the wait: an alert may be held for **one**
+synthesis attempt, already capped by the 2.5-second provider timeout, so that picture and
+voice are released together. There is no unbounded wait, no retry-driven wait and no
+second timeout. §19.0 RT-03 carries the full rule, including which failures may be
+retried — and a timeout may not be, because a timeout is ambiguous about whether audio was
+produced and billed.
 
 Safety runs **before** synthesis and identically on both voice routes (§11.10.3). The
 browser-voice path is not a cheaper path with weaker checks.
@@ -3227,48 +3234,60 @@ design target; the value waits on ENV-08, which is blocked. Evidence:
 (`internal/tts/client.go:42`). A slow provider therefore delays the picture. That
 directly contradicts §12.2's rule that audio failure never delays the visual.
 
-**Fix: two-phase release, decided 2026-09-14.** The worker releases the visual delivery
-the instant the visual payload is ready. TTS enrichment runs **after** release and
-arrives as a **second event on the same channel**, played against the alert already on
-screen. The visual path's latency becomes fully independent of the provider.
+**Fix, decided by the owner 2026-09-16: checks, then synthesis, then one release.**
+An alert is released only once every moderation and safety check has passed **and** its
+audio is either ready or definitively not coming. Picture and voice go out together, in
+one event. There is no second audio event and no late join.
 
-Rules for phase two: it is best-effort and its failure is invisible to the viewer · if
-the alert's display window has already closed, the audio is **dropped, never played
-late over a different alert** · the two events share the alert's identifier so the
-overlay can match them · quota, safety and the routing decision (§11.10) all still
-happen before synthesis, not after.
+*This supersedes the two-phase release decided 2026-09-14, and the intermediate
+"synthesise during the display queue wait" refinement of 2026-09-16. Both are void.* The
+reasoning that replaced them is recorded below, because it inverts this row's original
+premise and that must not be rediscovered as a surprise.
 
-**Refined by owner decision, 2026-09-16 — synthesis runs during the display queue wait.**
-Two-phase release stays the mechanism; what changes is *when* synthesis starts and *what
-the overlay does with audio for an alert it has not shown yet*.
+**Why the original objection did not survive contact with the code.** Two-phase release
+was chosen to stop a slow provider delaying the picture. But each delivery is its own
+Cloud Task and they run concurrently, so a slow synthesis delays **only its own alert** —
+it never stalls the alerts behind it. The head-of-line blocking that justified splitting
+the release does not exist. What splitting the release does buy is a voice that starts
+partway through an alert, or misses it entirely, which is the defect a creator actually
+notices.
 
-The defect RT-03 names is not that picture and audio arrive as two events. It is that
-synthesis sits **inside** the durable release, so one slow provider call stalls the alert
-behind it and every alert behind that. That stays fixed: nothing in the release path may
-wait on a provider.
+**The ordering risk is real but not a loss.** `app_private.get_overlay_events` declares
+`target_after_created_at` and `target_after_delivery_id` and **never uses them**; the real
+cursor is acknowledgement, and an acknowledged delivery drops out of the projection. So a
+late-released alert still appears — ordered by `created_at`, not by arrival. Nothing is
+dropped. The dead parameters are recorded as a separate cleanup, not fixed here.
 
-The refinement is that **an alert does not display the moment it is released.** It waits
-its turn behind whatever is already on screen, and that wait is free synthesis time. So
-synthesis starts at release, and the overlay attaches arriving audio to the **queued**
-item, not only to the one currently displayed:
+**The rules, all binding:**
 
-| The alert is… | What happens to its audio |
-|---|---|
-| Still **queued**, not yet shown | **Attached.** Picture and audio start together when its slot opens — the normal case on a busy stream |
-| **On screen now** | Played against it immediately — a late join, audible mid-alert |
-| **Finished** | **Dropped, silently.** Never played over a different alert |
-| Arriving via **replay or reconnect** | Dropped. Stale audio is never resurrected |
+- **Checks first, always.** Moderation, safety, quota and the §11.10 routing decision all
+  complete before synthesis begins — never after, and never in parallel with it.
+- **One synthesis attempt's worth of delay, at most.** The hold is capped by the
+  provider timeout that already exists in `internal/tts/client.go`. No new timeout, no
+  cumulative retry budget, no configurable wait.
+- **Retry only an unambiguous failure.** Connection refused, DNS, TLS, a 5xx before any
+  body, or a 429 carrying retry-after: nothing was synthesised and nothing was billed, and
+  these fail in milliseconds rather than seconds, so retrying them costs no visible delay.
+- **Never retry a timeout.** A timeout is ambiguous — the provider may have synthesised
+  and billed the characters while the response was lost. Retrying spends a creator's
+  premium characters a second time on audio nobody will hear. This is the rule that keeps
+  the hold bounded without inventing a number.
+- **Never retry a terminal refusal.** Quota exhaustion falls to browser voice immediately
+  (§11.11, no grace buffer). Safety rejection, an unsupported voice or language, and a
+  malformed request all fail identically on a second attempt.
+- **A failed synthesis must not consume premium characters.** Not an assumption — an
+  acceptance test. Retries multiply any charge-on-failure defect that already exists.
+- **Failure releases immediately, without audio.** The chime fallback covers it. A
+  creator never loses an alert because a voice could not be produced.
+- **The overlay orders its display queue by the alert's creation time, not arrival time**,
+  so an alert delayed by slow synthesis slots back into payment order rather than
+  appearing after one paid later. Since alerts display for seconds, a late arrival
+  usually lands while the other is still queued.
 
-**On a quiet stream there is no queue, so there is no free time.** The owner decided the
-alert **displays immediately anyway**: audio joins if it arrives while the alert is still
-up, and is otherwise dropped in favour of the chime. The worst case on a quiet stream is a
-tip alert with a chime instead of a voice — never a delayed alert. A bounded hold was
-considered and rejected: any hold is a visible delay on exactly the alert a creator
-watches most closely, and no approved authority states a hold duration.
-
-Nothing here introduces a number. The display queue and its per-config duration already
-exist (`apps/web/app/overlay/overlay-policy.ts`, `displayDurationMs`), and the playable
-window is read from the durable delivery status, not from a new timer.
+**What this row now means.** Not "never delay the visual" — that was the 2026-09-14
+reading. It now means **bound the delay to one attempt and never desync**. The current
+worker still violates it, because it runs enrichment before release with no failure
+classification, no retry policy and no ordering guarantee.
 
 #### RT-04 · Payment acknowledgement waits on a worker-pump scan
 
@@ -3304,8 +3323,9 @@ Payment webhook
   → post-commit wakeup only (fire-and-forget)
   → independently scheduled, leased outbox dispatcher
   → Cloud Task
-  → release VISUAL delivery immediately
-  → TTS / media enrichment separately, as a second event
+  → moderation, safety, quota and voice routing
+  → ONE synthesis attempt (retried only on an unambiguous failure, never on a timeout)
+  → release picture and voice together, or release without voice
 
 Committed event
   → channel-keyed fanout
@@ -3618,16 +3638,9 @@ popular stream with eight widgets and a reconnecting overlay.
   that owns enqueueing and recovers anything the wakeup missed.
 - **Only the dispatcher scans for ready deliveries** (RT-05). Request handlers never
   scan a backlog.
-- **The visual path never waits on enrichment** (RT-03). TTS and media arrive as a second
-  event keyed to the same alert.
-- Every list endpoint is cursor-paginated with a bounded page size — no offset
-  pagination, no unbounded reads. Several are already capped at 100; make it universal.
-- Index every query behind a widget. A widget read that sequential-scans `payments` is a
-  production incident waiting for a popular creator.
-- Rate-limit and debounce at the edge: reactions, votes and chat commands are shaped
-  before they reach application logic.
-- Keep the alert path's atomic transaction narrow. It is correct today; new features
-  must not be added inside that transaction.
+- **The visual path waits for at most one synthesis attempt** (RT-03, owner decision
+  2026-09-16). Picture and voice are released together; a terminal or ambiguous failure
+  releases the picture without audio rather than retrying.
 
 ### 19.8 Companion (mobile)
 
@@ -5948,7 +5961,7 @@ surfaces had no rows.*
 |---|---|:-:|:-:|:-:|
 | RT-01 | Delete the 2s idle replay poll; an idle overlay issues **zero** queries; jittered polling only as a post-disconnect fallback | v1 | U | **P0** |
 | RT-02 | Channel-keyed fanout: only the affected channel's sessions wake; per-channel deduplicated replay; explicit per-instance subscriber and admission limits. **P, not U**: fanout and deduplicated replay are done and locally verified; the admission **ceiling values** ship unset because no authority states one, and they wait on ENV-08 | v1 | P | **P0** |
-| RT-03 | Two-phase release: visual out immediately, synthesis runs during the display queue wait, TTS/media arrives as a second event on the same alert and is **attached to a still-queued alert so both start together**; audio for a finished alert is dropped, never played over a different one (owner refinement 2026-09-16) | v1 | X | **P0** |
+| RT-03 | Checks, then synthesis, then **one** release: picture and voice go out together. Hold capped at one attempt by the existing provider timeout; retry only unambiguous failures, **never a timeout** (ambiguous — may already be billed); terminal failure releases without audio; overlay orders its display queue by alert creation time. *Supersedes the 2026-09-14 two-phase release* (owner decision 2026-09-16) | v1 | X | **P0** |
 | RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | v1 | X | **P0** |
 | RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | v1 | X | **P0** |
 | RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget | v1 | A | **P0** |
@@ -6394,7 +6407,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Surface data sources** | **One fetch, many surfaces** (§4.2, CON-31): no surface ever calls YouTube; the server fetches once per channel and fans out over the channel-keyed SSE. Twelve widgets cost what one costs. Stream health comes from the local helper and never touches Google. Chat *display* is the official embed at zero quota; chat *ingestion* is the only genuinely expensive item and is Phase 4, gated on the quota grant. |
 | **YouTube quota** | **Quota is per Google Cloud project, not per creator** (§4.1). A creator's OAuth grant conveys permission, never allowance; every connected creator spends our 10,000-unit default day. A quota increase is required before YouTube ships at any scale, per-call unit costs need dated sources, and polling cadence is a quota budget with a defined degradation path. Filed in Phase 4 with measured usage, per the sequencing decision above. |
 | **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
-| **Alert audio** | **Two-phase release.** The visual goes out the moment it is ready; TTS arrives as a second event keyed to the same alert. Late audio is dropped rather than played over a different alert. Audio latency can never again become visual latency. |
+| **Alert audio** | **Checks, then synthesis, then one release.** Picture and voice go out together, after every moderation and safety check. The hold is capped at one synthesis attempt by the provider timeout that already exists; an unambiguous failure may be retried, a timeout never may, because a timeout does not tell us whether the characters were already billed. Terminal failure releases the picture without audio and the chime covers it. *Owner decision 2026-09-16, superseding the two-phase release.* |
 | **Concurrency target** | **2,000 concurrent live overlays.** Deliberately above a first-year expectation, because a shared channel-keyed subscriber registry is cheap now and a rebuild later, and the failure being avoided is a successful launch weekend taking the product down. |
 | **Bounded data** | **No surface may fetch, render, subscribe to or retain more live data than it can display safely** (§12.7). Live surfaces receive small purpose-built projections, never raw history. Deep history stays durable and exportable under §12.6 but is paginated, searched, or exported as a background job — never dumped into a dashboard or an overlay. |
 | **Standalone widget URLs** | **Kept, capped, second-class** (§21.3). A per-channel live-transport cap counts Canvas and standalone widgets together; over-cap widgets degrade to slow snapshot polling with a visible notice. No deprecation date, no silent break. |
@@ -6781,7 +6794,7 @@ corrected — not the other way round.
 | No chat-bot product existed anywhere in the document | §36 BharatStudio Bot: six areas, deterministic multilingual first, AI recommends and never bans, one shared safety corpus with §12.2, a deliberately small first release, and an explicit statement of what blocks it (BOT-01 to BOT-17) |
 | The template catalogue had been open since v1.0 with no path | §9.2 answers it in principle — a declarative format plus imports replaces authoring 359 bespoke packages; the HTML prohibition becomes permanent rather than pending |
 | Architecture claimed "one source, one connection, one loop" while overlays polled every 2s and one event woke every stream | §19.0 RT-01 to RT-13, a new Phase 0.5 that blocks Phase 1, and a publishable-claims freeze until they close |
-| TTS enrichment ran before the visual was released, contradicting §12.2 | Two-phase release: visual first, audio as a second event, late audio dropped (RT-03) |
+| TTS enrichment ran before the visual was released, with no failure classification, no retry policy and no ordering guarantee | Kept before release **deliberately** so picture and voice stay synced, but bounded: one attempt, retry only unambiguous failures, never a timeout, release without audio on terminal failure (RT-03, owner decision 2026-09-16) |
 | Payment webhook acknowledged only after a worker-pump call with no recovery sweeper | One commit, immediate 2xx, fire-and-forget wakeup, leased dispatcher that owns enqueueing and recovery (RT-04, RT-05, RT-08) |
 | §19.4 promised p99s the metrics cannot compute | Histograms mandatory; PRF-01 cannot pass without RT-06; §19.4 gains idle-load, visual-release, ack and concurrency rows |
 | §19.5 asserted the Canvas benefit as present tense | Marked absent, and the "one source replaces twelve" claim blocked until PRF-02 ships |
