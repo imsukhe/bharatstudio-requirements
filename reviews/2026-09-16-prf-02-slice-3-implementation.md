@@ -317,5 +317,5 @@ Node's test runner, a local Dockerized Postgres, `go test`). None of it is
 OBS, Chromium, device, network, or production evidence. §19.0's RT-07
 remains Blocked, so no frame-timing, GPU-compositing, 8-hour-memory, or
 "one source replaces twelve" claim is supported by this slice, and PRF-02's
-register row stays open — sixteen of twenty catalogue modules remain
+register row stays open — fifteen of twenty catalogue modules remain (corrected 2026-09-16: this said *sixteen*, which does not reconcile with the five that are built — caught by the slice-4 scope review, not by any check)
 unbuilt after this slice.
