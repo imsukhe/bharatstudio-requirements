@@ -193,3 +193,164 @@ What would still slip past it, named exactly rather than left implicit:
 
 `packages/db/explain-plans/scan-required-queries.mjs`'s own header carries this same list, so
 the caveat lives next to the mechanism it describes, not only in this record.
+
+## Update 2026-09-16 — scan-convention-independence: the naming-convention gap closed
+
+The gap named directly above — "A widget-backing function that does not follow the
+`list_overlay_*` naming convention" — was found for real, by a direct measurement rather than
+by further speculation: Opus enumerated every distinct `app_private.*` call in the seven
+dedicated overlay-facing store files (`apps/api/src/db/{challenge-overlay-store,
+goal-overlay-store, master-canvas-sql-store, overlay-audio-store, overlay-branding-store,
+overlay-store, overlay-wakeup}.ts`). Twelve distinct functions are called there. Five were in
+the manifest. **Seven were not**, none matching `list_overlay_*`:
+`ack_overlay_cursor`, `can_access_channel`, `get_overlay_events`, `get_overlay_lottie_asset`,
+`get_overlay_tts_audio`, `lookup_overlay_token`, `upsert_master_canvas_module`.
+
+**`app_private.get_overlay_events` was the important one.** It is the alert stream itself —
+the query `apps/api/src/db/overlay-store.ts`'s `replayRaw` runs on every overlay wake, for
+every overlay session — the single hottest overlay read in the product, and it had no EXPLAIN
+artefact. It does not follow the `list_overlay_*` convention because migration
+`0127_v1_rt02_overlay_events_artifact_column.sql` had to `DROP FUNCTION` and
+`CREATE FUNCTION` it (not `CREATE OR REPLACE`) to add an OUT column — PostgreSQL does not
+permit `CREATE OR REPLACE FUNCTION` to change OUT columns — so it was never a candidate the
+naming-convention scan could ever have nominated, regardless of how long it ran.
+
+### What changed
+
+**`packages/db/explain-plans/scan-required-queries.mjs` is now two-tier**, not
+convention-only:
+
+- **Rule 1 (unchanged):** every `app_private.list_overlay_*` call anywhere in
+  `apps/api/src/db/*.ts` or `apps/api/src/routes/*.ts` must be in the manifest. Kept as a
+  safety net for mixed-purpose files (e.g. `interaction-sql-store.ts`, which backs both
+  creator-facing config routes and several `list_overlay_*` widget reads).
+- **Rule 2 (new):** within files under `apps/api/src/db/` whose basename matches
+  `/overlay|master-canvas/i` — the seven dedicated overlay-facing store files above, by a
+  filename rule rather than a hard-coded path list, so an eighth overlay store (e.g.
+  `overlay-chat-store.ts`) is caught automatically — **every** `app_private.<fn>(` call, any
+  name, must be in the manifest **or** a new `exemptions` array in `required-queries.json`,
+  where every entry carries a written reason. A call in neither fails the build, naming the
+  call site, exactly as before.
+
+**`packages/db/explain-plans/required-queries.json`** gained one manifest entry and six
+exemptions, one classification each (not a blanket six-item sweep):
+
+| Function | Manifested or exempt | Reason |
+|---|---|---|
+| `get_overlay_events` | **Manifested** — `overlay-events.explain.md` | Read serving the alert-stream surface; the hottest overlay read in the product |
+| `lookup_overlay_token` | Exempt | Auth lookup — validates the bearer token, returns session/channel identity only, never widget-facing rows |
+| `can_access_channel` | Exempt | Auth predicate (boolean) gating creator-facing session revoke/rotate writes, not a read that serves overlay content |
+| `ack_overlay_cursor` | Exempt | Write — marks a delivery acknowledged, upserts a cursor row |
+| `upsert_master_canvas_module` | Exempt | Write — creator-facing module toggle; the read it feeds (`list_overlay_master_canvas_modules`) is already manifested |
+| `get_overlay_tts_audio` | Exempt | Single-row byte-serving fetch by artifact primary key (audio bytes for one delivery's TTS playback), not an aggregate/listing widget read |
+| `get_overlay_lottie_asset` | Exempt | Single-row byte-serving fetch by artifact primary key; the enumerating list it complements (`list_overlay_lottie_assets`) is already manifested |
+
+**`packages/db/explain-plans/check-plans.mjs`'s extraction regex was widened** from
+`^create or replace function ` to `^create (?:or replace )?function ` — a byte-for-byte
+extraction change was required to even capture `get_overlay_events`'s current body, since
+0127's line is `create function app_private.get_overlay_events(`, not
+`create or replace function`. Every other existing artefact's migration line still starts
+with `create or replace function `, so this widening does not change any of their recorded
+hashes — verified: `pnpm explain:check` still reports the other fifteen artefacts current,
+unchanged.
+
+**`packages/db/explain-plans/overlay-events.explain.md`** was captured against a throwaway
+`postgres:16-alpine` container, roles + all 132 migrations applied in order, a synthetic
+overlay session/channel/queue/binding/event/outbox/delivery seeded under the
+`00000000-0000-4000-8000-0000000000e*` id range (unused by any other test file or artefact at
+capture time), one `ready` delivery with a resolvable TTS artifact. Both the literal
+wrapper-call EXPLAIN (opaque `Function Scan`, same reason as all fifteen other artefacts —
+`get_overlay_events` is `security definer`) and the unwrapped-body EXPLAIN were captured. The
+unwrapped plan for this function is fully resolved with **no** opaque inner `Function Scan`
+node — unlike `goal`/`hype`/`leaderboard`/`top-supporters`, whose inner helpers are themselves
+`security definer` and stay opaque, `get_overlay_events`'s two inner helper calls
+(`current_overlay_session_id()`, `delivery_dispatch_allowed(...)`) are plain `language sql
+stable` **without** `security definer`, so the planner inlines both — the first as a
+`One-Time Filter`, the second into the delivery index scan's `Filter:` clause. Full detail in
+the artefact itself.
+
+**Negative cases exercised, not assumed**, as this task's own instruction required:
+
+- Removed `get_overlay_events`'s manifest entry: `scan-required-queries.mjs` failed with
+  `RT-12 required-queries scan: 1 overlay-facing app_private call(s) missing ... -
+  app_private.get_overlay_events called at apps/api/src/db/overlay-store.ts:45 has no
+  manifest entry (rule2-overlay-store)`. Restored; scan passed again (16 manifest entries).
+- Added a call to a fabricated, unmanifested, unexempted function
+  (`app_private.rt12_scan_test_probe_fn()`) inside `overlay-audio-store.ts`: the scan failed,
+  naming that exact call site (`overlay-audio-store.ts:21`, `rule2-overlay-store`). Reverted
+  immediately after; `git status`/`git diff` on that file confirmed clean, and the scan passed
+  again.
+- The six exempted functions are called throughout the seven overlay store files today and do
+  **not** fail the scan — proven by the passing baseline run itself (16 manifest + 6 exemption
+  entries, `OK`), not asserted separately.
+
+**`pnpm explain:check` — `OK: ... (16 manifest entries, 6 exemptions)` then
+`OK: 16/16 plans current`** (was 15/15). `pnpm db:test:all` — **59/0** (baseline 59/0,
+unchanged — `get_overlay_events` already has extensive existing SQL coverage across
+`l03_application_behavior.sql`, `l03_tts_fallback_and_amount_ladder.sql`,
+`l07-mute-synthesis-cost-gate.sql`, `l07-mute-tts-enforcement.sql` and
+`rt02_overlay_events_artifact_column.sql`; no new SQL test file was needed for functional
+correctness, only the EXPLAIN artefact this record adds). `pnpm db:test:l03` — passed.
+`pnpm --filter @bharatstudio/alerts-api build` — clean. `pnpm --filter @bharatstudio/alerts-api
+test` — **585/0** (baseline 585/0, unchanged — no application code was modified, only the
+scan/check scripts and the manifest). `git diff --check` — clean.
+
+**Closed or narrowed — stated plainly.** **Closed for the specific defect measured**: every
+`app_private` call in the seven dedicated overlay-facing store files named by this task is now
+either manifested (with a captured artefact) or exempted (with a written reason); a call in
+neither fails the build regardless of its name, proven by the negative-case test above.
+**Narrowed, not eliminated, at the wider scope.** What can still slip past, named exactly:
+
+1. **A genuinely overlay-facing function living in a file whose name matches neither
+   `overlay` nor `master-canvas`, that also does not follow the `list_overlay_*` convention.**
+   This is the direct descendant of the gap just closed, one level up: the dependency moved
+   from a function-naming convention to a filename convention. A future store file named, say,
+   `alert-stream-store.ts` would need either its name to match the rule or the rule itself
+   extended — reviewed on the day it is added, not caught automatically.
+2. **A call reached only through indirection** (a function name built as a string, a
+   re-export invoked from a file rule 2 does not scan) — every call site in this codebase
+   today is a literal `app_private.fn_name(` inside a tagged SQL template in a file one of the
+   two rules covers, so this remains a theoretical gap, not an observed one.
+3. **Whether a function is genuinely a "read that serves a surface" versus exempt-worthy is a
+   human judgement**, made once per function at classification time (this record's table
+   above), not machine-verified. A future exemption entered without genuine justification
+   would pass the scan silently; the written-reason requirement makes that a reviewable
+   decision, not a technical guarantee.
+
+`packages/db/explain-plans/scan-required-queries.mjs`'s own header carries this same
+three-item list, so the caveat lives next to the mechanism it describes, not only in this
+record. Full classification reasoning:
+`reviews/2026-09-16-rt-12-scan-convention-independence.md`.
+
+## Independent Opus verification of the convention-independence fix — 2026-09-16
+
+Both tiers negative-tested rather than trusted, and the extraction-failure path checked for a
+third hole.
+
+- `pnpm explain:check` — scan OK, **16/16 plans current** (15/15 before).
+  `pnpm db:test:all` — 59/0. `pnpm --filter @bharatstudio/alerts-api test` — 585/0.
+  `python3 tools/doc_consistency.py` — 17 checks, 0 errors, 0 warnings.
+- **Tier 2 negative test, run by Opus:** a fabricated `app_private.opus_fabricated_widget_read(`
+  call added to `overlay-branding-store.ts` — a name that breaks the `list_overlay_*`
+  convention entirely — failed the scan naming `overlay-branding-store.ts:30`, the rule that
+  caught it (`rule2-overlay-store`), and **both** remediations (manifest with an artefact, or
+  exemption with a written reason). Reverted; `git status` confirms the file is clean.
+- Six exemptions, each carrying a real reason: two auth lookups, two writes, two single-row
+  byte-serving fetches by primary key. None of them is a read that serves a surface.
+
+**A possible third blind spot, checked and absent.** `check-plans.mjs`'s extraction regex had
+to widen from `^create or replace function` to `^create (?:or replace )?function`, because
+migration `0127` defines `get_overlay_events` with a drop-and-create — a `CREATE OR REPLACE`
+cannot change a `returns table` shape. The question that matters is what the checker did
+before that, when it could not extract a body: it **pushes an error** (`could not locate
+current body of …`) rather than skipping the entry, so this would have failed loudly. It was
+a real limitation, not a silent pass.
+
+**Still narrowed, not eliminated, and the boundary is stated.** A function in a file matching
+neither `overlay` nor `master-canvas`, which also breaks the `list_overlay_*` convention,
+still slips past. That is written into the scan's own header and the review record rather
+than left to be discovered. RT-12 stays **P**.
+
+**What this is not.** The plans remain plan-shape change detectors captured on an unsized
+local database. None is evidence that any §19.4 budget is met, and `get_overlay_events`
+having a plan says nothing about its behaviour at §37.4's sizes. RT-07 is Blocked.
