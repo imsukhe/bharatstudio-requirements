@@ -203,3 +203,27 @@ provider, store, legal, device, network or release readiness, and no claim is ma
 any deployed instance has actually rejected or accepted. The CI step is committed, not
 executed: per `OPS-CI-01`, this repository's workflow has never run on GitHub, and a committed
 step is not a step that has passed there. The worktree was left uncommitted by instruction.
+
+
+## Second divergence in the same family, 2026-09-16 — `bodyLimit`
+
+The AJV fix did **not** close this family, and that is the useful finding. `app.ts` set
+`bodyLimit: 64 * 1024` inline while the harness took Fastify's own 1 MiB default. Measured,
+both branches: a 200 KB body is `200 OK` under the default and `413` under the server's value.
+Every test migrated onto the new helper kept inheriting the looser limit, because the helper
+shared the AJV options and nothing else.
+
+**The lesson is that this bug is per-option.** Fixing one shared setting says nothing about the
+next one; only a guard that enumerates them does. `FASTIFY_BODY_LIMIT_BYTES` now has one
+definition, both importers are required to *use* it rather than merely import it, and
+route-level limits stay where they belong — a route that legitimately accepts more names its own
+constant, which the guard permits while forbidding a numeric literal.
+
+**A guard rule of mine was wrong first, and running it is what found that.** Requiring the
+constant to "appear" in each importer passed when the helper imported it and stopped using it: an
+import line is a mention, not a use. The AJV rule gets this right for free by requiring a *call*;
+a constant has no call, so the check now strips import statements before looking. Both negative
+tests then failed as they should, and each file was restored byte-identical.
+
+Evidence: `bharatstudio-alerts` `4dac1aa`. `api 617/0`, `tsc` clean, `harness:check` passes; no
+test depended on the looser limit.
