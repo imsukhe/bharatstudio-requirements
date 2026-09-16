@@ -349,7 +349,12 @@ def check_missing_row_metadata() -> None:
 def check_restated_counts() -> None:
     # a bare count near the words requirement / register / rows, ignoring years,
     # ISO dates and migration numbers
-    NUM = r"(?<![-\d])(?!19\d\d|20\d\d)\d{3,4}(?![-\d])"
+    # 0\d{3} excludes the repo's zero-padded migration numbers (0081, 0134),
+    # which this check's comment always claimed to ignore but its pattern did
+    # not -- "migration `0134` makes reservations durable rows" tripped it.
+    # A register row count can never carry a leading zero, so excluding that
+    # shape costs the check nothing.
+    NUM = r"(?<![-\d])(?!19\d\d|20\d\d|0\d{3})\d{3,4}(?![-\d])"
     near = re.compile(
         rf"({NUM}[^.|]{{0,45}}?(?:requirement|register|rows\b)"
         rf"|(?:requirement|register|\brows\b)[^.|]{{0,45}}?{NUM})", re.I)

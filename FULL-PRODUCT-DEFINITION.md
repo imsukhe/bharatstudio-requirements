@@ -3301,9 +3301,36 @@ dropped. The dead parameters are recorded as a separate cleanup, not fixed here.
   usually lands while the other is still queued.
 
 **What this row now means.** Not "never delay the visual" — that was the 2026-09-14
-reading. It now means **bound the delay to one attempt and never desync**. The current
-worker still violates it, because it runs enrichment before release with no failure
-classification, no retry policy and no ordering guarantee.
+reading. It now means **bound the delay to one attempt and never desync**.
+
+**Built 2026-09-16, locally verified.** The worker classifies every enrichment outcome
+(`EnrichSuccess` / `EnrichTimeoutAmbiguous` / `EnrichTerminal`), retries only unambiguous
+failures and — structurally, not by convention — can never retry a timeout:
+`classifyTransportError` never returns the retryable class for one, so the retry branch is
+unreachable from the ambiguous case. Every failure class still reaches `Store.Release`
+unconditionally. The overlay orders its display queue by `createdAt`. Evidence:
+`tests/TC-RT-03-checks-synthesis-release.md`.
+
+**Correction, 2026-09-16 — the quota release was not what its own comments claimed.**
+Migration `0128` closed the live defect (a failed synthesis permanently consumed premium
+characters) but left two properties enforced by nothing but a caller-side comment, and
+both could **manufacture quota a creator never reserved**:
+
+- **Release was not idempotent.** The `greatest(...,0)` floor stops a negative counter and
+  nothing more; a second release against a month holding other usage subtracts twice.
+- **Release credited the current month, not the month charged.** A billing-month rollover
+  between reserve and release left the old month charged and the new month credited.
+
+The acceptance test asserted the first property and passed, because it only ever released
+a month whose counter had already reached zero — the one arrangement where the floor hides
+the missing property. Migration `0134` makes reservations durable rows: the meter records
+what it charged and to which month, release consumes that reservation exactly once against
+that month, and the non-idempotent signature is dropped rather than left callable. Both
+defects were reintroduced one at a time and the rewritten test failed on each. Evidence:
+`tests/TC-RT-03-checks-synthesis-release.md`, `active/tasks/RT-03.md`.
+
+This is local arithmetic verification only. It is not provider, invoice or settlement
+evidence, and it makes no claim about what any TTS provider has actually billed.
 
 #### RT-04 · Payment acknowledgement waits on a worker-pump scan
 

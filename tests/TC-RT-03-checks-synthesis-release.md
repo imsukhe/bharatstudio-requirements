@@ -107,3 +107,75 @@ to the owner; deliberately not decided or changed here.
 **What this evidence is not.** Every line is local. None of it is production, provider,
 app-store, legal, tax, staging, OBS, device, network, quota or release evidence, and none
 may be cited as performance evidence (§35.1 rule 6).
+
+---
+
+## Correction and re-verification, 2026-09-16 — RT-03.6 tightened (migration `0134`)
+
+**RT-03.6's evidence line above is superseded, and the reason matters more than
+the replacement.** The clause "a second release is a safe no-op (never
+negative, never manufactures quota)" was recorded as proven. It was not. The
+test that proved it released a billing month whose counter had already reached
+`0`, the single arrangement where `greatest(...,0)` floors the second
+subtraction and hides the fact that `release_tts_usage_reservation(uuid, integer)`
+had no idempotency of its own. Against a month holding other usage, the same
+double release subtracted twice and manufactured quota. The check was blind to
+the case it was never told about.
+
+A second, unproven property was also claimed by the `TtsQuotaMeter` interface
+comment rather than by a test: that a release never manufactures quota after a
+billing-month rollover. It did — a release always credited the *current* month,
+so a rollover between reserve and release left the old month charged and the new
+month credited characters it never reserved.
+
+**Replacement evidence.** `packages/db/tests/rt03_tts_quota_reservation_release.sql`
+(rewritten) now proves, against migration `0134`:
+
+| Case | What it asserts |
+|---|---|
+| Reserve → release | The exact pre-reservation balance is restored. |
+| **Double release while another reservation is open** | The month's counter stays at the other reservation's charge. This is the case the previous test could not see. |
+| The other reservation afterwards | Still releases exactly once, for exactly its own charge — a duplicate release of one reservation does not disturb another. |
+| **Release after a billing-month rollover** | Credits the month the reservation names, with the current month left untouched at its own usage. |
+| Null reservation id | Safe no-op. |
+| Zero-character meter | Charges nothing and writes no reservation at all, so no zero-character row can exist to be released. |
+| Negative character count | Rejected, `22023`. |
+| Unknown reservation id | Raises `23503` rather than silently releasing against nothing. |
+| `bsa_app` direct table access | Refused (`insufficient_privilege`) — the ledger is reachable only through the two security-definer functions. |
+
+The "partial release" case is **gone, not relocated**: release is now
+all-or-nothing per reservation, so releasing less than was reserved is no longer
+expressible. See `active/tasks/RT-03.md`'s Correction for why that narrowing was
+deliberate.
+
+**Route-layer evidence** (`apps/api/test/tts-quota-metering.test.ts`): the
+assertions now name the reservation id rather than a character count —
+`release(reservationId)` is called with the id the meter returned on a provider
+throw and on a provider chime-mode result, on a cache hit, and never on success
+or on a pre-synthesis quota denial.
+
+**Commands and outputs, 2026-09-16.**
+
+- `pnpm db:test:all` → `SQL SUITE: pass=61 fail=0`
+- `pnpm --filter @bharatstudio/alerts-api test` → `tests 590  pass 590  fail 0`
+- `pnpm db:test:l03` → `pass 2  fail 0`
+- `pnpm --filter @bharatstudio/alerts-api build` → clean (`tsc -p tsconfig.json`)
+- `pnpm contracts:validate` → 70 paths, 77 operation contracts, 40 fixtures
+- `pnpm explain:check` → `16/16 plans current`, 16 manifest entries + 6 exemptions
+
+**Negative verification — each defect reintroduced separately, then reverted.**
+
+| Defect reintroduced | Result |
+|---|---|
+| `released_at` guard disabled (0128's non-idempotency) | `FAIL rt03_tts_quota_reservation_release` · `SQL SUITE: pass=60 fail=1` |
+| Release re-pointed at `date_trunc('month', current_timestamp)` (0128's month bug) | `FAIL rt03_tts_quota_reservation_release` · `SQL SUITE: pass=60 fail=1` |
+
+The migration was restored byte-identical after each run (`diff` clean). Neither
+defect was caught by the previous version of this test; both runs are recorded
+because that contrast, not the green, is the evidence that the new test is worth
+having.
+
+**What this evidence is not.** Local only. It is not production, provider,
+invoice, settlement, app-store, legal, tax, staging, OBS, device, network,
+quota or release evidence, and it makes no claim about what any TTS provider
+has actually billed.
