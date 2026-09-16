@@ -1040,3 +1040,23 @@ duplicated here so the two cannot drift apart.
 - **Safe mode has no record of its own.** Owner decision 1 says it needs one before it can appear on this card. This slice did not write it, because writing it would be deciding what safe mode *is* — a moderation product decision, not an implementation one. Someone has to author that record; it is not this implementer's call, and the half of §6 #12 it governs stays unbuilt until then.
 - **`alert_queues(channel_id)` has no index.** Stated above under Decisions. It is a real question about a shared table, and the right time to answer it is when someone has a realistic row count, not now.
 - **`MASTER_CANVAS_BUILT_MODULE_KEYS` in `apps/api/src/domain/master-canvas-store.ts` is stale and was left stale.** It still lists the four slice-2 modules; slices 3 and 4 added their renderers without updating it, and this slice followed that precedent rather than silently diverging from it. Nothing reads the constant today (the host page keeps its own `BUILT_MODULE_KEYS` list), so it is documentation that has drifted, not a live gate — but it is drifting further with every slice and someone should decide whether to fix or delete it.
+
+## Slice 6 — two modules, two separate task records
+
+Slice 6's work is recorded in its own task records rather than inline here, because the
+two halves were built concurrently by separate agents and a single appended section is
+what collided in slice 5:
+
+- **§6 #5 Reaction Cloud** — [`PRF-02-slice-6-reaction-cloud.md`](PRF-02-slice-6-reaction-cloud.md) ·
+  acceptance [`../../tests/TC-PRF-02-slice-6-reaction-cloud.md`](../../tests/TC-PRF-02-slice-6-reaction-cloud.md)
+- **§6 #12 safe mode** (completing the Moderator Status Card) —
+  [`PRF-02-safe-mode.md`](PRF-02-safe-mode.md) ·
+  acceptance [`../../tests/TC-PRF-02-safe-mode.md`](../../tests/TC-PRF-02-safe-mode.md)
+
+Both are bound by [`../../reviews/2026-09-16-prf-02-slice-6-owner-decisions.md`](../../reviews/2026-09-16-prf-02-slice-6-owner-decisions.md),
+the decision record written **before** either agent was dispatched.
+
+**The Master Canvas now renders ten of twenty §6 catalogue modules** (#1, #2, #3, #4, #5,
+#7, #8 current-only, #9, #12, #13) on one connection and one rAF loop — verified by hand
+on the merged tree, not taken from either agent's report. **PRF-02's register letter is
+still `A`**, and ten of twenty is still not a canvas.
