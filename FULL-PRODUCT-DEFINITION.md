@@ -989,6 +989,19 @@ One browser source replaces the pile. Streamlabs' own pattern — alerts, chat, 
 media, custom widgets and themes each added as a separate browser source — is exactly
 the clutter we remove.
 
+**Competitive accuracy, checked 2026-09-16 and recorded before the claim can be made.**
+"One source replaces twelve" is true against **Streamlabs**, which is genuinely per-widget:
+one Widget URL becomes one browser source, repeated per widget. It is **not** a
+differentiator against **StreamElements**, whose Overlay Editor already composes alerts,
+widgets, goals and chat into a single browser source
+(`docs.streamelements.com/overlays`, accessed 2026-09-16). Anyone writing that sentence for
+publication must name Streamlabs or re-verify StreamElements first.
+
+What is **not** matched by either, on their public documentation: a single connection **and**
+a single render loop **and** per-module error isolation together. That is the correctness
+claim, and it is a different sentence from the source-count one — it needs RT-07 evidence
+before it may be made at all (RT-09).
+
 **Every module below is a module of the one canvas, never a new OBS source, and never
 a parallel state system.** Goals, votes, leaderboards, hype, challenges and stickers
 are extended through these modules rather than duplicated.
@@ -6019,7 +6032,7 @@ surfaces had no rows.*
 | RT-09 | No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | v1 | A | **P0** |
 | RT-10 | Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads. **P, not U**: the mechanism and its fail-safe classification are built and tested, and hold *by construction* (only GETs are ever classified, so no write can be shed); the pool and admission **values ship unset** because no authority states one — they wait on ENV-08 | v1 | P | **P0** |
 | RT-11 | Query timeouts on every read path; a pathological query fails fast rather than holding a connection. **P, not U**: the mechanism is built, excludes every durable-path statement by construction, and rejects at startup any configured timeout below §19.4's 200ms read budget; the **value ships unset** pending ENV-08 | v1 | P | P1 |
-| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes — wired into `verify:local`. The plans are **plan-shape change detectors captured on an unsized local database**, never evidence a §19.4 budget is met at production scale; each artefact says so in its own body | v1 | U | **P0** |
+| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes — wired into `verify:local`. The plans are **plan-shape change detectors captured on an unsized local database**, never evidence a §19.4 budget is met at production scale; each artefact says so in its own body. **Downgraded U→P on 2026-09-16**: the checker is artefact-driven, so it proves existing plans are current but is structurally blind to a widget-backing query that never got one — PRF-02 added two and it still reported 10/10 green | v1 | P | **P0** |
 | RT-13 | Per-channel live-transport cap counted across Canvas and standalone widgets; over-cap widgets degrade to slow snapshot polling with a visible notice (§21.3) | v1 | A | P1 |
 
 #### 31.18.1 Overlay and read-path performance

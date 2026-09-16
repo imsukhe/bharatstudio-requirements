@@ -112,3 +112,27 @@ can classify any GET, but the isolated pool is wired into five verified read-onl
 plus the widget layer. Other derived GETs are classified but still share the main pool.
 Whether to widen it is an open question referred to the owner. This is the main reason RT-10
 is `P`.
+
+## Downgraded U → P on 2026-09-16 — a blind spot found by the next task
+
+PRF-02 added two overlay-backing functions, `app_private.list_channel_master_canvas_modules`
+and `app_private.list_overlay_master_canvas_modules`. Neither has an EXPLAIN artefact.
+`pnpm explain:check` reports **OK: 10/10 plans current**.
+
+**The checker is artefact-driven.** It enumerates the `*.explain.md` files that exist,
+re-extracts each documented function body from its migration, and compares hashes. That
+proves every plan it knows about is current. It has no notion of which queries *ought* to
+have a plan, so a widget-backing query that never got one is invisible to it and the suite
+stays green.
+
+RT-12's row asks for a plan "for **every** widget-backing query, re-checked when the query
+changes". The second half is enforced. **The first half is not**, and that is the §2 failure
+pattern — a check that exists, runs, passes, and cannot catch the thing it was built for —
+appearing inside the check written to prevent regressions, within hours of the row being
+marked `U`. Marking it `U` was my error; `P` is the honest state.
+
+**Not fixed here.** Closing it needs both the two missing artefacts captured against a
+running database, and a checker that can tell which queries require one — which needs a
+declared set rather than a directory listing, since "widget-backing" is not inferable from a
+filename. Folded into the next PRF-02 slice, because every module ported adds
+widget-backing queries and the gap would otherwise recur once per slice.
