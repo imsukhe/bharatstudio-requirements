@@ -2543,10 +2543,13 @@ Backend obligations that make it enforceable rather than aspirational:
   over every widget, dashboard and analytics read, and that priority is enforced, not
   assumed.
 
-**The two current violations, named:** idle overlays poll and replay every two seconds
-(RT-01), and standalone widgets each open their own live transport (§21.3). Both are
-replaced by the channel-keyed, single-Master-Canvas model before the experience may be
-described as smooth.
+**Of the two violations named here, one is closed and one is not.** Idle overlays polling
+every two seconds (RT-01) was corrected on 2026-09-15 — a connected idle overlay now issues
+zero store reads. **Standalone widgets still each open their own live transport** (§21.3):
+`apps/web/app/overlay/widgets/shared/overlay-transport.ts` states in its own comment that it
+holds "one long-lived connection per widget instance", so twelve widgets remain twelve
+connections. Collapsing that is PRF-02, in progress. Until it lands the experience may not be
+described as smooth, and §19.4's marketing ban stands regardless because RT-07 is Blocked.
 
 ### 12.8 One message, end to end — the story
 
@@ -3297,6 +3300,15 @@ truth, the webhook waits on a worker-pump HTTP call with a five-second timeout
 purely because dispatch was slow. And a failed enqueue has no enabled periodic sweeper
 to recover it (`bharatstudio-crons` ships every schedule `"enabled": false`).
 
+**Corrected 2026-09-16, locally verified.** The commit is the truth and the 2xx follows it
+unconditionally; dispatch became a fire-and-forget post-commit wake-up that cannot influence
+the status code. Every pre-commit guarantee is unchanged — HMAC over the raw body, event-id
+dedup, append-only evidence — and **a commit failure still returns 503 and is still retried**.
+The recovery path is real: `bharatstudio-crons`'s `outbox-recovery` schedule is enabled
+(RT-08), so a missed wake-up is re-scanned on the next tick rather than lost. The honest cost:
+for a *missed* wake-up, dispatch latency for that one delivery becomes the schedule interval.
+Evidence: `tests/TC-RT-04-webhook-commit-and-leased-dispatcher.md`.
+
 **Fix:** the webhook does exactly one thing — **one atomic durable commit, then an
 immediate 2xx**. Dispatch is a **post-commit wakeup only**, fire-and-forget, and never
 part of the acknowledgement. An **independently scheduled, leased outbox dispatcher**
@@ -3313,6 +3325,15 @@ we put on our own API and on the provider.
 
 **Fix:** the leased dispatcher from RT-04 is the only scanner. Webhooks never scan.
 Leases make concurrent dispatchers safe and bounded.
+
+**Corrected 2026-09-16, locally verified.** Migration `0129` adds a single-row dispatch lease:
+`acquire` is one atomic `UPDATE` with its guard inside the statement, so concurrent runs
+serialise on the control row and the loser's predicate re-evaluates false. It deliberately
+does **not** reuse `event_outbox_deliveries.lease_token` — that field means "this delivery is
+claimed for processing" and is set at Cloud-Task-fire time, so borrowing it as a *scan* lease
+would block the real claim for the lease TTL on every normal delivery, trading a dispatch bug
+for a latency bug. No new number: the 60s TTL is the `outbox-recovery` schedule's own
+`timeoutSeconds`. Evidence: `tests/TC-RT-05-dispatcher-is-the-only-scanner.md`.
 
 #### The target shape, stated once
 
@@ -6434,7 +6455,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | **Demand-driven fetching** | **A YouTube call happens only while a human is looking at something that needs it** (§4.4). Reference-counted subscriptions per `(channel, datum)`, driven by the same RT-02 subscriber map; visibility-based unsubscribe with hysteresis; cross-channel and cross-field batching; tip-page live player and chat behind an explicit click, as zero-quota embeds; chat ingestion subscribed **by feature in use**, never by liveness; and a budget manager that degrades globally and visibly rather than starving one creator. A creator with no YouTube-derived widget costs zero quota all day. Traffic never multiplies quota — only distinct channels and datums do. |
 | **Surface data sources** | **One fetch, many surfaces** (§4.2, CON-31): no surface ever calls YouTube; the server fetches once per channel and fans out over the channel-keyed SSE. Twelve widgets cost what one costs. Stream health comes from the local helper and never touches Google. Chat *display* is the official embed at zero quota; chat *ingestion* is the only genuinely expensive item and is Phase 4, gated on the quota grant. |
 | **YouTube quota** | **Quota is per Google Cloud project, not per creator** (§4.1). A creator's OAuth grant conveys permission, never allowance; every connected creator spends our 10,000-unit default day. A quota increase is required before YouTube ships at any scale, per-call unit costs need dated sources, and polling cadence is a quota budget with a defined degradation path. Filed in Phase 4 with measured usage, per the sequencing decision above. |
-| **Runtime remediation** | **Four shipped paths are P0 defects and outrank every Phase 1 feature** (§19.0): idle overlays polling every 2s, one event waking every overlay on the instance, TTS delaying the visual, and payment acknowledgement waiting on a pump scan. Plus RT-05 uncoordinated scanning, RT-06 no histograms, RT-07 no browser/OBS/device evidence. Until they close, **no speed or "one source replaces twelve" claim is publishable**. |
+| **Runtime remediation** | **Corrected 2026-09-15/16, locally verified** (§19.0): the 2s idle poll (RT-01, `U`), the wake-everyone fanout (RT-02, `P` — ceilings unset), TTS delaying the visual (RT-03, `U`), the webhook waiting on a pump scan (RT-04, `U`), uncoordinated scanning (RT-05, `U`), missing histograms (RT-06, `P` — cross-instance aggregation unproven), and the disabled dispatcher schedule (RT-08, `P`). **RT-07 remains Blocked** — no browser, OBS, device or load evidence exists — so **no speed or "one source replaces twelve" claim is publishable**, and that is unchanged by every fix above. Master Canvas (PRF-02) is also still absent, which independently blocks the "one source" claim. |
 | **Alert audio** | **Checks, then synthesis, then one release.** Picture and voice go out together, after every moderation and safety check. The hold is capped at one synthesis attempt by the provider timeout that already exists; an unambiguous failure may be retried, a timeout never may, because a timeout does not tell us whether the characters were already billed. Terminal failure releases the picture without audio and the chime covers it. *Owner decision 2026-09-16, superseding the two-phase release.* |
 | **Concurrency target** | **2,000 concurrent live overlays.** Deliberately above a first-year expectation, because a shared channel-keyed subscriber registry is cheap now and a rebuild later, and the failure being avoided is a successful launch weekend taking the product down. |
 | **Bounded data** | **No surface may fetch, render, subscribe to or retain more live data than it can display safely** (§12.7). Live surfaces receive small purpose-built projections, never raw history. Deep history stays durable and exportable under §12.6 but is paginated, searched, or exported as a background job — never dumped into a dashboard or an overlay. |
