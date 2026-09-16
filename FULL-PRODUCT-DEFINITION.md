@@ -1016,10 +1016,10 @@ are extended through these modules rather than duplicated.
 | 6 | **Safe Soundboard Alert** | Approved clips only, with cooldown and queue |
 | 7 | **Supporter Ticker** | Latest supporter, goal, creator-selected copy |
 | 8 | **Challenge Board** | Current / next / completed, with no false refund promise |
-| 9 | **Stream Mission Card** | Creator-defined objective and timer |
+| 9 | **Stream Mission Card** | Creator-defined objective and timer. *Owner decision 2026-09-16: built in PRF-02 slice 5, overriding §34's Phase 3 placement for this module only. Objective text reuses the already-decided challenge-title bound (1–120 characters, migration `0109`); the mission is session-bounded, not clock-bounded — no duration number is invented.* |
 | 10 | **QR Smart Card** | Visibility tied to scene, gameplay safe zones, or Clutch Mode |
 | 11 | **Sponsor Card** | Scheduled placement with an exposure event log |
-| 12 | **Moderator Status Card** | "Messages held", "safe mode on" — never private content |
+| 12 | **Moderator Status Card** | Held count and moderation state — never private content. *Owner decision 2026-09-16: "safe mode" is **not** `alert_queues.is_paused`. Safe mode is a separate moderation control that does not exist in the schema, so this module ships its held half only and safe mode needs its own record and decision before it can appear here. The held figure is held **alert deliveries** (`event_outbox_deliveries.status = 'held'`), not chat messages — §6's original "messages held" wording predates the schema and is corrected to it.* |
 | 13 | **Milestone Celebration** | One reusable animation fired by verified state transitions |
 | 14 | **Vertical Stream Layout** | Narrow chat, compact goal, QR, reactions for mobile scenes |
 | 15 | **Stream Health Widget** | Creator-only view of YouTube, payment, alert and OBS health |
@@ -2858,6 +2858,7 @@ preset names, module copy — per language.
 | Do-not-interrupt windows tied to a scene | — | — | yes | yes |
 | **Per-scene-profile placement and theming** | — | — | yes | yes |
 | **Per-aspect-ratio variants** (16:9, 9:16, 4:3) of one canvas | — | — | yes | yes |
+| *Owner decision 2026-09-16 — the vertical layout itself is **Pro**, per §30.3's tier table, which binds. This row covers something different and narrower: maintaining **three** aspect-ratio variants of one canvas as a customisation system. A Pro creator gets a vertical layout; keeping 16:9, 9:16 and 4:3 variants of the same canvas side by side stays Creator. §6 module #14 is the Pro thing, CST-08 is this row.* | | | | |
 | **Conditional themes**: festival date ranges (Diwali, Holi, Eid), time of day | — | — | yes | yes |
 | **Sponsor-safe mode** — swap to a neutral theme for a segment, swap back | — | — | yes | yes |
 | Overlay theme follows the OBS scene automatically | — | — | yes | yes |
