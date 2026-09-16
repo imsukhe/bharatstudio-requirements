@@ -1,7 +1,7 @@
 # PRF-02 — Master Canvas as the runtime
 
 **Authority:** [`../../FULL-PRODUCT-DEFINITION.md`](../../FULL-PRODUCT-DEFINITION.md) §6, §19.4, §19.5, §9.1.1, §12.7, §15.4.3, §30.3, §31.18.1 PRF-02, §34, §37.2, §37.11
-**Status:** `Conditionally complete — slice 1 (runtime + Supporter Ticker + Community Goal Ladder) and slice 2 (Tug-of-War Vote + Boss Fight + RT-12 blind-spot closure) both implemented and locally verified; independent review unavailable; PRF-02's full register row remains open`. See "Slice 2" below for the second slice's own scope, evidence and referrals — it does not repeat or restate slice 1's material, which stands as originally recorded above.
+**Status:** `Conditionally complete — slice 1 (runtime + Supporter Ticker + Community Goal Ladder), slice 2 (Tug-of-War Vote + Boss Fight + RT-12 blind-spot closure) and slice 3 (Support Theater ported onto the runtime, sharing the Canvas's own single overlay session, "next up") all implemented and locally verified; independent review unavailable; PRF-02's full register row remains open`. See "Slice 2" and "Slice 3" below for each later slice's own scope, evidence and referrals — neither repeats or restates an earlier slice's material, which stands as originally recorded. **Slice 3 carries its own dated Correction** (a first build gave Support Theater a second overlay session; corrected, per the coordinator's own instruction, to share the Canvas's one session/connection instead) — read Slice 3's "Correction, 2026-09-16" note before its Decisions.
 
 **This slice is the runtime plus exactly two modules (Supporter Ticker,
 Community Goal Ladder) — never the full twenty-module catalogue, and never
@@ -463,3 +463,284 @@ claim — unchanged and untouched by this slice.
 - RT-12's blind spot is **narrowed, not fully closed** — see
   `tests/TC-RT-12-explain-plans.md`'s update for exactly what would still
   slip past the new manifest-and-scan mechanism.
+
+---
+## Slice 3 — Support Theater ported onto the runtime, its own overlay session, "next up"
+
+**Status:** `Conditionally complete — implemented and locally verified; independent review unavailable; PRF-02's full register row still not closed`
+**Review authority:** `reviews/2026-09-16-prf-02-slice-2-scope-review.md` — the product/market/creator/streamer scope review that split Support Theater into its own slice, already performed by a separate review-only agent and confirmed by Opus. This slice's implementation record (`reviews/2026-09-16-prf-02-slice-3-implementation.md`) points at that review rather than repeating it, and additionally carries a dated **Correction** section — read that before this task record's own "Decisions" below, because it changes what those decisions say.
+
+### Correction, 2026-09-16 — read this first
+
+This slice was first built and verified with Support Theater given its
+own, second overlay session (a `stOverlayId`/`stToken` URL hash pair) and
+its own dedicated SSE+acknowledgement transport, separate from the
+Canvas's shared `MasterCanvasConnection`. That followed the coordinator's
+own instruction as literally written ("the Canvas Support Theater module
+requires its own overlay session"). The coordinator then corrected that
+instruction: the intent was narrower — the CANVAS must not share a
+session with the STANDALONE page, not that Support Theater needed a
+session distinct from the rest of its OWN Canvas. Inside one Canvas there
+is exactly one acknowledging consumer (Support Theater); the other four
+modules are stateless snapshot readers that never call `/cursor`, so
+there is no acknowledgement race *inside* a Canvas to defend against, and
+giving Support Theater a second session cost the property PRF-02 exists
+for — one connection, adding a module adds zero connections — for a risk
+that lived at a different boundary (between the Canvas and the separate
+standalone page, which already has its own session by construction).
+
+This is recorded as a correction, not silently rewritten, per the
+coordinator's own explicit instruction: **the two-session design and its
+evidence below have been replaced, in place, by the corrected one-
+connection design** — this task record now describes only the corrected
+design, and the full account of what was built first, what was wrong
+with it, and how it was fixed lives in
+`reviews/2026-09-16-prf-02-slice-3-implementation.md`'s own "Correction"
+section, attributed there to the coordinator rather than to this
+implementer's judgement. Everything below this note describes the
+CORRECTED design only.
+
+| Field | Value |
+|---|---|
+| **Scope phase** | `v1`; Phase 0.5/opening Phase 1, same as slices 1–2. Renderer for the fifth catalogue module (`support_theater`) plus its acknowledgement/queue/display-timer/audio orchestration, ported to the runtime shape — no new capability |
+| **Owner** | **Sukhdev Singh** |
+| **Tier and gate** | Same server-owned §30.3 module cap as every other built module (Free 2 / Pro 5 / Creator 12 / Studio all) — `support_theater` was already in migration 0131's 20-key catalogue check constraint (slice 1), so no migration change was needed |
+| **Personal-data class** | Unchanged from the existing standalone page this module ports: operational/personal (supporter display name, message, amount) already carried by `get_overlay_events`'s existing payload — no new field, no new identifier, no new log/metric label |
+| **Provider or legal dependency** | None. Reuses the existing `/v1/overlays/:overlayId/events` and `/v1/overlays/:overlayId/cursor` routes byte-for-byte unchanged, through the Canvas's own single, already-existing overlay session — no second session, no new capability |
+| **Failure behaviour** | See "Failure behaviour, kill switch, rollback" below |
+| **Kill switch** | See "Failure behaviour, kill switch, rollback" below |
+| **Acceptance test** | `tests/TC-PRF-02-slice-3-support-theater.md` |
+| **Evidence location** | `tests/TC-PRF-02-slice-3-support-theater.md`, `apps/web/app/overlay/canvas/modules/support-theater-module.ts`, `apps/web/app/overlay/canvas/modules/support-theater-module.test.ts`, `apps/web/app/overlay/canvas/alert-audio.ts`, `apps/web/app/overlay/canvas/master-canvas-connection.ts` (extended: `subscribeToEvents`/`acknowledge`, ack-aware reconnect cursor, forced resync), `apps/web/app/overlay/canvas/master-canvas-connection.test.ts` (+5), `apps/web/app/overlay/canvas/[overlayId]/page.tsx` (wiring), `apps/web/app/overlay/canvas/master-canvas-integration.test.ts` (the five-modules test), `apps/web/app/overlay/canvas/text-rendering.ts` (the additive `message` role), and this section |
+| **Rollback** | See "Failure behaviour, kill switch, rollback" below |
+
+### Failure behaviour, kill switch, rollback
+
+**Failure behaviour:**
+
+- **The module throws twice.** The runtime's existing generic per-module
+  error boundary (unchanged, proven in slices 1–2) marks it `down` after
+  the second failure; the other four modules keep rendering.
+- **The shared connection drops.** It reconnects with backoff, exactly as
+  it already did for the four snapshot modules. Once Support Theater's
+  event-payload subscription exists, reconnect resumes from the
+  **acknowledged** cursor, never the merely-seen one, so an unacknowledged
+  delivery can never be silently skipped by the server's own
+  `created_at >` filter (`get_overlay_events`, unchanged) — see
+  `master-canvas-connection.ts`'s own header for the full reasoning.
+- **An acknowledgement fails.** Retried with backoff (500ms → 5s,
+  unchanged from the standalone page's own values, now issued through the
+  connection's `acknowledge()` method rather than a private fetch); the
+  item is neither dropped nor shown a second time by this consumer.
+- **TTS/audio fails or times out.** Falls through to the chime, exactly
+  as RT-03 and the standalone page already specify — `DEFAULT_TTS_PLAYBACK_TIMEOUT_MS`
+  (`tts-runtime.ts`) is untouched by this slice.
+- **`deactivate()` at any point** — mid-acknowledgement, mid-display-timer,
+  mid-audio-playback — is safe and idempotent: one `generation` counter
+  gates every fetch, the display timer, and the acknowledgement retry loop
+  together (this task's own binding instruction, §1 "Build one
+  invalidation token..."). This property was unaffected by the transport
+  correction — it lives entirely in the module's own state machine, not in
+  how events arrive. See "Decisions" below for why the stale-`active.current`
+  stall is impossible **by construction**, not only tested against.
+
+**Kill switch:** identical in kind to slices 1–2's — the pre-existing
+standalone page (`/overlay/[overlayId]/page.tsx`) is **untouched by this
+slice** (this slice added one new file, `canvas/alert-audio.ts`, rather
+than editing the standalone page, specifically so that invariant stays
+literally true — see Decisions) and remains fully functional. A creator
+who wants out of Canvas Support Theater removes the Canvas source from
+OBS and keeps their existing standalone alert source — no data migration,
+because both consumers read the same underlying
+`event_outbox_deliveries`/`alert_events` tables through the same,
+unmodified routes, each through its own session (the Canvas's one session,
+the standalone page's own separate one — the real boundary the original
+scope review's race lives at).
+
+**Rollback:**
+
+- Delete `apps/web/app/overlay/canvas/modules/support-theater-module.ts`,
+  `apps/web/app/overlay/canvas/modules/support-theater-module.test.ts`,
+  and `apps/web/app/overlay/canvas/alert-audio.ts`.
+- Revert `apps/web/app/overlay/canvas/[overlayId]/page.tsx` (the
+  `supportTheaterContainerRef`, the module registration block, and the
+  note/CSS additions), `apps/web/app/overlay/canvas/master-canvas-connection.ts`
+  (the `subscribeToEvents`/`acknowledge` extension, the dual-cursor
+  tracking, `forceReconnect`), and `apps/web/app/overlay/canvas/text-rendering.ts`
+  (the additive `message` role) to their slice-2 state.
+- Revert the new tests in `apps/web/app/overlay/canvas/master-canvas-connection.test.ts`
+  and `apps/web/app/overlay/canvas/master-canvas-integration.test.ts`.
+- No migration, no new table, no new route — nothing to roll back
+  server-side. This slice added zero database or API surface.
+
+### Boundaries
+
+**In scope, this slice:** Support Theater (§6 #1) as a fifth built
+module — queue selection/aggregation, per-item durable acknowledgement
+with retry, the timed display-then-acknowledge state machine, TTS/chime
+audio orchestration, best-effort Lottie enrichment — all ported from the
+standalone page onto `activate()`/`deactivate()`/`render()`, all gated by
+one invalidation token; the "next up" field (§12.7); extending the shared
+`MasterCanvasConnection` with an event-payload subscription and an
+`acknowledge()` method, so Support Theater can join the ONE connection
+the other four modules already use rather than needing a second one.
+
+**Explicitly out of scope, not touched:** every other unbuilt catalogue
+module (Reaction Cloud, Safe Soundboard Alert, Moderator Status Card, and
+the rest); the canvas designer UI in the dashboard; §15.4.3 customisation
+controls for this module; RT-07 evidence (blocked, unrelated); the SSE
+route, the overlay session/auth model, `get_overlay_events`, the cursor
+endpoint or its semantics, migrations `0022`/`0127`'s acknowledgement
+behaviour — **none of these were changed**; `DEFAULT_TTS_PLAYBACK_TIMEOUT_MS`
+(`tts-runtime.ts`) — untouched; the standalone page
+(`apps/web/app/overlay/[overlayId]/page.tsx`) — untouched, per §21.3 and
+this task's own instruction not to remove or deprecate it.
+
+### Decisions
+
+- **One Canvas, one session, one connection — Support Theater included.**
+  Corrected per the coordinator's own instruction (see "Correction,
+  2026-09-16" above): the session-sharing race the original scope review
+  found is between the Canvas and the SEPARATE standalone page, not
+  between modules inside one Canvas. Support Theater now acknowledges
+  through the Canvas's own single session, using the SAME `overlayId`/
+  `token`/`connection` the other four modules already share.
+- **The shared connection was extended, not duplicated.** `master-canvas-
+  connection.ts` gained `subscribeToEvents()` (delivers each event's
+  parsed payload once, plus a `{type:'connected'}` marker on every
+  (re)connect) and `acknowledge()` (one-attempt POST `.../cursor`,
+  advancing the connection's own ack-aware reconnect cursor on success).
+  Snapshot-only modules are unaffected: `subscribe()` is unchanged, and a
+  data frame's JSON body is only ever parsed when at least one
+  event-payload subscriber exists — a module that never calls
+  `subscribeToEvents` pays nothing extra.
+- **Reconnect correctness needed a second, ack-aware cursor.**
+  `get_overlay_events` (migrations 0022/0127, unchanged) replays
+  `status in ('ready','displayed')` — replay-eligible until acknowledged,
+  regardless of whether a consumer merely saw an item on the wire. The
+  four snapshot modules never acknowledge, so "last cursor seen"
+  (`rawCursor`) is fine for them. Support Theater cannot tolerate a
+  reconnect cursor racing ahead of what it has actually acknowledged — an
+  unacknowledged delivery could be silently skipped by the server's
+  `created_at >` filter. So once any event-payload subscriber exists,
+  reconnect uses `ackCursor` (advanced only by a successful
+  `acknowledge()`) instead. Proven directly:
+  `master-canvas-connection.test.ts`'s "once an event-payload subscriber
+  exists, reconnect uses the ack-aware cursor" test.
+- **A late event-subscriber forces one immediate, deliberate reconnect.**
+  If the stream is already running for snapshot-only reasons and Support
+  Theater's event subscription joins afterward, the connection would
+  otherwise only hand it FUTURE frames, silently missing anything already
+  unacknowledged. `subscribeToEvents()` detects exactly this transition
+  and calls `forceReconnect()` (backoff bypassed, reset to the initial
+  delay) so the fresh connect's `last-event-id` triggers a correct
+  replay. In THIS codebase, `BUILT_MODULE_KEYS` lists `support_theater`
+  FIRST and the host page registers/entitles it first, specifically so
+  this path is the correctness backstop, not the ordinary case — proven
+  directly in `master-canvas-connection.test.ts`'s "a late event-payload
+  subscriber... forces an IMMEDIATE reconnect" test, and proven NOT to
+  fire spuriously in the ordinary five-modules-together case by
+  `master-canvas-integration.test.ts`'s `getOpenAttemptCount() === 1`
+  assertion.
+- **One invalidation token, not three flags — unaffected by the
+  transport correction.** The standalone page effectively had three
+  independent cancellation mechanisms because each was a separate
+  `useEffect`. This module has exactly one `generation` counter gating the
+  acknowledgement retry loop, the display timer, the Lottie fetch, and the
+  audio fetch together, per this task's own binding instruction. This
+  property lives entirely in the module's own state and did not need to
+  change when the transport did.
+- **The stale-`active.current` stall is impossible by construction, not
+  merely tested against.** The standalone page's "one group in flight"
+  gate (`active = useRef(false)`) is created once and never reset — safe
+  there only because an unmounted component never runs again. This
+  module's `activate()` can be called again on the SAME returned object
+  (the runtime's own `reconcile()`, unchanged). `resetForActivation()`
+  unconditionally resets every piece of pump state at the **top** of
+  `activate()` itself, not only relying on a prior `deactivate()` having
+  done so. `support-theater-module.test.ts`'s "deactivate() mid-
+  acknowledgement ... then re-activate ... the pump runs" test proves this
+  directly.
+- **A canvas-scoped duplicate of two small audio helpers, not a
+  cross-cutting refactor of the rollback file.** `playChime`/`safeAudioUrl`
+  are duplicated into `apps/web/app/overlay/canvas/alert-audio.ts` rather
+  than extracted from the standalone page, so the standalone page — this
+  product's named mid-stream rollback path — stays untouched by this
+  task. Stated explicitly in `alert-audio.ts`'s own header as a cost
+  accepted rather than an oversight.
+- **"Next up" is bounded to exactly one item, proven not asserted.** The
+  module reads only `queue[0]`; nothing in its render path can reach
+  `queue[1]` or a depth/count.
+- **Bounded aggregate DOM, correcting the standalone page's own pattern.**
+  A fixed, recycled 8-line pool (`DEFAULT_THEATER_AGGREGATE_POOL_SIZE`,
+  an engineering default, same class of value as the ticker's own
+  `DEFAULT_TICKER_ROW_POOL_SIZE`) with a "+N more" summary for anything
+  beyond it.
+- **Indic script fallback.** Unchanged posture from slices 1–2: font
+  family stays data (`defaultCanvasTextStyles()`, extended with one
+  additive `message` role). Porting the alert surface makes Indic
+  fallback **more clearly mandatory**, not less, before this module
+  becomes creator-configurable — carried forward as the same binding
+  precondition slices 1–2 already recorded, now extended to this module.
+- **Moderator Status Card, backlog depth, ETA stay OUT**, per the scope
+  review and Opus's ruling — not re-litigated here.
+- **A same-session mismatch with the standalone page is not detected,
+  and that is stated rather than guessed at.** The original design's
+  "same-session double-mount" guard was built to protect against a risk
+  that, corrected, no longer applies to the Canvas's own session at all —
+  the real, remaining risk (a creator pasting the Canvas's session into a
+  *separate* standalone-page browser source, or vice versa) is not
+  observable from this page's own JavaScript, which has no visibility
+  into a different browser source's configuration. Per this task's
+  instruction not to build elaborate detection where cheap detection
+  is not available, no client-side heuristic is built for it — see
+  Referred, below.
+
+### Evidence location
+
+`tests/TC-PRF-02-slice-3-support-theater.md`,
+`apps/web/app/overlay/canvas/modules/support-theater-module.ts`,
+`apps/web/app/overlay/canvas/modules/support-theater-module.test.ts` (10
+cases), `apps/web/app/overlay/canvas/alert-audio.ts`,
+`apps/web/app/overlay/canvas/master-canvas-connection.ts` (extended),
+`apps/web/app/overlay/canvas/master-canvas-connection.test.ts` (+5 cases),
+`apps/web/app/overlay/canvas/[overlayId]/page.tsx`,
+`apps/web/app/overlay/canvas/text-rendering.ts`,
+`apps/web/app/overlay/canvas/master-canvas-integration.test.ts` (one
+corrected five-modules case), and this section.
+
+### Checks run — real counts, this worktree, 2026-09-16 (from `bharatstudio-alerts` unless noted)
+
+| Command | Result |
+|---|---|
+| `pnpm --filter @bharatstudio/alerts-api build` | passed, untouched by this slice |
+| `pnpm --filter @bharatstudio/alerts-api test` | **585 passed, 0 failed** (slice-2 baseline 585/0; unchanged — this slice added no `apps/api` code) |
+| `pnpm --filter @bharatstudio/alerts-web build` | passed; `/overlay/canvas/[overlayId]` route unchanged in the route table |
+| `pnpm --filter @bharatstudio/alerts-web test` | **402 passed, 0 failed** (slice-2 baseline 386/0; net +16: `support-theater-module.test.ts` ×10, `master-canvas-connection.test.ts` ×5 new, `master-canvas-integration.test.ts` ×1 corrected) |
+| `pnpm contracts:validate` | passed — 40 fixtures, 68 OpenAPI paths, 75 operation contracts, 3 negative cases, unchanged (no new/changed route) |
+| `pnpm explain:check` | **OK: every app_private call ... present (16 manifest entries, 6 exemptions)** then **OK: 16/16 plans current** — unchanged from the count already present when this slice's correction pass began (another agent's concurrent work in `packages/db/explain-plans/`, not this slice's; per this task's own instruction, a higher count from that agent is not a failure). This slice added no widget-backing query |
+| `pnpm db:test:all` | **59 files passed, 0 failed** — unchanged from slice 2 (this slice added no migration and no SQL test file) |
+| `pnpm db:test:l03` | **25 file(s) passed** — unchanged from slice 2, full Go/TS integration legs passed |
+| `pnpm measurement:test` | passed — 5 Node tests + 4 Python tests, unchanged |
+| `(cd services/alert-worker-go && go build ./... && go test -race ./... && go vet ./...)` | passed, 10 packages, all `ok`, untouched by this slice |
+| `(cd services/payment-webhook-go && go build ./... && go test -race ./... && go vet ./...)` | passed, 10 packages (one `[no test files]`, pre-existing), all `ok`, untouched by this slice |
+| `git diff --check` | clean |
+| `python3 tools/doc_consistency.py` (this repository) | see the run recorded at the foot of this record |
+| `python3 tools/traceability.py` (this repository) | see the run recorded at the foot of this record |
+
+**What this evidence is not** — same rule as slices 1–2, restated because
+it is the one most likely skimmed past: every number above is local
+(JSDOM/Node test runner, a local Dockerized Postgres, `go test`). None of
+it is OBS, Chromium, device, network, or production evidence. §19.0's
+RT-07 (blocked) remains the only row that gates any frame-timing,
+GPU-compositing, memory-over-8-hours, or "one source replaces twelve"
+claim — unchanged and untouched by this slice.
+
+### Referred to Opus
+
+- **A same-session mismatch between the Canvas and the standalone page
+  cannot be detected client-side**, and this task's own hard rules
+  forbid building a server-side signal for it (an L3 API/data change)
+  without separate authority. If this is worth closing, it needs its own
+  scope call — not decided here. (The original slice's dashboard-URL
+  referral, "no flow exists to generate a second session's URL," no
+  longer applies: there is no second session to generate a URL for.)
