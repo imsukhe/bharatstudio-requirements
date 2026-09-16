@@ -136,3 +136,60 @@ running database, and a checker that can tell which queries require one — whic
 declared set rather than a directory listing, since "widget-backing" is not inferable from a
 filename. Folded into the next PRF-02 slice, because every module ported adds
 widget-backing queries and the gap would otherwise recur once per slice.
+
+## Update 2026-09-16 — PRF-02 slice 2: manifest + scan built, narrowed not fully closed
+
+`active/tasks/PRF-02.md`'s "Slice 2" section and
+`reviews/2026-09-16-prf-02-slice-2-implementation.md` carry the full account. Summary for this
+record:
+
+**What was built.** `packages/db/explain-plans/required-queries.json` is now the declared set
+this "Not fixed here" note above said was needed — every `app_private` function that backs an
+overlay/widget-facing route, 15 entries. `packages/db/explain-plans/scan-required-queries.mjs`
+scans `apps/api/src/db/*.ts` and `apps/api/src/routes/*.ts` for every
+`app_private.list_overlay_*` call actually present and fails the build (exit 1, naming the
+call site) if one is missing from the manifest. `check-plans.mjs` was changed to iterate the
+manifest — requiring an artefact for every declared entry — instead of a directory listing
+that only knew what already had a file, which is the literal mechanism this row's blind spot
+exploited. `pnpm explain:check` now runs the scan then the plan check and reports
+`15/15 plans current` (was 10/10).
+
+**The negative case was exercised, not assumed.** `app_private.list_overlay_tug_of_war_vote`'s
+manifest entry was removed; `pnpm explain:check` failed with
+`RT-12 required-queries scan: 1 overlay-facing app_private call(s) missing from
+packages/db/explain-plans/required-queries.json: - app_private.list_overlay_tug_of_war_vote
+called at apps/api/src/db/vote-payment-sql-store.ts:132 has no manifest entry`; the entry was
+restored and the check passed again (`15/15`).
+
+**Two more gaps found and closed, beyond the two this update was scoped to.** Building the
+scan honestly (general-purpose, not hand-tuned to the two PRF-02 functions) also found
+`app_private.list_overlay_lottie_assets` (migration 0077) and
+`app_private.list_overlay_widget_config` (migration 0105) — both predating PRF-02 entirely —
+with no artefact either. Both are captured (`lottie-assets.explain.md`,
+`widget-config.explain.md`) for the same reason the two named gaps are: a scan tuned to only
+the functions already known about would repeat this exact failure one level up.
+
+**Closed or narrowed — stated plainly, per this task's own instruction not to overclaim.**
+**Narrowed, not fully closed.** The mechanism makes forgetting a *declared* function's
+artefact structurally impossible — that specific failure (a widget-backing query shipping
+with no plan and the check staying green) cannot recur for any function the scan can see.
+What would still slip past it, named exactly rather than left implicit:
+
+1. **A widget-backing function that does not follow the `list_overlay_*` naming convention.**
+   The scan is a regex over that convention (every overlay-facing widget-snapshot function in
+   this codebase happens to follow it, 13/13 at the time this was written), not a real
+   call-graph analysis. `list_channel_master_canvas_modules` is already the proof this gap is
+   real: it is in the manifest only because this task's own command named it explicitly, not
+   because the scan would ever nominate a differently-named function. A future creator-facing
+   or oddly-named overlay read would ship exactly as invisible to this scan as the original
+   two PRF-02 functions were to the directory listing.
+2. **A call reached only through indirection** (a function name built as a string, an alias,
+   dynamic dispatch) — every call site in this codebase today is a literal
+   `app_private.fn_name(` inside a tagged SQL template, so this is a theoretical gap, not an
+   observed one, but it is real.
+3. **Whether a caught function is genuinely production-scale-sensitive** is still a human
+   judgement made once, at capture time — the scan is deliberately over-inclusive rather than
+   under-inclusive, so it trades a possible extra artefact for never silently skipping one.
+
+`packages/db/explain-plans/scan-required-queries.mjs`'s own header carries this same list, so
+the caveat lives next to the mechanism it describes, not only in this record.

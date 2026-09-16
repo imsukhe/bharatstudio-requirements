@@ -1,7 +1,7 @@
 # PRF-02 — Master Canvas as the runtime
 
 **Authority:** [`../../FULL-PRODUCT-DEFINITION.md`](../../FULL-PRODUCT-DEFINITION.md) §6, §19.4, §19.5, §9.1.1, §12.7, §15.4.3, §30.3, §31.18.1 PRF-02, §34, §37.2, §37.11
-**Status:** `Conditionally complete — this slice (runtime + Supporter Ticker + Community Goal Ladder) implemented and locally verified; independent review unavailable; PRF-02's full register row remains open`
+**Status:** `Conditionally complete — slice 1 (runtime + Supporter Ticker + Community Goal Ladder) and slice 2 (Tug-of-War Vote + Boss Fight + RT-12 blind-spot closure) both implemented and locally verified; independent review unavailable; PRF-02's full register row remains open`. See "Slice 2" below for the second slice's own scope, evidence and referrals — it does not repeat or restate slice 1's material, which stands as originally recorded above.
 
 **This slice is the runtime plus exactly two modules (Supporter Ticker,
 Community Goal Ladder) — never the full twenty-module catalogue, and never
@@ -244,6 +244,16 @@ memory-over-8-hours, or "one source replaces twelve" claim.
   existing widgets only). Whether these two queries should get plan
   artifacts now or when the remaining 18 modules land is a scope call for
   the lane that owns RT-12/PRF-11, not decided here.
+
+  **Resolved in slice 2, below.** RT-12 was downgraded U → P on
+  2026-09-16 (`tests/TC-RT-12-explain-plans.md`) precisely because this
+  gap sat unclosed; slice 2's §1(a) closes it — a declared manifest
+  (`packages/db/explain-plans/required-queries.json`) plus a build-time
+  scan (`scan-required-queries.mjs`) that fails when an overlay-facing
+  query is missing from the manifest, and both of this bullet's named
+  functions now have captured artifacts. See "Slice 2" below and the
+  updated `tests/TC-RT-12-explain-plans.md` for what is closed versus
+  narrowed.
 - **Standalone-widget parity (§21.3):** the two built modules read the
   SAME existing REST snapshot endpoints
   (`/v1/overlay-widgets/:overlayId/supporter-ticker`,
@@ -254,3 +264,202 @@ memory-over-8-hours, or "one source replaces twelve" claim.
   alongside any standalone widgets a creator still runs) is unimplemented
   and was explicitly out of scope for this task; it remains a real gap
   between what §21.3 describes and what is built.
+
+---
+
+## Slice 2 — Tug-of-War Vote, Boss Fight, and RT-12 blind-spot closure
+
+**Status:** `Conditionally complete — implemented and locally verified; independent review unavailable; PRF-02's full register row still not closed`
+**Review authority:** `reviews/2026-09-16-prf-02-slice-2-scope-review.md` — product/market/creator/streamer scope review, already performed by a separate review-only agent and confirmed by Opus. This slice's implementation record (`reviews/2026-09-16-prf-02-slice-2-implementation.md`) points at that review rather than repeating it.
+**Acceptance test:** `tests/TC-PRF-02-slice-2-vote-boss-fight.md`
+
+This slice adds exactly two more built modules on the SAME slice-1 runtime
+— module #3 (Tug-of-War Vote) and module #4 (Boss Fight) — and closes the
+RT-12 blind spot slice 1's own record above found and referred onward. It
+does **not** touch Support Theater (module #1, split into its own slice by
+the scope review's decision, recorded in the review), Reaction Cloud,
+Safe Soundboard Alert, Moderator Status Card, or any other catalogue
+module. PRF-02's register row is **still not closed** — five of twenty
+modules remains not a canvas, and Opus decides the letter after auditing,
+per this task's own hard rule.
+
+### Scope, exactly three things
+
+**(a) RT-12's blind spot.** `packages/db/explain-plans/required-queries.json`
+is a declared manifest of every `app_private` function that backs an
+overlay/widget-facing route (15 entries after this slice). `packages/db/explain-plans/scan-required-queries.mjs`
+scans `apps/api/src/db/*.ts` and `apps/api/src/routes/*.ts` for every
+`app_private.list_overlay_*` call actually present and fails the build if
+one is missing from the manifest — the "make forgetting hard" half the
+scope review's decision #2 asked for. `check-plans.mjs` was changed to
+iterate the manifest (require an artifact for every declared entry)
+instead of a directory listing (which only knew what already had a file).
+`pnpm explain:check` now runs the scan then the plan check, still inside
+`verify:local` where RT-12's own original closure wired it.
+
+Building the scan honestly (general-purpose, not hand-tuned to the two
+named functions) found **three more gaps beyond the two this task named**:
+`app_private.list_overlay_lottie_assets` (migration 0077) and
+`app_private.list_overlay_widget_config` (migration 0105) both predate
+PRF-02 entirely and had no artefact either; the third, this task's own
+named `app_private.list_channel_master_canvas_modules`, does not follow
+the `list_overlay_*` convention the scan keys on and is in the manifest
+only by explicit addition, not because the scan would ever nominate it. A
+scan tuned to catch only the two functions already known about would
+repeat RT-12's own failure pattern one level up, so all five gaps found —
+the two named, the two pre-existing, and the one new function this slice's
+own module #3 added (`app_private.list_overlay_tug_of_war_vote`) — are
+captured, not only the two originally named. Five new artefacts:
+`master-canvas-modules-overlay.explain.md`, `master-canvas-modules-channel.explain.md`,
+`lottie-assets.explain.md`, `widget-config.explain.md`,
+`tug-of-war-vote.explain.md`. `pnpm explain:check` now reports
+`15/15 plans current`. See `tests/TC-RT-12-explain-plans.md`'s update for
+the closed-vs-narrowed assessment.
+
+**(b) Module #3 — Tug-of-War Vote.** A new `app_private.list_overlay_tug_of_war_vote`
+function (`packages/db/migrations/0132_v1_prf02_slice2_tug_of_war_vote.sql`)
+resolves "the" current two-sided (exactly two options), paid,
+`is_enabled` `support_vote` definition for a channel — no per-module
+config step exists yet (the canvas designer UI is out of scope, same as
+slice 1), so this mirrors `list_overlay_goal`'s own "resolve the one that
+applies, no id argument" precedent exactly. It reuses the EXISTING
+money-derived tally math from migration 0108
+(`app_private.paid_support_vote_tally`/`list_overlay_paid_vote_tally`) —
+same join, same "sum payments minus processed refunds, live, every
+read" rule — adding only the "which definition" resolution in front of
+it. `apps/api/src/db/vote-payment-sql-store.ts` gained
+`createSqlTugOfWarVoteOverlayStore`, reusing that file's existing
+`PaidVoteTally` shape and `toPaidTally` helper rather than building a
+parallel store. New overlay route:
+`GET /v1/overlay-widgets/:overlayId/tug-of-war-vote` (`apps/api/src/routes/interactions.ts`,
+alongside the existing paid-vote overlay route). New web module:
+`apps/web/app/overlay/canvas/modules/tug-of-war-vote-module.ts`, with its
+pure-function counterpart `tug-of-war-vote-logic.ts` (the transparency
+definition and its reasoning live there — see "Decisions" below).
+
+**Transparency definition (this task's own — no market precedent exists,
+confirmed by the scope review's product research):** a two-sided paid
+vote is transparent when a viewer and a creator can both see the
+displayed bar follows from what was actually paid. Concretely: (1) the
+bar's fraction and (2) the exact rupee amount on each side are both pure
+functions of the CURRENT server response, recomputed on every render —
+the module holds no running counter that could diverge from the durable
+record; (3) the exact amount is shown, not only a percentage, because a
+percentage alone can round away a real divergence; (4) all three surfaces
+that can ever show this vote's state — the creator dashboard tally
+(`paid_support_vote_tally`, unchanged), the standalone OBS paid-vote
+widget (`list_overlay_paid_vote_tally`, unchanged), and this Canvas
+module (`list_overlay_tug_of_war_vote`, new) — read from the same
+underlying join, so there are three surfaces but never three independent
+derivations that could disagree.
+
+**(c) Module #4 — Boss Fight.** `apps/web/app/overlay/canvas/modules/boss-fight-module.ts`
+is a skin over the Community Goal Ladder's existing data path — it
+imports and calls the exact same `progressPercent`/`formatRupees`/`isOverlayGoal`
+functions from `goal-widget-logic.ts` that `goal-ladder-module.ts` calls,
+and reuses the SAME `/v1/overlay-goals/:overlayId` fetch function
+(`fetchGoalSnapshot`, defined once in `[overlayId]/page.tsx` and passed to
+both modules). No table, no event type, no second progress computation —
+the only arithmetic this module performs on top of the shared
+`progressPercent(goal)` output is `1 - progress/100` (inverted, for a
+"remaining boss health" read), which is presentation of the same number,
+not a second source of truth for it.
+
+### Binding constraints — proven with all four modules present
+
+`master-canvas-integration.test.ts` gained two tests: "with all four built
+modules entitled: still exactly one connection and one rAF chain" (real
+ticker, goal ladder, vote, and boss fight modules together — asserts
+exactly 1 transport open attempt, 4 connection subscribers, and 1 pending
+frame handle on the manual scheduler) and "a throwing tug_of_war_vote
+module does not blank the canvas" (the three OTHER real module renderers
+proven to keep rendering across both frames a module keyed
+`tug_of_war_vote` throws on, and that it goes `down` with the runtime's
+`onModuleDown` firing exactly once after the second failure — reusing the
+runtime's own generic error-boundary mechanism, already proven in
+isolation by slice 1's `master-canvas-runtime.test.ts`, now proven
+alongside real production modules rather than only fakes). Both new
+modules' own test files (`tug-of-war-vote-module.test.ts`,
+`boss-fight-module.test.ts`, 8 tests each) each carry their own
+`deactivate() called twice is idempotent and discards a late in-flight
+fetch` case, `prefers-reduced-motion disables the transition` case, and a
+composite-only assertion (`scaleX` only, `style.width`/`style.height`
+never set to express state).
+
+### Evidence location
+
+`tests/TC-PRF-02-slice-2-vote-boss-fight.md`,
+`packages/db/tests/prf02_slice2_tug_of_war_vote.sql`,
+`apps/api/test/l16b-interactions-paid-vote-and-widgets-routes.test.ts` (seven new
+route-level cases for `/v1/overlay-widgets/:overlayId/tug-of-war-vote`, added after
+an audit found the route had none — see `tests/TC-PRF-02-slice-2-vote-boss-fight.md`'s
+"Update 2026-09-16" section),
+`apps/web/app/overlay/canvas/modules/tug-of-war-vote-logic.test.ts`,
+`apps/web/app/overlay/canvas/modules/tug-of-war-vote-module.test.ts`,
+`apps/web/app/overlay/canvas/modules/boss-fight-module.test.ts`, the two
+new cases in `apps/web/app/overlay/canvas/master-canvas-integration.test.ts`,
+`packages/db/explain-plans/required-queries.json`,
+`packages/db/explain-plans/scan-required-queries.mjs`, the five new
+`.explain.md` artefacts named above, and this section.
+
+### Checks run — real counts, this worktree, 2026-09-16 (from `bharatstudio-alerts` unless noted)
+
+| Command | Result |
+|---|---|
+| `pnpm --filter @bharatstudio/alerts-api build` | passed |
+| `pnpm --filter @bharatstudio/alerts-api test` | **585 passed, 0 failed** (slice-1 baseline 578/0; net +7 — **corrected 2026-09-16**: this row originally read "578, unchanged, no new apps/api test file", which was wrong. An audit found the new overlay route had no route-level test even though the codebase's own established pattern (`l16b-interactions-paid-vote-and-widgets-routes.test.ts`) covers its sibling paid-votes route exactly this way — the SQL and web-module tests exercise the layers either side of the route but not its own auth/error behaviour. Seven route-level tests were added mirroring that file's existing pattern; see `tests/TC-PRF-02-slice-2-vote-boss-fight.md`'s "Update 2026-09-16" section for the full account) |
+| `pnpm --filter @bharatstudio/alerts-web build` | passed |
+| `pnpm --filter @bharatstudio/alerts-web test` | **386 passed, 0 failed** (slice-1 baseline 358/0; net +28: `tug-of-war-vote-logic.test.ts` ×10, `tug-of-war-vote-module.test.ts` ×8, `boss-fight-module.test.ts` ×8, `master-canvas-integration.test.ts` ×2 new) |
+| `pnpm contracts:validate` | passed — 40 fixtures, 68 OpenAPI paths, 75 operation contracts, 3 negative cases, unchanged (the new overlay route was not added to `contracts/openapi/v1.yaml`, matching the same precedent slice 1 already recorded — creator-facing/overlay CRUD-shaped routes aren't documented there) |
+| `pnpm explain:check` | **`OK: every app_private.list_overlay_* call ... is present in required-queries.json (15 manifest entries)` then `OK: 15/15 plans current`** (was 10/10; net +5) |
+| `pnpm db:test:all` | **59 files passed, 0 failed** (slice-1 baseline 58/0; net +1, `prf02_slice2_tug_of_war_vote.sql`) |
+| `pnpm db:test:l03` | **25 file(s) passed** (slice-1 baseline 24; net +1), full Go/TS integration legs unchanged and passing |
+| `pnpm measurement:test` | passed — 5 Node tests + 4 Python tests, unchanged |
+| `(cd services/alert-worker-go && go build ./... && go test -race ./... && go vet ./...)` | passed, 10 packages, all `ok`, untouched by this slice |
+| `(cd services/payment-webhook-go && go build ./... && go test -race ./... && go vet ./...)` | passed, 10 packages (one `[no test files]`, pre-existing), all `ok`, untouched by this slice |
+| `git diff --check` | clean |
+| `python3 tools/doc_consistency.py` (this repository) | see the run recorded at the foot of this record |
+| `python3 tools/traceability.py` (this repository) | see the run recorded at the foot of this record |
+
+**What this evidence is not** — same rule as slice 1, restated because it
+is the one most likely skimmed past: every number above is local
+(JSDOM/Node test runner, a local Dockerized Postgres, `go test`). None of
+it is OBS, Chromium, device, network, or production evidence. §19.0's
+RT-07 (blocked) remains the only row that gates any frame-timing,
+GPU-compositing, memory-over-8-hours, or "one source replaces twelve"
+claim — unchanged and untouched by this slice.
+
+### Decisions
+
+- **Support Theater stays out of this slice** — the scope review's own
+  decision (`reviews/2026-09-16-prf-02-slice-2-scope-review.md`), not
+  re-litigated here.
+- **The Tug-of-War Vote's "which vote" resolution has no per-module
+  config step**, because the canvas designer UI is out of scope for this
+  slice (same as slice 1). Resolving "the" current two-sided paid vote
+  the same way the goal ladder resolves "the" goal — no id argument, an
+  explicit, stated tiebreak rule (prefer open over closed; among ties,
+  the most recent timestamp) — is this slice's own scoping decision, not
+  drawn from any authority, and is recorded in full in migration 0132's
+  header and in `reviews/2026-09-16-prf-02-slice-2-implementation.md`.
+- **Vote transparency's definition** (above) is this slice's own, for the
+  reason the scope review recorded: no competitor's official
+  documentation describes a real-money paid vote's fairness model at all.
+- **The honest RT-12 scan surfaced two gaps beyond this task's own
+  brief** (`list_overlay_lottie_assets`, `list_overlay_widget_config`).
+  Both are closed here rather than left, because a scan that finds a gap
+  and is only partially acted on is not the "make forgetting hard"
+  outcome the scope review asked for.
+
+### Referred to Opus
+
+- Whether `interaction_definitions` would benefit from a partial index on
+  `(channel_id, interaction_type, is_enabled)` once a channel accumulates
+  many closed/expired votes — `tug-of-war-vote.explain.md` shows a
+  `Seq Scan on interaction_definitions` in the `active_definition`
+  resolution, honest at this seed size, not evidence of production-size
+  behaviour. No number is invented; this is left for a slice where a
+  realistic row count is actually measurable.
+- RT-12's blind spot is **narrowed, not fully closed** — see
+  `tests/TC-RT-12-explain-plans.md`'s update for exactly what would still
+  slip past the new manifest-and-scan mechanism.
