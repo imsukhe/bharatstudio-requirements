@@ -5162,7 +5162,8 @@ no creator impact. Raising a limit later is painless; lowering one breaks creato
 | Approval-required rules | — | — | — | yes |
 | Never-interrupt-gameplay mode | — | yes | yes | yes |
 | **Community** | | | | |
-| Lobby Engine (queue, ready check, seats) | — | — | yes | yes |
+| Lobby Engine (queue, ready check, seats) | — | pack | yes | yes |
+| *Owner decision 2026-09-16 — the Lobby and tournament engine (§16, §17) is **included at Creator+** AND **separately purchasable as the Events Pack** (§33, ₹129/mo), because a Pro creator may want it without moving tier. The entitlement is therefore `tier in ('creator','studio')` **or** an active pack grant. The pack-grant path is built as a check with no way to grant it yet, so present behaviour is exactly "included at Creator+" — the configured-but-unset discipline applied to an entitlement. Purchase, when built, is website-only. Whether Free may buy it is deliberately undecided and blocks nothing.* | | | | |
 | Lobby templates and filters | — | — | — | yes |
 | Cross-creator lobbies | — | — | — | yes |
 | Co-Stream Room (2 creators) | — | — | **yes** | yes |

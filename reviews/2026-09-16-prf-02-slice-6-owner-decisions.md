@@ -99,6 +99,45 @@ scoped to these two modules' minimum schemas and authorises nothing else from Ph
 
 ---
 
+---
+
+## 5. Events Pack entitlement (§16, §17) — decided 2026-09-16, after a contradiction surfaced
+
+**The contradiction, found by reading §30.3 and §33 against the schema before dispatching any
+work.** §30.3's tier table lists the Lobby Engine as included at Creator+ (`— | — | yes | yes`),
+while §33's pricing lists an **Events Pack at ₹129/mo for Creator+** bundling "the Lobby and
+tournament engine (§16, §17)". Those cannot both be true. And **no add-on or pack entitlement
+exists anywhere in the schema** — the only mechanism is the four-tier
+`channel_entitlement_versions` ladder. Neither §16/§17 tables nor any pack concept is present.
+
+**Owner decision.** Both, and they are not in conflict once stated properly: **included at
+Creator+, and additionally purchasable as a pack, because a Pro creator may well want to buy it.**
+
+**What that means for the build, and why it needs nothing invented:**
+
+- The entitlement check for §16/§17 is `tier in ('creator', 'studio')` **or** an active Events
+  Pack grant.
+- The pack-grant side is built as a check with **no grant path yet**. Nothing can currently make
+  it true, so today's behaviour is exactly "included at Creator+" — the established
+  **configured-but-unset** discipline, applied to an entitlement instead of a number. The
+  mechanism exists, the value is absent, and absent means today's behaviour rather than a guess.
+- **No price is implemented.** §33's ₹129/mo is the authority's existing figure and stays there;
+  this work charges nothing, prices nothing and touches no billing surface.
+- Purchasing, when it is built, is **website-only** per the standing constraint — never in-app.
+
+**Left undecided, deliberately, because it was not asked and must not be assumed:** whether the
+Free tier may also buy the pack. It does not block anything — nothing can grant the pack yet, so
+the question is not yet reachable.
+
+**A dependency the catalogue line hides.** §17.2 says tournaments are "built on the Lobby Engine
+rather than beside it". So module #17 **depends on** module #16 and they cannot be built in
+parallel; #16 lands first and #17 builds on it. Two further constraints come from §17 itself, not
+from GIV-07 alone: §17.1's decision of 2026-09-13 already restricts giveaways to "free-entry and
+skill-based formats only", and states plainly that **BharatStudio never holds, escrows, ships or
+guarantees a prize**. §16's overlay is aggregate-only and must never show a room code, a
+password, a player identifier or a Discord name; opted-in initials and avatars need an opt-in
+mechanism that does not exist, so they are out of scope too.
+
 ## What remains blocked after these four
 
 Unchanged: #6 Safe Soundboard (no audio catalogue; `sticker_catalogue_entries` is constrained to
