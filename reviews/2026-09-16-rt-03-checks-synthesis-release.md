@@ -53,3 +53,29 @@ Bounded, official-documentation-only research into how comparable products seque
 **Owner:** Sukhdev Singh
 **Follow-up/release gate:** An independent reviewer must inspect the actual worktree diff against this record before any state change beyond `Conditionally complete`. No external (staging, OBS, device, network, provider) evidence is claimed; RT-07's separate gates are untouched by this task. The `FULL-PRODUCT-DEFINITION.md` §31.18.0 `RT-03` state letter is left at `X` for Opus to set after audit, per the operator's explicit instruction.
 **Decision lifecycle:** `Approved → Implemented → Verified` (conditionally complete pending independent review)
+
+## Owner decision — 2026-09-16 — a cache hit costs no premium characters
+
+The audit found that `apps/api/src/routes/tts.ts` meters the creator's characters **before**
+calling `synthesize()`, while `createTtsService` (`apps/api/src/tts/provider.ts:94-96`)
+answers a cache hit straight out of `alert_tts_cache` without ever reaching the provider.
+A repeated message therefore charged the creator's ladder every time while costing the
+platform nothing. The route received `cacheHit` and ignored it.
+
+**The owner decided cached audio is free.** The charge is released on a cache hit, reusing
+the release path RT-03 had just built.
+
+**Why the release happens after `synthesize()` rather than by skipping `meter()`.** The
+cache is only consulted inside `synthesize()`, so the route cannot know it will hit until
+after the call. Metering first also keeps the §3.2 hard stop intact and evaluated against
+the real character count — an exhausted channel still falls to chime and **cannot mine the
+cache for free synthesis**. Making the hit free is a refund, not a bypass.
+
+The accepted trade, stated when the decision was taken: a creator could repeat one phrase
+indefinitely at zero character cost. That is acceptable because it is also zero platform
+cost, which is the thing the ladder plausibly represents.
+
+Tests: `apps/api/test/tts-quota-metering.test.ts` gains a cache-hit case (metered, then
+released, audio still delivered) and its negative twin (a genuine synthesis keeps its
+charge). `pnpm --filter @bharatstudio/alerts-api test` — **530 passed, 0 failed**
+(528 before this change).
