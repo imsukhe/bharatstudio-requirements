@@ -3359,8 +3359,12 @@ real, implemented schedule, but it targets `payment-webhook-go`'s Razorpay provi
 recovery — a different thing. The **L09 reliability reconciler** at apps/api's
 `/internal/metrics/reconcile`, which is what this row's defect is actually about, has **no
 schedule pointing at it at all**. Nothing was "unwired"; a schedule was never written.
-Whether one should be added, and whether `payment-reconciliation` should be enabled on its
-own separate merits, are two open decisions and neither belongs to this row.
+**Closed 2026-09-16 by [`active/tasks/OPS-RECON-01.md`](./active/tasks/OPS-RECON-01.md):**
+the owner decided the reconciler gets its own schedule in its own task, and
+`reliability-reconciliation` now targets it — cadence `*/5`, borrowed from
+`payment-reconciliation`'s existing cadence rather than newly chosen, because no authority
+states one for this job. Whether `payment-reconciliation` should be enabled on its own
+separate merits remains open and does not belong to this row.
 
 Only the buckets derive from stated budgets. §19.4 names exactly two duration numbers —
 p99 < 200ms for reads and < 500ms for the tip-order path — and both are placed as exact
