@@ -354,3 +354,100 @@ than left to be discovered. RT-12 stays **P**.
 **What this is not.** The plans remain plan-shape change detectors captured on an unsized
 local database. None is evidence that any §19.4 budget is met, and `get_overlay_events`
 having a plan says nothing about its behaviour at §37.4's sizes. RT-07 is Blocked.
+
+## Correction, 2026-09-16 — scan blind spot closed (rule 3, composition-root scan)
+
+**Owner:** Sukhdev Singh. **Local verification only — not production evidence and not
+performance evidence.** No database was touched: rule 3 is an offline source scan. No §19.4
+budget is claimed or measured, nothing ran against §37.4's production-scale dataset, and every
+plan artefact keeps its §35.1 rule 6 disclosure. RT-07 remains Blocked.
+
+**What changed.** `packages/db/explain-plans/scan-required-queries.mjs` gains **rule 3**, a
+composition-root scan that consults no function name and no file name. It starts at
+`apps/api/src/index.ts` and `apps/api/src/app.ts`, finds every call whose argument list
+contains the `derivedReadSql` token — the single handle to RT-10/RT-11's bounded,
+`statement_timeout`-bearing derived-read pool that every widget/dashboard/analytics read is
+required to run on — resolves each callee through that file's own `import` statements,
+brace-matches the named export's body, and requires every `app_private.<fn>(` inside it to be
+manifested or exempted. Nine wired declarations resolve today: eight store factories in
+`index.ts` and `registerInteractionRoutes` in `app.ts`. Resolution failures (missing import,
+missing export, unbalanced braces, or zero wirings found) exit non-zero rather than printing
+`OK`. Rule 1 and rule 2 are unchanged and still run.
+
+**Newly discovered and resolved.** Three calls, all creator-dashboard reads sharing the
+derived-read pool: `list_channel_payments`, `get_channel_revenue_kpis`,
+`get_creator_activation_state`. All three **exempted with routing + signature + body
+evidence** (which registrar reaches them, whether an overlay id / token fingerprint / 
+`overlay_sessions` join appears in the migration definition, and RT-12's own Boundaries
+assigning the dashboard surface to PRF-11 §31.18.1) — full reasons in
+`required-queries.json`. No blanket exemption, no wildcard. Manifest stays 16; exemptions go
+6 → 9.
+
+### Negative test — three runs, verbatim
+
+Temporary store file `apps/api/src/db/alert-stream-snapshot-sql-store.ts` (path matches
+neither `overlay` nor `master-canvas`), calling the unmanifested
+`app_private.read_alert_stream_snapshot(`, wired exactly as a real overlay store is wired —
+`alertStreamSnapshots: sql ? createSqlAlertStreamSnapshotStore(derivedReadSql!) : undefined,`
+in `apps/api/src/index.ts`.
+
+**1 — OLD scan (`git show HEAD:…/scan-required-queries.mjs`), temporary store present. PASSES,
+proving the blind spot was real:**
+
+```
+### NEGATIVE TEST 1 -- OLD scan, temporary store present ###
+OK: every app_private call found by the convention scan and the overlay-store-file scan is present in required-queries.json (16 manifest entries, 9 exemptions)
+exit=0
+```
+
+**2 — NEW scan, same temporary store present. FAILS:**
+
+```
+### NEGATIVE TEST 2 -- NEW scan, same temporary store present ###
+
+> @bharatstudio/alerts@0.1.0 explain:check /Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts/.claude/worktrees/agent-a6c48453cfe33a8da
+> node packages/db/explain-plans/scan-required-queries.mjs && node packages/db/explain-plans/check-plans.mjs
+
+RT-12 required-queries scan: 1 overlay-facing app_private call(s) missing from packages/db/explain-plans/required-queries.json:
+  - app_private.read_alert_stream_snapshot called at apps/api/src/db/alert-stream-snapshot-sql-store.ts:15 has no manifest entry (rule3-composition-root(apps/api/src/index.ts -> createSqlAlertStreamSnapshotStore)) -- add it to required-queries.json's "queries" array with a captured EXPLAIN artefact, or to its "exemptions" array with a written reason, before this can pass
+ ELIFECYCLE  Command failed with exit code 1.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?
+exit=1
+```
+
+**3 — temporary file deleted, `index.ts` wiring reverted. PASSES again:**
+
+```
+### NEGATIVE TEST 3 -- temporary store deleted, wiring reverted ###
+
+> @bharatstudio/alerts@0.1.0 explain:check /Users/sukhdevsingh/Workspace/Bharat Studio/bharatstudio-alerts/.claude/worktrees/agent-a6c48453cfe33a8da
+> node packages/db/explain-plans/scan-required-queries.mjs && node packages/db/explain-plans/check-plans.mjs
+
+OK: every app_private call found by rule 1 (convention scan), rule 2 (overlay-store-file scan) and rule 3 (composition-root derived-read scan, 9 wired declaration(s) resolved and scanned) is present in required-queries.json (16 manifest entries, 9 exemptions)
+OK: 16/16 plans current
+exit=0
+```
+
+Note on run 1's counts: the old scan reads the *current* `required-queries.json`, which is why
+it already reports 9 exemptions. That does not weaken the result — the temporary store's
+function is in neither the manifest nor the exemptions, and the old scan still printed `OK`.
+
+Cleanup verified: `git status --porcelain` after run 3 shows only
+`M packages/db/explain-plans/required-queries.json` and
+`M packages/db/explain-plans/scan-required-queries.mjs`. The temporary store file, the
+temporary `index.ts` import and wiring line, and the temporary copy of the old scan are all
+gone.
+
+### Still not caught — stated, not hidden
+
+Item 1 of the previous list is now **closed**: a store file matching neither naming rule is
+caught the moment it is wired to `derivedReadSql`, whatever it or its file is called. What
+replaces it is narrower and is written into the scan's own header: a derived read wired to the
+**main `sql` pool** instead of `derivedReadSql`, in a file matching neither naming rule, is
+still invisible to all three rules — though such a read is already a live RT-10/RT-11
+violation caught by those rows' own review. Items 2 (indirection) and 3 (the human judgement
+inside every exemption) are unchanged and still open.
+
+RT-12 stays **P**; status unchanged (`Conditionally complete — local implementation and
+verification; independent review unavailable`). No migration, API route, OpenAPI contract or
+Go service was touched.

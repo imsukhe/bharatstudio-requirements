@@ -92,3 +92,39 @@ to the owner as a follow-up rather than performed.
 deploying it**, and nothing here is evidence that Razorpay behaves as its documentation
 says. No production, provider, store, legal, tax, staging, OBS, device, network, quota or
 release readiness is claimed, and none of it is performance evidence (§35.1 rule 6).
+
+## Correction, 2026-09-16 — wake-up coalescing
+
+**Owner:** Sukhdev Singh
+**Task section:** `../active/tasks/RT-04.md` § "Correction, 2026-09-16 — wake-up coalescing"
+**Status:** `Implemented — local verification only; independent review unavailable`
+
+Closes the finding recorded above ("The post-commit wake-up spawns one goroutine per webhook with no coalescing"), which was raised and deliberately not fixed at the time.
+
+| Case | Control | Expected evidence |
+|---|---|---|
+| RT-04.12 | A burst of N concurrent accepted webhooks produces strictly fewer than N wake-up calls | `TestBurstOfWebhooksCoalescesIntoBoundedWakeups` (`services/payment-webhook-go/internal/ingress/wakeup_coalescer_test.go`). 64 concurrent webhooks with the first wake-up held open by a `gatedPumper`; the count is read while that first wake-up is still provably blocked, so an uncoalesced handler would already be at 64. Observed: **64 webhooks produced 2 wake-ups** |
+| RT-04.13 | Coalescing never drops the *last* wake-up: at least one wake-up begins strictly after the last webhook was accepted | Same test. The "all accepted" gate is set after every one of the 64 `ServeHTTP` calls has returned **and** while the first wake-up is still blocked, so no wake-up can already have been counted past it. Releasing the first wake-up then produced **1 further wake-up, counted after the gate** — exactly one more, not zero |
+| RT-04.14 | Coalescing collapses the hint, never the commit | Same test asserts `store.calls == 64` for the 64 webhooks that produced 2 wake-ups |
+| RT-04.15 | A wake-up requested after shutdown is abandoned cleanly — no goroutine, no panic, no write after close | `TestWakeupCoalescerAbandonsWorkAfterClose`: `Close` called twice (idempotent), then a `request` after close leaves the coalescer idle and runs nothing. `Close` writes to no channel and closes nothing, so a racing request takes the mutex, sees `closed`, and returns |
+| RT-04.16 | Non-overlapping wake-ups are not suppressed | `TestSequentialWebhooksEachGetTheirOwnWakeup`: three webhooks, each sent after the coalescer went idle, produce exactly 3 wake-ups. Coalescing must only collapse hints that overlap |
+| RT-04.10 (amended) | Go `-race` clean under a burst with no goroutine leak per webhook, and the burst is now coalesced | `TestBurstOfWebhooksDoesNotLeakWakeupGoroutines`, amended: 200 concurrent webhooks, `runtime.NumGoroutine()` returns to baseline, all 200 commits asserted, and wake-ups asserted to be at least 1 and **strictly fewer than 200**. The previous assertion (exactly 200 wake-ups) was the defect and has been inverted |
+
+**Negative test — the coalescing property was broken on purpose and the new test caught it, twice.**
+
+1. **Pending flag dropped** (demand arriving while a wake-up is in flight is discarded instead of setting `pending`):
+   `--- FAIL: TestBurstOfWebhooksCoalescesIntoBoundedWakeups (0.00s)`
+   `wakeup_coalescer_test.go:125: no wake-up ran after the last webhook was accepted (total=1) -- the last wake-up was dropped`
+2. **Coalescing removed entirely** (pre-correction one-goroutine-per-webhook behaviour restored):
+   `--- FAIL: TestBurstOfWebhooksCoalescesIntoBoundedWakeups (0.01s)`
+   `wakeup_coalescer_test.go:113: wakeup calls during the burst=64, want fewer than 64 -- wake-ups were not coalesced`
+
+**Restored, passes:**
+`wakeup_coalescer_test.go:130: coalesced: 64 webhooks produced 2 wake-ups, 1 of them after the last webhook was accepted`
+`--- PASS: TestBurstOfWebhooksCoalescesIntoBoundedWakeups (0.00s)`
+
+**Commands (from `bharatstudio-alerts/services/payment-webhook-go`):** `go build ./...` (clean, no output) · `go vet ./...` (clean, no output) · `go clean -testcache && go test -race ./...` — **10 packages `ok`, 0 failures**, `internal/ingress 2.441s`, `cmd/payment-webhook 2.277s`.
+
+**Security/data boundary:** unchanged. The coalescer introduces no metric, no log line, no field and no persisted state. It carries only the existing bounded `trace_id` already used by `Logger.Event("webhook_wakeup", ...)`, and holds no per-channel, per-creator or per-account state — §12.7 bounded data is satisfied by construction (one boolean flag, no map, no queue).
+
+**External evidence:** none claimed. All of the above is local `go test` in a worktree. **This is not production, provider, staging, load or performance evidence.** The burst sizes (64, 200) are test fixtures, not a measured production burst; no threshold at which coalescing begins to matter in production has been measured, and ENV-08 and RT-07 — the rows that would measure it — remain Blocked. Nothing was committed; the change is left in the working tree for review.

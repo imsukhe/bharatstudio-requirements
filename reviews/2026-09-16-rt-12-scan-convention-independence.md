@@ -129,3 +129,45 @@ manifest; `get_overlay_events`'s SQL definition already existed and did not chan
 
 Local plans are never performance evidence (§35.1 rule 6). RT-07 remains Blocked; nothing here
 changes that.
+
+## Correction, 2026-09-16 — the narrowing above is now closed (rule 3)
+
+**Owner:** Sukhdev Singh. **Local verification only — not production or performance evidence.**
+
+"Closed or narrowed" above left item 1 open: a genuinely overlay-facing function in a file
+matching neither `overlay` nor `master-canvas`, that also breaks the `list_overlay_*`
+convention, was caught by neither rule. That is now closed by a third rule that is not a
+naming rule.
+
+**Marker.** RT-10/RT-11 (§19.0, §31.18.0) require every widget/dashboard/analytics read to run
+on the bounded, `statement_timeout`-bearing derived-read pool, and its only handle is
+`derivedReadSql`, created once in `apps/api/src/index.ts`. Rule 3 finds every call in
+`apps/api/src/index.ts` and `apps/api/src/app.ts` whose argument list contains that token,
+resolves the callee through the file's own `import` statements, brace-matches the named
+export's body, and requires every `app_private.<fn>(` inside it to be manifested or exempted.
+Nine wired declarations resolve today (eight store factories in `index.ts`,
+`registerInteractionRoutes` in `app.ts`). Body-scoped rather than file-scoped so
+`interaction-sql-store.ts`'s and `vote-payment-sql-store.ts`'s creator-facing writes are not
+swept in as pro-forma exemptions. Every resolution failure exits non-zero; so does finding no
+wiring at all.
+
+**Why a rename cannot defeat it.** The file name lives in the import specifier rule 3 follows;
+the factory name lives in both the call site it finds and the export it matches. The only
+escape is to stop passing `derivedReadSql`, which is a visible RT-10/RT-11 regression, not a
+rename.
+
+**Newly found, all resolved.** `list_channel_payments`, `get_channel_revenue_kpis`,
+`get_creator_activation_state` — three creator-dashboard reads sharing the derived-read pool,
+each exempted with routing (which registrar reaches it), signature and migration-body evidence
+(no overlay id, no token fingerprint, no `overlay_sessions` join), and the PRF-11 §31.18.1
+scope boundary RT-12's own record already drew. Manifest 16 unchanged; exemptions 6 → 9.
+
+**Negative test.** A temporary store file matching neither naming rule, wired with
+`derivedReadSql`: old scan passed with it present, new scan failed, both passed/failed as
+expected after cleanup. Verbatim outputs: `tests/TC-RT-12-explain-plans.md`'s matching
+section. Full account: `active/tasks/RT-12.md`, "Correction, 2026-09-16 — scan blind spot
+closed".
+
+**What replaces item 1 as the residual:** a derived read wired to the main `sql` pool instead
+of `derivedReadSql`, in a file matching neither naming rule. Already a live RT-10/RT-11
+violation, but not detected by this scan. Items 2 and 3 above are unchanged.
