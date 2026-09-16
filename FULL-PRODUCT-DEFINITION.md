@@ -3346,6 +3346,30 @@ reconciler schedule is unwired (`apps/api/src/routes/metrics.ts:48`).
 aggregated across instances, plus a real p95/p99 read-out. **A budget without a
 histogram is not a budget**, and PRF-01 cannot pass CI without this.
 
+**Built 2026-09-16, and partially — the instrument exists, two things do not.** Histograms
+with §19.4's budget numbers as exact bucket boundaries, a bucket-derived p95/p99 read-out
+with its error bound stated, an additive merge, and a durable cross-instance reconciliation
+snapshot (migration `0130`) are in place and locally verified. What is **not** closed:
+cross-instance aggregation is proven only as the additive property, never against a real
+scrape — that needs a deployed environment; and the reconciler still has no schedule.
+
+**Correction, 2026-09-16 — this row named the wrong reconciler.** The sentence above said
+"the reconciler schedule is unwired". `payment-reconciliation` in `bharatstudio-crons` is a
+real, implemented schedule, but it targets `payment-webhook-go`'s Razorpay provider-status
+recovery — a different thing. The **L09 reliability reconciler** at apps/api's
+`/internal/metrics/reconcile`, which is what this row's defect is actually about, has **no
+schedule pointing at it at all**. Nothing was "unwired"; a schedule was never written.
+Whether one should be added, and whether `payment-reconciliation` should be enabled on its
+own separate merits, are two open decisions and neither belongs to this row.
+
+Only the buckets derive from stated budgets. §19.4 names exactly two duration numbers —
+p99 < 200ms for reads and < 500ms for the tip-order path — and both are placed as exact
+boundaries so CI can check a boundary bucket's own cumulative count, which is an exact
+fact, rather than an interpolated quantile. Two paths §19.4 gives no duration number to
+(the webhook acknowledgement and the dispatcher pump) are measured on a **borrowed
+measurement grid**, and each metric's help text says so in those words. A borrowed grid is
+not a budget, and no CI check may treat it as one.
+
 #### RT-07 · No browser, OBS or device evidence exists
 
 The web suite is JSDOM. There is no Chromium-in-OBS harness, no low-end Android run, no
@@ -5964,7 +5988,7 @@ surfaces had no rows.*
 | RT-03 | Checks, then synthesis, then **one** release: picture and voice go out together. Hold capped at one attempt by the existing provider timeout; retry only unambiguous failures, **never a timeout** (ambiguous — may already be billed); terminal failure releases without audio; overlay orders its display queue by alert creation time. *Supersedes the 2026-09-14 two-phase release* (owner decision 2026-09-16) | v1 | U | **P0** |
 | RT-04 | Webhook does one atomic commit then 2xx; post-commit wakeup is fire-and-forget; an independently scheduled **leased outbox dispatcher** owns enqueueing and recovery | v1 | U | **P0** |
 | RT-05 | Only the dispatcher scans ready deliveries; request handlers never scan a backlog | v1 | U | **P0** |
-| RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget | v1 | A | **P0** |
+| RT-06 | Histogram metrics with explicit buckets, aggregated across instances, on every budgeted path — a budget without a histogram is not a budget. **P, not U**: histograms, bucket-derived p95/p99 and the durable reconciliation snapshot exist; cross-instance aggregation is proven only as the additive property, and the L09 reconciler still has no schedule | v1 | P | **P0** |
 | RT-07 | Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count | v1·G | A | **P0** |
 | RT-08 | Enable the cron schedules the dispatcher depends on (`bharatstudio-crons` ships every schedule `"enabled": false`). **P, not U**: `outbox-recovery` — the only schedule the dispatcher depends on — is enabled; the reconciliation and maintenance schedules stay disabled under their own rows. Enabling a flag in the repository is **not** deploying it | v1 | P | **P0** |
 | RT-09 | No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | v1 | A | **P0** |

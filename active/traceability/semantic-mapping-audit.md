@@ -512,7 +512,7 @@ Generated from `active/traceability/register-map.tsv`; mapping inventory only.
 | RT-03 | register | active-record | - | active/tasks/RT-03.md, tests/TC-RT-03-checks-synthesis-release.md, reviews/2026-09-16-rt-03-checks-synthesis-release.md |
 | RT-04 | register | active-record | - | active/tasks/RT-04.md, tests/TC-RT-04-webhook-commit-and-leased-dispatcher.md, reviews/2026-09-16-rt-04-webhook-commit-and-leased-dispatcher.md |
 | RT-05 | register | active-record | - | active/tasks/RT-05.md, tests/TC-RT-05-dispatcher-is-the-only-scanner.md, reviews/2026-09-16-rt-05-dispatcher-is-the-only-scanner.md |
-| RT-06 | register | new-record-required | Missing from reviewed L09 evidence: histogram metrics with explicit buckets and per-instance aggregation remain unproven; L09-03 topology scrape/latency is Not run and staging targets are pending. | - |
+| RT-06 | register | active-record | - | active/tasks/RT-06.md, tests/TC-RT-06-budget-histograms.md, reviews/2026-09-16-rt-06-budget-histograms.md |
 | RT-07 | register | new-record-required | Missing from reviewed L-track evidence: Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count | - |
 | RT-08 | register | active-record | - | active/tasks/RT-08.md, tests/TC-RT-08-enable-outbox-recovery-schedule.md, reviews/2026-09-16-rt-08-enable-outbox-recovery-schedule.md |
 | RT-09 | register | new-record-required | Missing from reviewed L-track evidence: No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | - |
