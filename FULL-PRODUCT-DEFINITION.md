@@ -5992,9 +5992,9 @@ surfaces had no rows.*
 | RT-07 | Real evidence: Chromium-in-OBS harness · low-end Android · 3G profile · staged test at **2,000 concurrent overlays** · **8-hour OBS soak** with flat memory and node count | v1·G | A | **P0** |
 | RT-08 | Enable the cron schedules the dispatcher depends on (`bharatstudio-crons` ships every schedule `"enabled": false`). **P, not U**: `outbox-recovery` — the only schedule the dispatcher depends on — is enabled; the reconciliation and maintenance schedules stay disabled under their own rows. Enabling a flag in the repository is **not** deploying it | v1 | P | **P0** |
 | RT-09 | No "lag-free / fast / smooth / one source replaces twelve" claim publishable until RT-01..RT-07 close — enforced through the marketing snapshot (§20.4) | v1 | A | **P0** |
-| RT-10 | Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads | v1 | A | **P0** |
-| RT-11 | Query timeouts on every read path; a pathological query fails fast rather than holding a connection | v1 | A | P1 |
-| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes | v1 | A | **P0** |
+| RT-10 | Backpressure: payment traffic has enforced priority over widget, dashboard and analytics reads. **P, not U**: the mechanism and its fail-safe classification are built and tested, and hold *by construction* (only GETs are ever classified, so no write can be shed); the pool and admission **values ship unset** because no authority states one — they wait on ENV-08 | v1 | P | **P0** |
+| RT-11 | Query timeouts on every read path; a pathological query fails fast rather than holding a connection. **P, not U**: the mechanism is built, excludes every durable-path statement by construction, and rejects at startup any configured timeout below §19.4's 200ms read budget; the **value ships unset** pending ENV-08 | v1 | P | P1 |
+| RT-12 | `EXPLAIN ANALYZE` proof checked in for every widget-backing query, re-checked when the query changes — wired into `verify:local`. The plans are **plan-shape change detectors captured on an unsized local database**, never evidence a §19.4 budget is met at production scale; each artefact says so in its own body | v1 | U | **P0** |
 | RT-13 | Per-channel live-transport cap counted across Canvas and standalone widgets; over-cap widgets degrade to slow snapshot polling with a visible notice (§21.3) | v1 | A | P1 |
 
 #### 31.18.1 Overlay and read-path performance
