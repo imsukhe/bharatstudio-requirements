@@ -21,6 +21,40 @@ The BharatStudio marketing site presents the parent brand and separate Alerts/Co
 
 Google Sign-In remains v1 authentication only. It must not request YouTube data scopes.
 
+> **AMENDED 2026-09-17 — YouTube moves into v1.** The exclusion bullet above is
+> **narrowed**. **YouTube chat ingestion, Super Chat / Super Sticker ingestion, and channel
+> and live-stream lookup are in v1.** **Membership views and catch-up summaries remain
+> excluded from v1** — the amending instruction named the first three and not the last two,
+> and widening later is the safe direction. Live polling is admitted only as the cadence
+> those three require under the §4.4.2 budget, not as a general-purpose poller.
+>
+> The Google Sign-In sentence above **stands unchanged and is not superseded**. Sign-in
+> remains authentication only and still must not request YouTube data scopes. Connecting
+> YouTube is a **separate, deliberate OAuth grant** the creator makes, with its own consent,
+> and it is never folded into sign-in.
+>
+> **Two token rules are binding on everything built under this amendment.** First, the
+> creator's Google refresh and access tokens **never leave the server**: no web, Android,
+> iPad, Moderator Console or tip-page client ever receives a Google credential, and the
+> backend issues its own narrow, short-lived, role-scoped BharatStudio token instead. This
+> preserves central revocation, audit, quota control and scope enforcement, all four of which
+> are lost the moment a provider token is copied to a device. Second, **BharatStudio never
+> posts to YouTube chat as the creator on anyone else's behalf**; a viewer who posts must
+> authorise their own account, and no viewer-posting path ships in v1.
+>
+> **What this costs, recorded rather than discovered later.** v1 now depends on two external
+> approvals that are **Unfiled** in `05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md` — Google
+> OAuth app verification (the read scopes **and** the high-sensitivity chat-write scope) and
+> the YouTube Data API quota grant. Neither can be filed or accelerated from inside this
+> repository, so **v1's ship date is now partly Google's**. Both are promoted from Phase-4
+> gates to **v1 launch blockers** in `tasks/L10-release-readiness-and-rollout.md`. The
+> standing rule in `FULL-PRODUCT-DEFINITION.md` §4.4.6 is unchanged and still binding: the
+> YouTube connector is **locally proven only**, and nothing built under this amendment may be
+> represented as provider-ready, quota-verified or production-ready.
+>
+> Requested by the owner 2026-09-17; recorded in
+> `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.
+
 ## Binding v1 decisions
 
 - Creator-direct Razorpay payment model only. Technology Partner approval and production test evidence remain launch gates.

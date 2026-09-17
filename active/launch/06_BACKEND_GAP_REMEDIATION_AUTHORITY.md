@@ -3,7 +3,11 @@
 **Status:** `Approved for implementation by project owner — verification remains required`
 **Owner:** Project owner
 **Scope:** Applicable BharatStudio v1 backend/runtime gaps found in the backend gap audit
-**Phase 2 exclusions:** YouTube ingestion/polling and Enterprise workspaces/funds movement remain excluded.
+**Phase 2 exclusions:** Enterprise workspaces/funds movement remain excluded.
+
+> **AMENDED 2026-09-17.** YouTube ingestion/polling is **no longer a Phase 2 exclusion**.
+> Chat ingestion, Super Chat / Super Sticker ingestion and channel / live-stream lookup are
+> v1; membership views and catch-up summaries remain excluded. 2026-09-17 amendment: see `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` and `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.
 
 ## Objective
 
@@ -81,7 +85,10 @@ agree.
   repo's payment-boundary invariants).
 - The no-op replay publisher is intentional. Durable database publication plus
   SSE wake-up is the correctness design; staging must prove the complete path.
-- Workspace/Enterprise and YouTube code must not be added to v1 remediation.
+- Workspace/Enterprise code must not be added to v1 remediation.
+  > **AMENDED 2026-09-17.** This bullet previously barred YouTube code from v1 remediation
+  > as well. YouTube code within the amended v1 scope is now permitted. Membership views and
+  > catch-up summaries stay out. 2026-09-17 amendment: see `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` and `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.
 
 ## Entitlement values — recorded 2026-09-07 (Part 12 item 3)
 

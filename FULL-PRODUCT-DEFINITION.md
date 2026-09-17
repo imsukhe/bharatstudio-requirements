@@ -1012,22 +1012,22 @@ are extended through these modules rather than duplicated.
 | 2 | **Community Goal Ladder** | Milestone tiers and progress |
 | 3 | **Tug-of-War Vote** | Two-sided transparent result bar |
 | 4 | **Boss Fight** | A visual skin over an ordinary support goal — not a new mechanic |
-| 5 | **Reaction Cloud** | Sampled and rate-limited, non-identifying. *Owner decisions 2026-09-16: reactions are sends of entries from the existing curated **sticker catalogue** (first-party plus staff-reviewed creator packs, migration `0110`) — no new asset pipeline, no new rights question. Rate limiting reuses the built per-channel `rateLimitPerMinute` mechanism (creator-configurable 1–1000, one-minute window, migrations `0032`/`0063`); the display ceiling ships **configured but unset**. Sampling is server-side — the client is never sent the full stream and told to drop some (§12.7). "Non-identifying" must be a property of the query: counts and catalogue entry ids, never a viewer identifier.* |
-| 6 | **Safe Soundboard Alert** | Approved clips only, with cooldown and queue |
+| 5 | **Reaction Cloud** | Sampled and rate-limited, non-identifying. *Owner decisions 2026-09-16: reactions are sends of entries from the existing curated **sticker catalogue** (first-party plus staff-reviewed creator packs, migration `0110`) — no new asset pipeline, no new rights question. Rate limiting reuses the built per-channel `rateLimitPerMinute` mechanism (creator-configurable 1–1000, one-minute window, migrations `0032`/`0063`); the display ceiling ships **configured but unset**. Sampling is server-side — the client is never sent the full stream and told to drop some (§12.7). "Non-identifying" must be a property of the query: counts and catalogue entry ids, never a viewer identifier.* *Owner decision 2026-09-17 — **retention**: a reaction send is classified into §12.6.2's shortest data class and is **not retained individually**. Only the aggregate count and the self-expiring per-sender rate-limit window persist. See §12.6.2.1 for why the class, and not a window number, is what was decided.* |
+| 6 | **Safe Soundboard Alert** | Approved clips only, with cooldown and queue. *Owner decision 2026-09-17: sound comes from **both** a first-party clip set we author **and** creator uploads, and a creator's own uploaded clip plays **without any review step** — uploading to your own soundboard is publishing your own content to your own stream, exactly as every other creator-authored asset already works, and naming a review queue nobody staffs would be worse than having none. The upload path reuses the creator-pack asset storage built for the sticker catalogue (migration `0110`) under §19.1's media rules. **The module name describes the playback being safe for a broadcast, not the content being vetted**: no copy may claim clips are safe, approved, checked or reviewed, and no takedown flow, reporting surface or automated scanning is authorised. Duration and file-size caps have **no decided value and no honest reuse anchor**, so they ship configured but unset — which for an upload path means the upload control is inert until a cap exists. First-party clips are unaffected. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
 | 7 | **Supporter Ticker** | Latest supporter, goal, creator-selected copy |
 | 8 | **Challenge Board** | Current / next / completed, with no false refund promise |
 | 9 | **Stream Mission Card** | Creator-defined objective and timer. *Owner decision 2026-09-16: built in PRF-02 slice 5, overriding §34's Phase 3 placement for this module only. Objective text reuses the already-decided challenge-title bound (1–120 characters, migration `0109`); the mission is session-bounded, not clock-bounded — no duration number is invented.* **Built in PRF-02 slice 5.** Schema, creator read/write paths, the overlay read `app_private.list_overlay_stream_mission` (migration `0135`) and the canvas renderer. The no-invented-duration rule is visible in the schema itself: the table carries no duration, timer, expiry, deadline or ends-at column of any kind, so a mission can only end because the creator ended it or the overlay session did. Objective text is bounded 1–120 characters, the same `char_length` bound migration `0109` already decided for challenge titles — reused, not chosen again.* |
-| 10 | **QR Smart Card** | Visibility tied to scene, gameplay safe zones, or Clutch Mode |
-| 11 | **Sponsor Card** | Scheduled placement with an exposure event log |
+| 10 | **QR Smart Card** | Visibility tied to scene, gameplay safe zones, or Clutch Mode. *Owner decision 2026-09-17: built **standalone** — one creator-set destination, one label, one show/hide toggle. No scene profiles and **no `CMP-17` Clutch Mode dependency**, neither of which exists. This is forward-compatible rather than a shortcut: a single-destination card later gains scene awareness by being *selected by* a scene profile, so it holds no scene concept that a future `CMP-17` could conflict with. No destination allow-list, no link shortening, **no scan counting and no claim about how many people scanned anything**. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
+| 11 | **Sponsor Card** | Scheduled placement with an exposure event log. *Owner decision 2026-09-17: **the card renders and counts nothing.** The exposure event log in this row's original wording is **dropped**. An internal-only, explicitly-not-billable counter was considered and declined: any number we render will eventually be screenshotted into a sponsorship negotiation, and at that moment a label saying it is not auditable protects nobody. This dissolves both definitions the module was blocked on — what counts as an exposure, and who may rely on the log — because nothing is counted. No impression metric, no duration accounting, no sponsor-facing reporting. Building one later is a new decision requiring legal review, not an extension of this one. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
 | 12 | **Moderator Status Card** | Held count and moderation state — never private content. *Owner decision 2026-09-16 (second): **safe mode is a creator switch that holds every alert for review** — while on, incoming alerts route to `held` rather than `ready`. It is never automatic and is never triggered by a spike, a rejection rate or any other signal; a creator turns it on and off. Anything automatic is a separate, unmade decision.* *Owner decision 2026-09-16 (first): "safe mode" is **not** `alert_queues.is_paused`. Safe mode is a separate moderation control that does not exist in the schema, so this module ships its held half only and safe mode needs its own record and decision before it can appear here. The held figure is held **alert deliveries** (`event_outbox_deliveries.status = 'held'`), not chat messages — §6's original "messages held" wording predates the schema and is corrected to it.* **Built in PRF-02 slice 5, held half only.** The overlay read is `app_private.list_overlay_moderator_status` (migration `0136`), gated by the existing `overlay_sessions` token-fingerprint model. §6's "never private content" is a property of the query, not of the renderer: the function's return type is a single `held_count bigint` column and nothing else — no supporter name, message text, amount, delivery id, queue id or viewer identifier can leave the database on this path, and the returned column set is asserted in `packages/db/tests/prf02_slice5_moderator_status.sql`. The function reads no queue lifecycle column at all (`alert_queues.is_paused` is never referenced), so no surface resembling safe mode exists on it. Safe mode remains unbuilt and still needs its own record and decision. |
 | 13 | **Milestone Celebration** | One reusable animation fired by verified state transitions |
-| 14 | **Vertical Stream Layout** | Narrow chat, compact goal, QR, reactions for mobile scenes |
-| 15 | **Stream Health Widget** | Creator-only view of YouTube, payment, alert and OBS health |
+| 14 | **Vertical Stream Layout** | Narrow chat, compact goal, QR, reactions for mobile scenes. *Owner decision 2026-09-17: ship **one fixed 9:16 arrangement with no variant selection**, rather than waiting on `CST-08` (the layout-variant system, Phase 2). **Risk accepted and stated:** `CST-08` may later define variants in a shape this fixed layout does not fit, making it a special case to unwind; the owner took that trade to have vertical output in v1. It is a pure renderer on the existing module contract — one transport, one rAF loop, `transform`/`opacity` only — and introduces no new runtime concept. Tier is **Pro** (§30.3 binding). Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
+| 15 | ~~**Stream Health Widget**~~ **— moved off the canvas** | *Owner decision 2026-09-17: health is built as a **dashboard panel**, not a canvas module, and is **removed from this catalogue**. The module was specified as creator-only, but the Master Canvas is a broadcast surface where everything is visible to every viewer, so **"creator-only" cannot be enforced there by any means**. Rather than weaken the widget until it is safe to broadcast, it moves to the surface where authentication is real. This agrees with §4.2.1, which already sources stream health from the desktop helper / OBS WebSocket at zero quota and notes that a large part of "is my stream healthy" never involves YouTube at all — nothing in that row ever placed health on the overlay. **Consequence: this catalogue is nineteen modules, not twenty.** Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
 | 16 | **Lobby Status** | Aggregate seats and queue only (§16). *Owner decision 2026-09-16: PRF-02 may build the **minimum §16 Lobby schema** needed to render this card, overriding §34's Phase 3 placement for this module only. Aggregates only — no per-viewer row, and nothing that correlates one visit to another.* |
 | 17 | **Giveaway / Tournament Card** | Entry state, draw status, bracket (§17). *Owner decision 2026-09-16: PRF-02 may build the **minimum §17 schema**, overriding §34's Phase 3 placement for this module only — but with **no chance-based draw mechanic at all**. `GIV-07` gates chance-based formats on legal review, which has not happened; entry state and bracket are buildable, the draw is not, and it must not be approximated by a creator-records-the-winner surface nobody decided.* |
-| 18 | **Now Playing** | Metadata only, never audio |
-| 19 | **Chat** | Embedded live chat |
-| 20 | **Media / Meme Queue** | Curated, approved assets only |
+| 18 | ~~**Now Playing**~~ **— closed `Never`** | Metadata only, never audio. *Owner decision 2026-09-17: **`AUD-11` stands.** The row is closed as `Never`; the authority already said so and no new record overturns it. A creator-typed "now playing" text field was offered and **declined** — anything in this space must overturn `AUD-11` explicitly and name a metadata source. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
+| 19 | ~~**Chat**~~ **— never was a canvas module** | Embedded live chat. *Owner decision 2026-09-17, correcting an earlier misreading of my own: this row had been carried `BLOCKED-EXTERNAL` on the grounds that the zero-quota path is the official embed and §9.1.1 forbids it. **That reading was too broad — §9.1.1 scopes strictly to "inside the Master Canvas."** §4.2.1 already decides the whole question: chat *display* is "**not on the overlay** — chat display belongs in the dashboard and Companion", via YouTube's official embed, at **zero quota**; §4.2.2 permits the same embed on the tip page. Chat as *data* is server-side ingestion only and is governed by the 2026-09-17 v1 amendment in `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md`. The row is closed as **not a canvas module**. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
+| 20 | **Media / Meme Queue** | Curated, approved assets only. *Owner decision 2026-09-17: **creator-only. Viewers cannot submit**, and `MED-20` is written to record exactly that. Viewer submission would make us a host of viewer-supplied media at broadcast volume — the same rights, storage and takedown posture as the soundboard uploads, but at far higher volume and with no relationship to the person submitting. No submission endpoint, no approval queue, no viewer-facing surface. Adding one is a new decision, not an extension. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* |
 
 Canvas requirements: safe zones · scene profiles · theme packs · per-module placement
 and z-order · vertical and mobile layout variants · preview with sample data · one
@@ -2502,6 +2502,38 @@ Consequences, so nobody re-derives them:
   record.
 - Chat-log volume is managed by what we choose to **ingest and index**, uniformly, for
   everybody — never by charging one creator to keep what another keeps free.
+
+#### 12.6.2.1 Reaction sends — decided 2026-09-17, and decided by class, not by a number
+
+**Reaction sends belong to the "raw chat logs and other high-volume, low-value streams"
+class above — the shortest one — and are therefore not retained individually at all.** What
+persists is the aggregate count and the per-sender rate-limit window, which expires on its
+own (migration `0141`).
+
+This follows from the schedule rather than from a chosen number, and the distinction
+matters. The class is decided here; the **window** for the shortest class is set by the
+privacy/legal gate, which is still **Open** in
+`active/launch/05_SUPPORT_AND_EXTERNAL_EVIDENCE_REGISTER.md`. So no honest window exists to
+apply. The row above already names the lever for exactly this case — high-volume, low-value
+streams are managed by **what we choose to ingest and index at all**, uniformly, for
+everybody. Not writing a per-send row *is* that lever, applied.
+
+Three reasons it is also the right engineering answer:
+
+- **Write volume stops scaling with audience.** When the channel-wide reaction cap was
+  replaced by a per-sender one (2026-09-16, so that a large audience is never throttled for
+  being large), per-send writes became a function of viewer count. Not writing the row
+  removes that coupling entirely.
+- **It is the reversible direction.** Retaining less can always be widened later; retaining
+  more cannot be undone, and would need the gate that is still open.
+- **It matches §19.6 and §12.10.** Aggregates are derived, never counted into a column; and
+  §12.10's rule is already "snapshot the evidence at action time, do not retain the
+  firehose."
+
+**What this costs, stated rather than discovered later.** We cannot investigate an
+individual reaction-abuse incident after the fact. The per-sender rate limit is the live
+defence, and its known residual stands: **a client that discards its cookie evades sender
+keying**, which is inherent to cookie keying and was recorded when `0141` landed.
 
 #### 12.6.3 The one distinction: the data, versus doing work with it
 
@@ -4849,7 +4881,7 @@ P3 slice), so this is the price sheet for the first pack release, not a launch p
 | **Storage Pack** | ₹49/mo, +500MB of new-upload space and +50 sound uploads | Pro+ | Room for more custom audio and media | The **asset quota pipeline is specified and not enforced** (MED-13, AUD-10), and the media lifecycle — quarantine, scan, provenance, takedown — is the §18.3 gate, still open |
 | **Socials Pack** | ₹129/mo | Creator+ | +3 connected accounts, scheduled posts, event-triggered posting, multilingual variants, social calendar | **Social Relay itself** (P3), plus each platform's approved API and permissions. No unofficial posting routes, ever |
 | **Multi-Channel Pack** | ₹199/mo per added channel or brand | Creator+ | A second channel or brand under one account | **Strong tenant and channel separation** — RLS boundaries, role scoping across channels, billing allocation, connector routing, and per-channel audit. This is the largest hidden item on the list |
-| **Events Pack** | ₹129/mo | Creator+ | Full brackets, lobby templates, recurring community nights, advanced giveaway formats | The **Lobby and tournament engine** (§16, §17) and the fair-giveaway safeguards. Free-entry and skill-based only stands (§33.1) |
+| **Events Pack** | ₹129/mo | ~~Creator+~~ **Any tier, Free included (2026-09-17)** | Full brackets, lobby templates, recurring community nights, advanced giveaway formats | The **Lobby and tournament engine** (§16, §17) and the fair-giveaway safeguards. Free-entry and skill-based only stands (§33.1). Included at Creator+; separately purchasable by **any** tier. Website-only purchase |
 | **Team Seats** | ₹129/mo | Creator+ | +2 moderator or operator seats, +1 concurrent control session | Seat **management** — invitations, scoped permissions, audit, session control (F18). The enforcement exists in `0104`; the management UI does not |
 | **Sponsor Pack** | ₹149/mo | Creator+ | Sponsor campaign workspace, scheduled placements, exposure timeline, proof-of-delivery report | The sponsor manager, the campaign workflow, and **correctness of the evidence report** — a proof-of-delivery document that is wrong is worse than no report, because a creator will send it to a sponsor |
 | **Finance Pack** | ₹79/mo | Creator+ | Monthly statement, GST-ready export, TDS reference notes, payout-vs-bank reconciliation | Provider evidence **plus CA/tax/legal review**. It must not make an unsupported tax claim, and today we cannot make any |
@@ -5134,7 +5166,8 @@ no creator impact. Raising a limit later is painless; lowering one breaks creato
 | Support Theater, goal bar, ticker | yes | yes | yes | yes |
 | Stat widgets (wins, streak, record) | — | 2 | all | all |
 | Scoreboard, head-to-head | — | — | yes | yes |
-| Tournament standings | — | — | — | yes |
+| Tournament standings | — | — | yes | yes |
+| *Owner decision 2026-09-17: the Studio-only placement above was a **defect**. This table also lists "Tournaments — single elim, up to 8" as Creator+, and both could not hold — a bracket whose standings cannot be shown is not a feature. Standings now follow tournaments to **Creator+**. No change to the bracket size, and no change to `GIV-07`, which still gates chance-based formats on legal review.* | | | | |
 | Vertical layout | — | yes | yes | yes |
 | Scene profiles | 1 | 3 | 6 | unlimited |
 | **Support Hub** | | | | |
@@ -5163,7 +5196,7 @@ no creator impact. Raising a limit later is painless; lowering one breaks creato
 | Never-interrupt-gameplay mode | — | yes | yes | yes |
 | **Community** | | | | |
 | Lobby Engine (queue, ready check, seats) | — | pack | yes | yes |
-| *Owner decision 2026-09-16 — the Lobby and tournament engine (§16, §17) is **included at Creator+** AND **separately purchasable as the Events Pack** (§33, ₹129/mo), because a Pro creator may want it without moving tier. The entitlement is therefore `tier in ('creator','studio')` **or** an active pack grant. The pack-grant path is built as a check with no way to grant it yet, so present behaviour is exactly "included at Creator+" — the configured-but-unset discipline applied to an entitlement. Purchase, when built, is website-only. Whether Free may buy it is deliberately undecided and blocks nothing.* | | | | |
+| *Owner decision 2026-09-16 — the Lobby and tournament engine (§16, §17) is **included at Creator+** AND **separately purchasable as the Events Pack** (§33, ₹129/mo), because a Pro creator may want it without moving tier. The entitlement is therefore `tier in ('creator','studio')` **or** an active pack grant. The pack-grant path is built as a check with no way to grant it yet, so present behaviour is exactly "included at Creator+" — the configured-but-unset discipline applied to an entitlement. Purchase, when built, is website-only.* *Owner decision 2026-09-17: **any tier may buy the Events Pack, Free included** — the previously undecided question is closed. The entitlement built in migration `0140` (`app_private.events_pack_entitled`) may now be granted. The pack grants **live surfaces only**: it never gates storing, viewing, searching, fetching or exporting a creator's own durable records (§12.6, CTL-14, PCK-12), and never charges to restore access to previously accepted data. Buying stays website-only. Recorded in `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.* | | | | |
 | Lobby templates and filters | — | — | — | yes |
 | Cross-creator lobbies | — | — | — | yes |
 | Co-Stream Room (2 creators) | — | — | **yes** | yes |
@@ -5613,7 +5646,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | MED-17 | Per-event styling beyond `displayStyle` brackets | v1 | P | P2 |
 | MED-18 | Drag/resize/layer tools (numeric config exists) | v1 | P | P2 |
 | MED-19 | Media and sound libraries | v1 | A | P2 |
-| MED-20 | Curated meme/media queue module | v1 | A | P2 |
+| MED-20 | Curated meme/media queue module. **Written 2026-09-17: creator-only.** The creator queues their own media; **viewers cannot submit**. Viewer submission would make us a host of viewer-supplied media at broadcast volume — the same rights, storage and takedown posture as the §6 #6 soundboard uploads, at far higher volume and with no relationship to the submitter. No submission endpoint, no approval queue, no viewer-facing surface; adding one is a new decision | v1 | A | P2 |
 | MED-21 | Lottie + custom branding upload, Studio-tier, live gate. **`bytea` storage is legacy** — new writes go to GCS per §19.1; the `bytea` path stays as the rollback route until backfill completes | v1 | U | — |
 
 ### 31.8 Companion
@@ -6042,7 +6075,7 @@ surfaces had no rows.*
 | AUD-08 | Upload audit record, immediate disable, takedown handling | v1 | A | P1 |
 | AUD-09 | Duration, size and format caps; scan pipeline applied | v1 | A | P1 |
 | AUD-10 | Asset storage quota enforcement (MED-13 dependency) | v1·G | A | P1 |
-| AUD-11 | Shared or discoverable music library | N | N | — |
+| AUD-11 | Shared or discoverable music library. **Reaffirmed 2026-09-17** when §6 #18 Now Playing was closed: `AUD-11` stands, and a creator-typed "now playing" text field was offered and declined. Anything here must overturn `AUD-11` explicitly and name a metadata source | N | N | — |
 
 ### 31.18 Performance
 
@@ -6281,7 +6314,7 @@ outbound webhooks, finance/audit exports, SLA support.
 | PCK-01 | Pack as a capability-registry row, additive, lifecycle-aware | P3 | A | P2 |
 | PCK-02 | AI Credits pack — ₹49/₹149/₹399, paid tiers only. Ships once the **measured** cost model exists; the ledger half is in `0081` | P3 | A | P1 |
 | PCK-03 | Socials Pack — ₹129/mo, Creator+. Target initial set, but cannot precede Social Relay (Phase 7) | P3 | A | P2 |
-| PCK-04 | Events Pack — ₹129/mo, Creator+. Hidden until lobby/tournament features exist | P3 | A | P2 |
+| PCK-04 | Events Pack — ₹129/mo. **Included** at Creator+; **purchasable by any tier including Free** (owner decision 2026-09-17, superseding the earlier Creator+ purchase restriction). Hidden until lobby/tournament features exist | P3 | A | P2 |
 | PCK-05 | Team Seats pack — ₹129/mo, Creator+. Hidden until seat management ships (F18) | P3 | A | P2 |
 | PCK-06 | Storage Pack — ₹49/mo for +500MB of **new-upload** space, Pro+. Never affects historical records. **Nearest to ready**; needs MED-13/AUD-10 enforcement first | P3 | A | P2 |
 | PCK-07 | Sponsor Pack — ₹149/mo, Creator+. Hidden until the sponsor manager exists | P3 | A | P2 |
@@ -6749,7 +6782,10 @@ Two things are not phases:
 - **Instrumentation** (OPS-08 to OPS-11) ships with Phase 0 or the first cohort's data
   is lost permanently.
 - **Performance budgets** (PRF-01) land before Phase 1, because retrofitting a frame
-  budget onto twenty modules is far harder than holding it from the first one.
+  budget onto nineteen modules is far harder than holding it from the first one.
+  *(Nineteen, not twenty, since 2026-09-17: §6 #15 Stream Health moved off the canvas to the dashboard,
+  where "creator-only" is actually enforceable. Dated records written before that date correctly say
+  twenty and are left as written.)*
 
 ---
 

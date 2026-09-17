@@ -18,6 +18,15 @@ track to reach `Verified` or to carry an explicitly approved conditional
 exception with owner, expiry and rollback. YouTube and Enterprise remain Phase
 2 and must not be represented as launch features.
 
+> **AMENDED 2026-09-17.** **Enterprise remains Phase 2.** **YouTube does not** — chat
+> ingestion, Super Chat / Super Sticker ingestion and channel / live-stream lookup are now
+> **v1**; membership views and catch-up summaries stay excluded. The "must not be
+> represented as launch features" restriction is replaced for YouTube by a stricter one:
+> nothing YouTube-derived may be represented as provider-ready, quota-verified or
+> production-ready until Google OAuth app verification and the YouTube Data API quota grant
+> are filed and approved. Both are **Unfiled** (§5) and both are now **v1 launch blockers**
+> rather than Phase-4 gates. 2026-09-17 amendment: see `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` and `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.
+
 ### Included in v1
 
 - Alerts public tip page, creator dashboard, creator-direct Razorpay boundary,
@@ -30,8 +39,12 @@ exception with owner, expiry and rollback. YouTube and Enterprise remain Phase
 
 ### Excluded from v1
 
-- YouTube data/live polling, Super Chat/memberships, catch-up summaries and
-  YouTube chat/history ingestion.
+- YouTube **membership views** and **catch-up summaries**.
+  > **AMENDED 2026-09-17.** This bullet previously excluded "YouTube data/live polling,
+  > Super Chat/memberships, catch-up summaries and YouTube chat/history ingestion" in full.
+  > Chat ingestion, Super Chat / Super Sticker ingestion and channel / live-stream lookup
+  > are **admitted to v1**; live polling is admitted only at the cadence those require under
+  > the §4.4.2 budget. Membership views and catch-up summaries remain excluded. 2026-09-17 amendment: see `active/launch/00_LAUNCH_SCOPE_AUTHORITY.md` and `reviews/2026-09-17-remaining-eight-modules-and-youtube-v1-amendment.md`.
 - Enterprise workspaces, invites, allocations, reporting, settlement splits,
   enterprise payment routing and enterprise finance/refund authority.
 - Client-owned entitlement decisions, Companion in-app checkout, public
@@ -90,9 +103,10 @@ reversing their earlier absence from this authority:
   the integration code is v1-required.
 
 None of these change the non-negotiable invariants in §2 or the explicit
-v1 exclusions above (YouTube, Enterprise, client-owned entitlements,
+v1 exclusions above (Enterprise, client-owned entitlements,
 Companion in-app checkout, desktop public APIs, client-facing gRPC remain
-excluded). Task/test records for each are tracked under the governing
+excluded; **YouTube is no longer in this list** as of the 2026-09-17 amendment,
+except for membership views and catch-up summaries). Task/test records for each are tracked under the governing
 L0x track in §4; where no existing track fits, treat as an L03 (web/API)
 or L08 (marketing-adjacent, for the featured-creator listing) addendum
 rather than opening a new track number.
