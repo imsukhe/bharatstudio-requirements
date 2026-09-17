@@ -1,6 +1,6 @@
 # PRF-02 slice 6 — Reaction Cloud (§6 catalogue module #5) and PRF-06 server-side sampling and rate limiting
 
-**Status:** `Conditionally complete — implemented and locally verified; independent review unavailable; no register state letter assigned`
+**Status:** `Conditionally complete — implemented and locally verified; AMENDED 2026-09-17 (the reaction rate limit moved from the channel to the sender); independent review unavailable; no register state letter assigned`
 **Owner:** **Sukhdev Singh**
 **Classification:** L3 (new database objects, a new public/unauthenticated write path, a new overlay read path)
 **Authority:** `../../FULL-PRODUCT-DEFINITION.md` §6 module #5, §9.1.1, §12.7, §19.5, §30.3, HUB-07, PRF-06
@@ -8,6 +8,9 @@
 **Predecessor scope review:** `../../reviews/2026-09-16-prf-02-slice-5-scope-review.md` (classified #5 `BLOCKED-DECISION`; decisions 1 and 2 are what unblocked it)
 **Acceptance record:** `../../tests/TC-PRF-02-slice-6-reaction-cloud.md`
 **Decision record:** `../../reviews/2026-09-16-prf-02-slice-6-reaction-cloud-decisions.md`
+**Amending decision record (2026-09-17):** `../../reviews/2026-09-17-prf-02-reaction-sender-rate-limit-decisions.md`
+— supersedes the rate-limit half of owner decision 2 and D6 of the 2026-09-16 record. **Read it
+before this file's rate-limit paragraphs; where the two disagree, the 2026-09-17 record wins.**
 **Parent task:** `PRF-02.md` (slices 1–5). This slice is recorded in its own file rather than
 appended to `PRF-02.md` because a concurrent agent owns migration `0138` and that file.
 
@@ -25,7 +28,9 @@ obligation it depends on ("Server-side sampling and rate limiting for reactions 
 | Layer | Object |
 |---|---|
 | Schema | `packages/db/migrations/0139_v1_prf02_prf06_reaction_sampling.sql` — **migration number assigned to this task; `0138` belongs to a concurrent agent and is never written or renumbered here** |
-| Send path | `app_private.record_channel_reaction(uuid, text, uuid)`, rate-limited in SQL |
+| Schema (2026-09-17 amendment) | `packages/db/migrations/0141_v1_prf02_reaction_sender_rate_limit.sql` — forward migration only. `0139` is applied and is **never edited** |
+| Send path | `app_private.record_channel_reaction(uuid, text, uuid, text)` — rate-limited **per sender** in SQL (60/minute). The fourth argument is the SHA-256 fingerprint of the existing anonymous browser token; the raw token never reaches the database |
+| Sender key | `app_private.resolve_reaction_sender_key(text)` — reads `anonymous_browser_identities` / `viewer_identities` (`0084`, `0124`); **never inserts** |
 | Overlay read | `app_private.list_overlay_reaction_cloud(uuid, text, integer)` — sampled and aggregated server-side |
 | API | `POST /v1/public/channels/:handle/reactions` (public, unauthenticated) and `GET /v1/overlay-widgets/:overlayId/reaction-cloud` (overlay session bearer token) |
 | Contracts | OpenAPI paths and component schemas, JSON-Schema, fixtures, negative privacy cases in `contracts/validate-fixtures.mjs` |
@@ -43,16 +48,24 @@ Quoted as constraints. None was decided by this implementer, and none is extende
    `sticker_catalogue_entries` (migration `0110`) plus staff-reviewed creator packs
    (`creator_sticker_packs`, migration `0119`, reviewed by `0122`/`0125`). No reaction
    catalogue, no asset, no upload path, no change to how packs are reviewed.
-2. **Rate limiting reuses the built mechanism** — the per-channel, creator-configurable
-   `rateLimitPerMinute` (bounded 1–1000, `apps/api/src/domain/channel-config-schema.ts:56`)
-   enforced against a **one-minute window** exactly as `packages/db/migrations/0032` and
-   `0063` already do. No other window, no other bound, no per-viewer figure the creator
-   does not control.
+2. ~~**Rate limiting reuses the built mechanism** — the per-channel, creator-configurable
+   `rateLimitPerMinute` …~~ **SUPERSEDED 2026-09-17.** The owner replaced this: *"all these
+   should not be limited at channel level bcs then we are limiting money for them these
+   should be limited at sender/user level to avoid misuse or attacks, so plan a safe number
+   for user - for creator dont limit it too much that with higher viewer etc they dont face
+   issue."* The per-channel cap is **removed entirely** — a creator's reaction throughput
+   must scale with their audience — and the limit is now **60 sends per minute per sender**,
+   keyed on the existing anonymous browser identity. `rateLimitPerMinute` goes back to
+   meaning only what it always meant: the creator's alert-source setting. See
+   `../../reviews/2026-09-17-prf-02-reaction-sender-rate-limit-decisions.md` R1–R4.
 3. **The canvas display ceiling ships "configured but unset"** — the mechanism is built, the
    value is read from configuration, and unset means today's behaviour. Never a guessed
    default.
-4. **No number may be invented.** Any numeric limit that is neither the creator's
-   `rateLimitPerMinute` nor a configured-but-unset value stops the work and is reported.
+4. **No number may be invented.** Any numeric limit that is neither a configured-but-unset
+   value nor a figure the owner decided or explicitly delegated stops the work and is
+   reported. The 60/minute per-sender figure is an **owner-delegated** choice ("plan a safe
+   number for user"), anchored to `POST /v1/public/channels/:handle/paid-votes`, the closest
+   public-write sibling, which already uses `max: 60, timeWindow: '1 minute'`.
 
 ---
 
@@ -101,11 +114,20 @@ account is an identity.
   the SAME `403 bot_verification_required` envelope the two public payment POSTs already use
   (`apps/api/src/routes/public.ts:306` and `:606`). No new flag, no new secret, no new
   envelope.
-- **The per-channel one-minute rate limit in SQL**, which is decision 2's mechanism.
+- **The anonymous-identity cookie flow the two public checkout POSTs already use** —
+  `anonymousTokenFromCookie` / `anonymousCookie` / `anonymousTokenHash` in
+  `apps/api/src/routes/public.ts`. The reaction route performs the **identical** three steps
+  (read `__Host-bsa-anonymous`; mint with `randomBytes(32).toString('base64url')` and set the
+  same cookie header when absent; SHA-256 it and pass only the hash onward). No second
+  identity mechanism, cookie, header or fingerprint is introduced, and the raw token still
+  never enters the database.
+- **The per-sender one-minute rate limit in SQL** (60/minute), which is the 2026-09-17
+  owner decision's mechanism.
 
-No second, differently-sized Fastify route rate limit is attached: the creator's
-`rateLimitPerMinute` is the figure the owner decided governs reactions, and adding a second
-number would be inventing one.
+No Fastify route rate limit is attached to this route. The per-sender SQL limit is the
+reaction-specific figure; the pre-existing global `@fastify/rate-limit` registration in
+`apps/api/src/app.ts` (120/minute, IP-keyed) continues to apply to this route as it does to
+every other, unchanged by this work.
 
 ---
 
@@ -115,10 +137,17 @@ number would be inventing one.
 
 - **Rate limit reached.** `record_channel_reaction` returns `rate_limited`; the route answers
   `429` with `reaction_rate_limited` and `retryable: true`. Nothing is inserted. The limit is
-  per channel and per one-minute window, exactly as `0032`/`0063` compute it.
-- **No `rateLimitPerMinute` configured, or a value outside 1–1000.** No rate limit is applied
-  — bit-for-bit the same fallback `0032` and `0063` already take. This is not a new policy;
-  it is the existing one, reused.
+  **per sender** and per one-minute window: 60 sends. A different sender on the same channel
+  is unaffected, and there is no channel budget at all.
+- **No resolvable sender identity.** `record_channel_reaction` returns
+  `sender_unidentified` **before any catalogue-eligibility check runs**, and the route
+  answers `400 reaction_sender_unidentified` with `retryable: false`. It is **not** silently
+  accepted, and it does **not** fall back to the global per-IP limit — a fallback would make
+  cookie-dropping the cheapest route to the weaker limit. Unreachable in the ordinary flow,
+  because the route mints the cookie when none is present.
+- **Channel configuration no longer affects reactions at all.** `rateLimitPerMinute` and its
+  legacy `rateLimitPerMin` alias are not read by the reaction path; the SQL acceptance file
+  asserts their **absence** from the shipped function definition.
 - **An unknown, disabled, tier-ineligible or other-channel catalogue entry.** Rejected with a
   distinct outcome, never silently dropped and never inserted. A viewer can only ever send an
   id that the channel's own live enabled+eligible set contains at the moment of the send.
@@ -169,6 +198,18 @@ not duplicated.
   `drop table public.channel_reaction_sends;` and
   `drop table public.channel_reaction_rate_limits;`.
   **No production migration without separate explicit approval.**
+- Migration `0141` (2026-09-17) is a **forward migration**; `0139` is applied and is not
+  edited. It drops `public.channel_reaction_rate_limits` and the three-argument
+  `record_channel_reaction`, and creates `public.reaction_sender_rate_limits`,
+  `app_private.resolve_reaction_sender_key(text)` and the four-argument
+  `record_channel_reaction`. It does **not** touch `public.channel_reaction_sends` or
+  `app_private.list_overlay_reaction_cloud` — the stored reaction and the overlay projection
+  are byte-for-byte what `0139` shipped. Rollback is `0139`'s own definitions re-applied after
+  `drop function app_private.record_channel_reaction(uuid, text, uuid, text);`,
+  `drop function app_private.resolve_reaction_sender_key(text);` and
+  `drop table public.reaction_sender_rate_limits;`. The only data lost is in-flight
+  one-minute counters, which are not a record of anything.
+  **No production migration without separate explicit approval.**
 
 ---
 
@@ -183,7 +224,10 @@ not duplicated.
   built.
 - **Any new sticker, asset, upload path, or change to pack review.** Owner decision 1's
   explicit exclusion.
-- **Any per-viewer rate limit or per-viewer figure.** Owner decision 2's explicit exclusion.
+- ~~**Any per-viewer rate limit or per-viewer figure.**~~ **REVERSED 2026-09-17** — the
+  per-sender limit is now the whole mechanism. Still out of scope: any **IP-keyed** reaction
+  limit (CGNAT makes it refuse genuine viewers as a group), any new identity mechanism, and
+  any change to the pre-existing global `@fastify/rate-limit` registration.
 - **Retention or deletion of reaction rows.** Choosing a retention period is choosing a
   number nobody decided. Referred, below.
 - **The tip page's reaction sender UI.** This slice builds the API and the Canvas renderer;
@@ -197,10 +241,14 @@ not duplicated.
 
 ## Referred to Opus / the owner
 
-- **No retention policy for `channel_reaction_sends`.** The table grows without bound. Any
-  retention window is a number this implementer may not invent, and reactions are arguably a
-  durable creator record (§12.6) that must never be tier-gated. Someone has to decide whether
-  reactions are ephemeral telemetry or a durable record before a retention job can exist.
+- **No retention policy for `channel_reaction_sends`, and 2026-09-17 makes it matter more.**
+  Removing the per-channel cap means reaction **write volume now scales with audience size**:
+  the mechanism that used to bound total inserts per channel per minute is gone by design, so
+  a popular stream writes far more reaction rows than before. No retention period is invented
+  here. Retention in this product is a **trust, privacy and legal policy, never a technical
+  default** — someone has to decide whether a reaction is ephemeral telemetry or a durable
+  creator record (§12.6) before any retention or deletion job can exist. **Named open
+  question, owned by the owner.**
 - **The tip-page reaction control does not exist.** The API accepts sends; nothing in
   `apps/web/app/tips/[handle]` calls it yet. HUB-07 is the register row for that surface and
   it is a different surface from the Canvas.
