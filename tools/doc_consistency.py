@@ -290,8 +290,15 @@ def check_scope_semantics() -> None:
             continue
         rid, item, phase, state_cell, _pri = cells
         state = re.sub(r"[^A-Z]", "", state_cell.upper())[-1:]
+        # Match prose only. A `code span` holding a FILENAME or an identifier is
+        # not a capability claim: a row citing
+        # `reviews/...-and-youtube-v1-amendment.md` is talking ABOUT the YouTube
+        # scope decision, not phasing a YouTube capability into v1. Stripping
+        # code spans narrows this rule to its stated intent; it does not weaken
+        # it, and the negative test below still fires on real prose.
+        item_prose = re.sub(r"`[^`]*`", " ", item)
         # YouTube work may not be phased v1
-        if SCOPE_RULES[0][1].search(item) and phase.startswith("v1") and not yt_exempt.search(item):
+        if SCOPE_RULES[0][1].search(item_prose) and phase.startswith("v1") and not yt_exempt.search(item_prose):
             err("scope-semantics", f"line {n}: {rid} — {SCOPE_RULES[0][3]}")
         # a deletion flow may not be reported usable while §33.1 blocks deletion
         if SCOPE_RULES[1][1].search(item) and state == "U":
