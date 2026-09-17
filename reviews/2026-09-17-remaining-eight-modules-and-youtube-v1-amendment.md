@@ -43,6 +43,40 @@ not claim clips are "safe", "approved", "checked" or "reviewed". The module's na
 historical; it describes the *playback* being safe for a broadcast, not the *content* being
 vetted.
 
+### CORRECTION, same day, before any of this shipped
+
+**This decision does not and cannot open `MED-15`.** When the question was put to the owner,
+§18.3 was named as the module's blocker but **its contents were not read out**, and they are
+decisive. §18.3 is titled *"attestation is not a safety control"* and states: **"Creator media
+upload stays disabled in public product until every row below is defined, built and rehearsed.
+It is a single capability-registry row (MED-15) and it stays off."** Its required rows include
+malware scanning actually running, quarantine where *"failure state is quarantined, never
+'allow'"*, a takedown workflow with a named intake route and CDN-fast disable, a repeat-
+infringement policy, an impersonation prohibition, signed short-lived URLs only, and one
+end-to-end rehearsal drill.
+
+The decision above authorises **no review step**, and explicitly declines a takedown flow, a
+reporting surface and content scanning — **the same three things §18.3 requires**. The two
+cannot both hold for a publicly-enabled capability.
+
+**Disposition, taken in the conservative and reversible direction.** This decision governs
+**what is built**, not **when the flag opens**. Creator upload remains behind `MED-15`, off,
+until the §18.3 gate closes. §18.3 already provides for exactly this interim: *"custom audio
+remains an internal capability behind the registry flag, usable by a named pilot cohort at
+most, and it is not marketed."*
+
+**What was built is compatible with that today, and this was verified rather than assumed.**
+The upload caps ship configured-but-unset, and unset means every upload is refused with
+`caps_not_configured` regardless of the clip — never "unlimited". No creator upload can
+complete in any environment today, so nothing shipped violates §18.3. The first-party clip set
+is unaffected by the gate: it is not creator media.
+
+**This correction is an assumption, not an owner ruling, and is flagged for exactly that
+reason.** The owner may widen it — but §18.3's rows are malware, copyright, impersonation and
+takedown, and `governance/AGENTS.md` requires dated primary evidence or written professional
+advice for a legal conclusion. Waiving the gate is that kind of conclusion, so it is not taken
+here. One exact question is recorded at the end of this file.
+
 **Still open, and not blocking the build.** The duration and file-size caps have no decided
 value and no honest reuse anchor — there is no existing audio-duration limit anywhere in the
 register. They ship **configured but unset**, which for an upload path means the upload
@@ -335,3 +369,20 @@ alone is insufficient**.
 
 **No register letter is assigned by this record.** States are decided after audit, against the
 worktree, not from a decision.
+
+
+---
+
+## Addendum, 2026-09-17 — two questions raised by implementation
+
+1. **Does the Safe Soundboard decision open `MED-15`, or stay behind the §18.3 gate?**
+   Recorded above as *staying behind the gate*, which is the conservative and reversible
+   reading. §18.3 requires malware scanning, quarantine, takedown, repeat-infringement policy
+   and a rehearsal drill — all of which this decision declined to build. What shipped refuses
+   every upload, so nothing is violated today. Widening this is an owner ruling with a legal
+   dimension, not an implementation detail.
+
+2. **Is a GCS bucket plus service-account credentials obtainable now, or blocked with
+   `ENV-03/04/05/06/08`?** See `reviews/2026-09-17-med-21-gcs-storage-stale-claim-audit.md`.
+   Three slice-7 modules each shipped the half that does not need storage and named the half
+   that does.
