@@ -1056,6 +1056,12 @@ what collided in slice 5:
   [`PRF-02-slice-6-lobby-status.md`](PRF-02-slice-6-lobby-status.md) ·
   acceptance [`../../tests/TC-PRF-02-slice-6-lobby-status.md`](../../tests/TC-PRF-02-slice-6-lobby-status.md) ·
   decisions [`../../reviews/2026-09-16-prf-02-slice-6-lobby-status-decisions.md`](../../reviews/2026-09-16-prf-02-slice-6-lobby-status-decisions.md)
+- **§6 #17 Giveaway / Tournament Card**, with the minimum §17 schema behind it, built ON TOP OF #16's
+  `0140` lobby rather than beside it (§17.2) —
+  [`PRF-02-slice-6-giveaway-tournament.md`](PRF-02-slice-6-giveaway-tournament.md) ·
+  acceptance [`../../tests/TC-PRF-02-slice-6-giveaway-tournament.md`](../../tests/TC-PRF-02-slice-6-giveaway-tournament.md) ·
+  decisions [`../../reviews/2026-09-17-prf-02-slice-6-giveaway-tournament-decisions.md`](../../reviews/2026-09-17-prf-02-slice-6-giveaway-tournament-decisions.md).
+  **No chance-based draw mechanic of any kind ships, `GIV-07` stays `Blocked`, and the card shows no winner.**
 
 Both are bound by [`../../reviews/2026-09-16-prf-02-slice-6-owner-decisions.md`](../../reviews/2026-09-16-prf-02-slice-6-owner-decisions.md),
 the decision record written **before** either agent was dispatched.
