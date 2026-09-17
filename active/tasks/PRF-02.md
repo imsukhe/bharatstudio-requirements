@@ -1052,6 +1052,10 @@ what collided in slice 5:
 - **§6 #12 safe mode** (completing the Moderator Status Card) —
   [`PRF-02-safe-mode.md`](PRF-02-safe-mode.md) ·
   acceptance [`../../tests/TC-PRF-02-safe-mode.md`](../../tests/TC-PRF-02-safe-mode.md)
+- **§6 #16 Lobby Status**, with the minimum §16 Lobby schema behind it —
+  [`PRF-02-slice-6-lobby-status.md`](PRF-02-slice-6-lobby-status.md) ·
+  acceptance [`../../tests/TC-PRF-02-slice-6-lobby-status.md`](../../tests/TC-PRF-02-slice-6-lobby-status.md) ·
+  decisions [`../../reviews/2026-09-16-prf-02-slice-6-lobby-status-decisions.md`](../../reviews/2026-09-16-prf-02-slice-6-lobby-status-decisions.md)
 
 Both are bound by [`../../reviews/2026-09-16-prf-02-slice-6-owner-decisions.md`](../../reviews/2026-09-16-prf-02-slice-6-owner-decisions.md),
 the decision record written **before** either agent was dispatched.
