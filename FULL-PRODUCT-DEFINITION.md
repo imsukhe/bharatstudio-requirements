@@ -5540,7 +5540,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ALQ-04 | Overlay listener needs its own `DATABASE_URL_DIRECT` — pooled LISTEN/NOTIFY is best-effort only, never the correctness path (durable cursor replay is) | v1 | P | P0 |
 | ALQ-05 | Queue modes FIFO + priority-with-aging (server); stacked/pills/aggregated (presentation only) | v1 | U | — |
 | ALQ-06 | Quiet hours, rate controls (delay-only, never drop) | v1 | U | — |
-| ALQ-07 | No-drop guarantee on every tier | v1 | U | — |
+| ALQ-07 | No-drop guarantee on every tier | v1 | P | P1 |
 | ALQ-08 | Multi-queue bindings, immutable per-delivery source/priority snapshot | v1 | U | — |
 | ALQ-09 | `allow_duplicates` consent required per binding for duplicate delivery | v1 | U | — |
 | ALQ-10 | Moderation approve/hold/suppress/replay + admin replay/discard, audited | v1 | U | — |
@@ -5551,7 +5551,7 @@ See §3 for full detail. F01–F22, all **P0** except F16/F19/F20 (P1) and F22 (
 | ALQ-15 | Per-item skip action | v1 | A | P2 |
 | ALQ-16 | Reconnect burst coalescing after a long gap | v1 | A | P1 |
 | ALQ-17 | Time-bounded replay window (the "72-hour buffer" that never existed) | v1 | A | P2 |
-| ALQ-18 | Master Canvas single browser source with modules (§6) | v1 | A | P0 |
+| ALQ-18 | Master Canvas single browser source with modules (§6) | v1 | X | P0 |
 | ALQ-19 | Vertical / second-output canvas | v1 | A | P2 |
 
 ### 31.4 TTS

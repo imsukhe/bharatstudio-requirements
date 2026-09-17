@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Hostile deterministic tests for the Step 0 mapping parser."""
 from __future__ import annotations
+import inspect
+import re
 import os, pathlib, subprocess, tempfile, shutil
 from concurrent.futures import ThreadPoolExecutor
 
@@ -17,7 +19,12 @@ def run(mutator):
         path = pathlib.Path(f.name)
     try:
         lines = MAP.read_text(encoding="utf-8").splitlines()
-        path.write_text("\n".join(mutator(lines)) + "\n", encoding="utf-8")
+        mutated = mutator(lines)
+        if mutated == lines:
+            raise SystemExit(
+                "hostile fixture mutated nothing -- its target row or phrase has changed "
+                "in the register, so it no longer tests the rule it names")
+        path.write_text("\n".join(mutated) + "\n", encoding="utf-8")
         env = os.environ.copy()
         env["BHARATSTUDIO_MAPPING_PATH"] = str(path)
         env["BHARATSTUDIO_TRACEABILITY_VALIDATE_ONLY"] = "1"
@@ -92,6 +99,10 @@ def source_regression_checks():
 
 def unresolved_regression_checks():
     rows = {line.split("\t", 1)[0]: line.split("\t") for line in MAP.read_text().splitlines() if line and not line.startswith("#")}
+    # Rows live here only while they are UNRESOLVED. When a row earns its
+    # task/test/review triad it is promoted to `active-record` and must leave
+    # this dict -- its evidence, not its wording, is the guarantee from then on.
+    # RT-02/03/04/05/06/08/12 left on 2026-09-18 for exactly that reason.
     required = {
         "MED-03": ("scan", "attestation", "pending_review", "Open/Not run", "ordering"),
         "MED-04": ("is_platform_admin", "E2E", "RLS", "verification pending", "audit-order"),
@@ -103,13 +114,6 @@ def unresolved_regression_checks():
         "CMP-06": ("0082", "L07-03", "Not run", "pairing", "device"),
         "PRF-10": ("L03-22", "0027", "composite", "history", "universal", "bounded"),
         "PRF-19": ("64", "128", "projection", "selected", "every", "endpoint", "select"),
-        "RT-06": ("metrics", "histogram", "bucket", "instance", "L09-03", "Not run", "staging"),
-        "RT-02": ("L03-08b", "L09-02k", "channel", "fanout", "wake", "deduplic", "subscriber", "admission"),
-        "RT-03": ("1.5", "visual", "audio", "acknowledgement", "two-phase", "late", "window"),
-        "RT-04": ("L04-12", "L05-13", "atomic", "pump", "dispatcher", "lease", "IAM", "Cloud"),
-        "RT-05": ("pump", "ready", "scan", "webhook", "request", "dispatcher", "lease"),
-        "RT-08": ("schedule", "enabled", "false", "dispatcher", "L06", "legal", "IAM"),
-        "RT-12": ("L03-22", "0027", "created_at", "id", "cursor", "ordering"),
         "PRF-01": ("Prometheus", "normalized", "duration", "histogram", "buckets", "cross-instance", "p95", "p99", "CI-enforced", "L09-03", "Not run", "averages"),
         "PRF-11": ("0027", "created_at", "id", "ordering", "widget", "composite-index", "EXPLAIN ANALYZE", "every", "query-change", "PRF-11", "RT-12"),
         "WMK-01": ("0096", "Free-only", "watermark", "separate", "Master Canvas", "protected top layer", "every module", "error boundaries", "module failure", "WMK-01", "ALQ-18", "PRF-02", "OVL-E8"),
@@ -125,16 +129,23 @@ def unresolved_regression_checks():
         "CMP-25": ("L07-21/22", "0057", "six", "three", "matrix"),
     }
     for rid, terms in required.items():
-        assert rows[rid][3] == "new-record-required" and rows[rid][6:9] == ["-", "-", "-"]
+        assert rows[rid][3] == "new-record-required" and rows[rid][6:9] == ["-", "-", "-"], (
+            f"{rid} is no longer an unresolved row (lifecycle {rows[rid][3]}, evidence "
+            f"{rows[rid][6:9]}) -- remove it from required{{}}; its triad now carries the guarantee")
         text = (rows[rid][4] + " " + rows[rid][5]).lower()
         assert all(term.lower() in text for term in terms), (rid, text)
     prf02 = rows["PRF-02"]
     assert prf02[3] == "new-record-required" and prf02[6:9] == ["-", "-", "-"]
     prf02_text = (prf02[4] + " " + prf02[5]).lower()
     assert all(term.lower() in prf02_text for term in required["ALQ-18"])
-    negative = ("no reviewed composite index proof", "EXPLAIN ANALYZE", "every widget-backing query", "recheck when changed", "history cursor/order proof")
-    rt12_missing = rows["RT-12"][5].lower()
-    assert all(term.lower() in rt12_missing for term in negative)
+    # RT-12's negative-semantics guard lived here while RT-12 was unresolved: its
+    # missing_behavior had to keep saying no EXPLAIN proof existed, so the row
+    # could not be quietly softened into sounding done. RT-12 was completed and
+    # promoted to active-record on the JIT track (active/tasks/RT-12.md,
+    # tests/TC-RT-12-explain-plans.md, reviews/2026-09-16-rt-12-explain-plans.md)
+    # and its missing_behavior is now "-", so the guard had nothing left to read.
+    # PRF-11 still carries the equivalent unresolved phrasing and is still guarded
+    # by prf11-positive-index-claim.
     print(f"mapping unresolved regressions: {len(required)} passed")
 
 def jit_lifecycle_checks():
@@ -267,6 +278,32 @@ def case(spec):
     assert code != 0, f"{name}: malformed mapping unexpectedly passed"
     assert needle in output, f"{name}: missing diagnostic {needle!r}: {output[-300:]}"
 
+def genericization_fixture_freshness(cases):
+    """A genericization fixture only exercises the generic-basis rule against a
+    `new-record-required` row. Once a row is promoted to `active-record` the
+    mutation trips audit parity first, and the suite reports a register
+    mismatch instead of a stale fixture -- which is how seven of these rotted
+    unnoticed until 2026-09-18. Check the targets before running anything."""
+    lifecycles = {}
+    for line in MAP.read_text(encoding="utf-8").splitlines():
+        if not line or line.startswith("#"):
+            continue
+        fields = line.split("\t")
+        if len(fields) > 3:
+            lifecycles[fields[0]] = fields[3]
+    stale = []
+    for name, mutator, _needle in cases:
+        if not name.endswith("-genericization"):
+            continue
+        for rid in re.findall(r'"([A-Z]{2,4}-\d+)"', inspect.getsource(mutator)):
+            if lifecycles.get(rid) != "new-record-required":
+                stale.append(f"{name} targets {rid}, now {lifecycles.get(rid, 'ABSENT')}")
+    if stale:
+        raise SystemExit(
+            "stale genericization fixtures -- retarget them at rows that are still "
+            "new-record-required, or remove them:\n  " + "\n  ".join(stale))
+
+
 def main():
     cases = [
         ("duplicate", lambda ls: ls + [ls[data(ls)[0]]], "duplicate"),
@@ -346,14 +383,9 @@ def main():
         ("cmp09-genericization", lambda ls: replace_columns(ls, "CMP-09", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
         ("prf10-genericization", lambda ls: replace_columns(ls, "PRF-10", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
         ("prf19-genericization", lambda ls: replace_columns(ls, "PRF-19", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt06-genericization", lambda ls: replace_columns(ls, "RT-06", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt02-genericization", lambda ls: replace_columns(ls, "RT-02", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt03-genericization", lambda ls: replace_columns(ls, "RT-03", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt04-genericization", lambda ls: replace_columns(ls, "RT-04", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt05-genericization", lambda ls: replace_columns(ls, "RT-05", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt08-genericization", lambda ls: replace_columns(ls, "RT-08", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt12-genericization", lambda ls: replace_columns(ls, "RT-12", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
-        ("rt12-positive-index-claim", lambda ls: for_id(ls, "RT-12", lambda x: x.replace("no reviewed composite index proof", "reviewed composite index proof", 1)), "RT-12 missing required negative semantics: no reviewed composite index proof"),
+        ("rt07-genericization", lambda ls: replace_columns(ls, "RT-07", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
+        ("rt09-genericization", lambda ls: replace_columns(ls, "RT-09", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
+        ("rt13-genericization", lambda ls: replace_columns(ls, "RT-13", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
         ("alq18-prf02-genericization", lambda ls: replace_columns(replace_columns(ls, "ALQ-18", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "PRF-02", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
         ("prf01-genericization", lambda ls: replace_columns(ls, "PRF-01", {4: "Manual inventory: none-found", 5: "Missing from reviewed L-track evidence: none-found"}), "item-specific unfulfilled behavior"),
         ("prf11-positive-index-claim", lambda ls: for_id(ls, "PRF-11", lambda x: x.replace("no reviewed composite-index inventory", "reviewed composite-index inventory", 1)), "PRF-11 missing required negative semantics: no reviewed composite-index inventory"),
@@ -373,6 +405,7 @@ def main():
         ("prf09-downgrade", lambda ls: downgrade_documented(ls, "PRF-09"), "documented in coverage-index"),
         ("prf09-mispointed-target", lambda ls: for_id(ls, "PRF-09", lambda x: x.replace("tasks/L03-alerts-web-and-creator-api.md", "tasks/L07-companion-web-mobile-desktop.md", 1)), "mapping targets do not match coverage-index"),
     ]
+    genericization_fixture_freshness(cases)
     with ThreadPoolExecutor(max_workers=len(cases)) as pool:
         list(pool.map(case, cases))
     print(f"mapping hostile tests: {len(cases) + 3} passed (duplicate, unknown, missing, unsafe, lifecycle, phase/state, missing-evidence, false-completion, missing-triad, basis-policy, generic-basis, coverage-index-downgrade, mapped-source regressions, audit parity)")
