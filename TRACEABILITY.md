@@ -14,11 +14,11 @@ which is not the same as no work existing. See the finding below.
 | Corpus | Files |
 |---|---:|
 | `tasks/` task records | 62 |
-| `tests/` test records | 118 |
-| `reviews/` reviews | 143 |
+| `tests/` test records | 124 |
+| `reviews/` reviews | 149 |
 | `done/` legacy evidence | 3 |
-| `active/` authority and task records | 49 |
-| `active/launch/` external evidence register | 6 |
+| `active/` authority and task records | 55 |
+| `active/launch/` external evidence register | 7 |
 
 **783 requirement rows in the register.**
 
