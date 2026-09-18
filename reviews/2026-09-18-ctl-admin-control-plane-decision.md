@@ -158,3 +158,17 @@ and the owner of the separately deployed collector. Until then, the safe behavio
 disabled emergency action; using absent or old observations as `offline` would defeat both §4.4 and
 CTL-05's fail-closed requirement. This is a recorded proposal/discovery, **not** an approved
 implementation decision.
+
+## CTL-05 owner operating-policy approval — 2026-09-18
+
+The owner approved the proposed on-demand model. An authenticated platform-admin impact preview is
+an authorised, temporary, server-side demand source for the relevant channels' YouTube
+`broadcast_state`; it is not an exception permitting continuous polling of every active connector.
+Cadence, freshness lease and daily quota allocation/admission cap are mandatory deployment
+configuration with no fallback production values. The local implementation must fail closed when
+configuration is absent, observations are unknown or expired, Google reports a provider or quota
+error, or the server cannot derive the aggregate. The browser receives aggregate counts only.
+
+This approval authorises the durable projection, collector, API contract, admin flow and local
+proof. It does not claim that Google credentials, deployment configuration, a quota grant,
+staging/live-stream evidence or independent security review exists.

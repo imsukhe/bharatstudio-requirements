@@ -1,7 +1,7 @@
 # TC-CTL-05 — capability-impact preview acceptance plan
 
 **Task:** `../active/tasks/CTL-05.md`  
-**Status:** `Blocked — YouTube Live selected; durable v1 projection and freshness contract remain open`
+**Status:** `In progress — owner approved the on-demand, fail-closed collector policy; durable implementation and proof remain open`
 
 | ID | Required proof |
 |---|---|
@@ -11,6 +11,7 @@
 | CTL05.4 | An emergency kill records the authoritative counts atomically; mismatched/stale capability state cannot be submitted as a different preview. |
 | CTL05.5 | Concurrent preview/change/kill operations preserve the existing append-only audit, expiry, ratification and revert behavior. |
 | CTL05.6 | Migration harness, role-separated SQL proof, API positive/negative contract fixtures, integration/replay/race tests, explain-plan proof and rollback forward migration pass. |
+| CTL05.7 | A preview is the only authorised temporary demand source. Required collector configuration has no fallback production values; expiry, provider error and quota exhaustion yield `unknown`, fail closed, and do not leak channel identifiers. |
 
 ## Evidence protocol
 

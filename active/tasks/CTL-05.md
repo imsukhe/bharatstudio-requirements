@@ -1,6 +1,6 @@
 # CTL-05 — authoritative capability-change impact preview
 
-**Status:** `Blocked — YouTube Live selected as source; durable v1 liveness projection is not yet implemented`
+**Status:** `In progress — owner approved an on-demand, fail-closed YouTube Live liveness collector on 2026-09-18`
 
 | Field | Value |
 |---|---|
@@ -8,7 +8,7 @@
 | **Owner** | Sukhdev Singh |
 | **Tier and gate** | Platform-admin/MFA-only operational control; no creator, public, overlay, Companion or marketing surface. Counts inform a change and never themselves grant a capability. |
 | **Personal-data class** | Aggregate operational data only: capability key/version and two non-negative counts. No channel IDs, user IDs, viewer/payment data, settings, or raw incident reason leave PostgreSQL. |
-| **Provider or legal dependency** | Owner selected YouTube Live as the source on 2026-09-18. The current YouTube connector/provider access, quota, liveness freshness, durable projection and deployment evidence are required technical gates. CTL-13 MFA policy is a security dependency for the reachable admin route. No legal or retention decision is introduced. |
+| **Provider or legal dependency** | Owner selected YouTube Live as the source on 2026-09-18 and approved an on-demand preview collector. The current YouTube connector/provider access, quota, liveness freshness, durable projection and deployment evidence are required technical gates. CTL-13 MFA policy is a security dependency for the reachable admin route. No legal or retention decision is introduced. |
 | **Failure behaviour** | Fail closed. If the preview cannot be derived, is stale, changes capability identity, or its database transaction cannot commit, mutation is rejected and the existing capability state remains unchanged. Counts are never accepted from a client. |
 | **Kill switch** | The only state-changing consumer is the existing bounded emergency-kill workflow. The preview endpoint has no write effect. A forward rollback restores the pre-existing interface only if the entire CTL slice is rolled back; production rollout must not reintroduce client-trusted counts. |
 | **Acceptance test** | `tests/TC-CTL-05-capability-impact-preview.md` |
@@ -59,3 +59,15 @@ documents a default 10,000-unit daily project quota. Therefore a one-minute obse
 would consume 1,440 units/day per continuously observed connected channel before existing chat or
 other API traffic; a five-minute interval would consume 288. This is a provider capacity/product
 decision, not a safe implicit code default. Sources: [liveBroadcasts.list authorization](https://developers.google.com/youtube/v3/live/docs/liveBroadcasts/list) and [YouTube Data API quota costs](https://developers.google.com/youtube/v3/determine_quota_cost).
+
+## Owner operating-policy approval — 2026-09-18
+
+The owner approved the reviewed policy: a platform-admin impact preview is an authorised,
+temporary, server-side demand source for the relevant channels' `broadcast_state` datum. It must
+never create a permanent poll-every-connected-channel loop. The collector receives its cadence,
+freshness lease and daily quota allocation/admission cap only from required deployment
+configuration; code has no fallback production values. An unavailable, unknown, expired,
+quota-blocked or failed observation makes the preview unavailable and prevents emergency fire.
+The browser receives aggregates only. This authorises local CTL-05 implementation; provider
+credentials, deployment configuration, quota evidence and staged-provider proof remain external
+gates.
