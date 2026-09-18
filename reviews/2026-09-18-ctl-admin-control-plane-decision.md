@@ -109,3 +109,24 @@ recent durable MFA, completion revokes all non-revoked target sessions/passkeys 
 transaction, and only minimised identifiers/timestamps/actions are retained. API/contract tests,
 Admin typecheck/unit/build and `git diff --check` passed locally. This is self-review only; it is
 not real browser/device, deployed rollback, independent or external-security evidence.
+
+## CTL-04 implementation self-review — 2026-09-18
+
+Inspected the final `bharatstudio-admin` worktree rather than relying on implementation intent.
+The new `/admin/capabilities` route is behind the durable passkey-MFA admin layout. Its same-origin
+BFF is narrow, typed and server-side: it projects registry/change/kill-history data without actor
+UUIDs, exposes only an existing-capability proposal plus governed approval/rejection/revert writes,
+and never becomes a general bearer-token relay. A crafted proposal for a new key is rejected by a
+server-side existing-entry check; every mutation requires a console request marker; existing registry
+PUT is never exposed. Browser code has no emergency-fire URL or impact count field, so the unsafe
+legacy fire contract cannot be reached from the console.
+
+Fresh review found and repaired five reproducible local issues: development bootstrap was unable to
+reach its passkey-protected test surface without an upstream API; responsive capability actions were
+not reliably reachable on emulated mobile; bootstrap error copy claimed MFA was absent; a direct BFF
+proposal could have widened to a new capability; and new mutation routes lacked an explicit
+same-origin marker. After repair, `pnpm typecheck`, 8 unit tests, 8 desktop/mobile browser tests,
+`pnpm build`, contract validation and 26 focused Alerts capability-route tests passed; `git diff
+--check` passed. This verifies all locally executable CTL-04 portions except CTL04.4. The emergency
+card is intentionally disabled pending CTL-05 and is not represented as completed. This remains
+self-review only—not provider, device, deployed, production or independent-security evidence.

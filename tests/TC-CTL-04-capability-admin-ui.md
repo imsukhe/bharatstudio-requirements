@@ -1,7 +1,7 @@
 # TC-CTL-04 — capability-admin UI acceptance plan
 
 **Task:** `../active/tasks/CTL-04.md`  
-**Status:** `Defined — implementation approved; execution evidence pending`
+**Status:** `Conditionally satisfied locally except CTL04.4 — CTL-05 dependency remains open`
 
 | ID | Required proof |
 |---|---|
@@ -16,3 +16,23 @@
 ## Evidence protocol
 
 Run against synthetic seeded admin/capability data only. Record exact redacted commands, test counts, revisions, screenshots or browser artifacts where generated, API/SQL role proofs and any external MFA/staging gap after implementation. A local browser test is not MFA-provider or production proof.
+
+## 2026-09-18 scoped execution note
+
+The initial local console proof covers CTL04.1, CTL04.2, CTL04.3 and CTL04.5–7 for the
+registry/change-history portion. It must assert that the emergency card is disabled and that no
+browser route exists which can forward `affectedChannelCount` or `liveChannelCount`. CTL04.4
+remains blocked—not waived—until CTL-05 supplies an authoritative preview and atomic fire
+endpoint. The final acceptance run must replace that negative assertion with the real preview,
+reason/confirmation and stale-preview test.
+
+## 2026-09-18 execution result
+
+`CTL04.1`, `.2`, `.3`, `.5`, `.6` and `.7` have local evidence in the linked task/review record.
+The deterministic console browser proof uses synthetic data only; it exercises authenticated local
+bootstrap, the existing passkey-protected page boundary, keyboard and narrow-device interactions,
+upstream-safe/degraded UI behavior, proposal-only mutation, and a missing request-marker denial.
+The Alerts focused API proof separately verifies platform-admin/MFA gates, fail-closed stores,
+schema rejection, maker-checker/revert behavior and immutable kill-event behavior. No provider,
+real WebAuthn device, staging, deployed migration, external security review or production evidence
+is claimed. `CTL04.4` remains blocked exactly as described above.

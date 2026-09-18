@@ -25,5 +25,7 @@ The preview processes channel identifiers only inside PostgreSQL and returns two
 
 The owner selected application-managed passkeys in
 `../../reviews/2026-09-18-ctl-admin-control-plane-decision.md`. Local implementation is
-approved. This slice still has no approved production deployment, RP ID/origin/elevation-lifetime
-configuration, recovery-policy approval, or external evidence claim.
+approved. This slice still has no approved production deployment, RP ID/origin configuration or
+external evidence claim. CTL-13's five-minute ceremony, fifteen-minute elevation and two-person
+recovery policy are implemented locally; do not represent that local result as browser/device,
+deployed or independent security evidence.
