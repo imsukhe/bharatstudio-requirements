@@ -140,3 +140,21 @@ observation schedule costs 1,440 units/day per connected channel; a five-minute 
 before current chat ingestion or other API calls. The liveness cadence, staleness lease, quota
 allocation/admission cap and accountable deployment owner are therefore material operating
 decisions, not defaults this review may invent. Official sources: [authorization](https://developers.google.com/youtube/v3/live/docs/liveBroadcasts/list), [quota costs](https://developers.google.com/youtube/v3/determine_quota_cost).
+
+## CTL-05 demand-driven polling reconciliation — 2026-09-18
+
+The implementation planner additionally checked the controlling product authority's §4.4. It
+prohibits a permanent per-connection polling loop: a YouTube call occurs only while a human is
+looking at a surface that needs a `(channel, datum)` subscription; inactive or hidden surfaces
+release that demand, offline channels use negative caching, and the budget manager slows then pauses
+globally with an honest visible state. The existing Phase-2 poller has a `20`-second default
+rescan, but it is expressly outside this v1 task and cannot supply a valid default.
+
+CTL-05 therefore cannot quietly introduce “poll every active connector every N minutes” merely to
+make an operational preview convenient. The owner must approve one coherent policy that says
+whether a platform-admin impact preview is an authorised temporary demand source, how long its
+server-side lease lasts, the liveness freshness lease, the daily quota allocation/admission cap,
+and the owner of the separately deployed collector. Until then, the safe behaviour is the existing
+disabled emergency action; using absent or old observations as `offline` would defeat both §4.4 and
+CTL-05's fail-closed requirement. This is a recorded proposal/discovery, **not** an approved
+implementation decision.
