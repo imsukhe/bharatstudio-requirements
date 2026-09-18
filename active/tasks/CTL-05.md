@@ -48,3 +48,14 @@ observation must be `unknown`, never silently `offline`. Emergency-kill preview 
 while any relevant observation is unknown or stale. The exact freshness lease/cadence, connector
 OAuth scope/credential grant and v1 collector deployment boundary are the remaining implementation
 decisions and external/configuration gates; no browser, overlay or event-recency proxy is permitted.
+
+## Provider fact check — 2026-09-18
+
+The existing default OAuth scope, `https://www.googleapis.com/auth/youtube.readonly`, is sufficient
+for the required read-only `liveBroadcasts.list` request; Google documents it as an accepted scope
+alongside the broader `youtube` and `youtube.force-ssl` scopes. No scope expansion is required for
+this liveness predicate. The same official quota table rates `liveBroadcasts.list` at one unit and
+documents a default 10,000-unit daily project quota. Therefore a one-minute observation interval
+would consume 1,440 units/day per continuously observed connected channel before existing chat or
+other API traffic; a five-minute interval would consume 288. This is a provider capacity/product
+decision, not a safe implicit code default. Sources: [liveBroadcasts.list authorization](https://developers.google.com/youtube/v3/live/docs/liveBroadcasts/list) and [YouTube Data API quota costs](https://developers.google.com/youtube/v3/determine_quota_cost).

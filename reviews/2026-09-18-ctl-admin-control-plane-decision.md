@@ -130,3 +130,13 @@ same-origin marker. After repair, `pnpm typecheck`, 8 unit tests, 8 desktop/mobi
 --check` passed. This verifies all locally executable CTL-04 portions except CTL04.4. The emergency
 card is intentionally disabled pending CTL-05 and is not represented as completed. This remains
 self-review only—not provider, device, deployed, production or independent-security evidence.
+
+## CTL-05 provider fact check — 2026-09-18
+
+The existing `youtube.readonly` OAuth scope is sufficient for the read-only `liveBroadcasts.list`
+operation; no broader permission is needed. However, Google rates that method at one quota unit per
+call and its documented default daily project quota is 10,000 units. A continuous one-minute
+observation schedule costs 1,440 units/day per connected channel; a five-minute schedule costs 288,
+before current chat ingestion or other API calls. The liveness cadence, staleness lease, quota
+allocation/admission cap and accountable deployment owner are therefore material operating
+decisions, not defaults this review may invent. Official sources: [authorization](https://developers.google.com/youtube/v3/live/docs/liveBroadcasts/list), [quota costs](https://developers.google.com/youtube/v3/determine_quota_cost).
