@@ -4,7 +4,7 @@
 **Owner:** **Sukhdev Singh**
 **Authority:** `../FULL-PRODUCT-DEFINITION.md` §20.6/§20.6.1 · register row CTL-07 ·
 `reviews/2026-09-17-platform-owner-identity-decision.md`
-**Task:** `../active/tasks/CTL-07-emergency-kill-and-owner-identity.md`
+**Task:** `../tasks/CTL-07-emergency-kill-and-owner-identity.md`
 **Acceptance:** `../tests/TC-CTL-07-emergency-kill-and-owner-identity.md`
 **Predecessors:** `2026-09-17-ctl-phase-1-implementation.md` (migration `0149`) ·
 `2026-09-17-ctl-change-management-implementation.md` (migration `0152`) ·
@@ -160,3 +160,13 @@ file's own note on the discrepancy against the dispatch instructions' stated 117
 3. **ADM-07 (admin MFA) remains unaudited**, the same blocker the owner-identity decision record's
    own "what this does not decide" section already named. §20.6.1's "MFA already satisfied" row is
    unaffected by this migration either way; it depends on ADM-07, which this task does not touch.
+
+## 2026-09-18 correction review — legacy route removed
+
+Fresh reachability review found the legacy ordinary HTTP kill route invoked
+`staff_kill_capability_now` without this record's expiry, second-admin ratification, escalation or
+post-incident review. It has been removed from Fastify registration, the domain/store interface,
+OpenAPI and tests. The negative route test, full local pipeline and route inventory passed; the only
+remaining API-reachable kill is the bounded event-sourced emergency flow. CTL-13 now supplies its
+durable passkey gate. This is a self-review and does not close the separate notification, billing,
+live-impact or independent-external-review gaps named above.

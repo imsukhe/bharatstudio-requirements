@@ -163,3 +163,14 @@ See `../../tests/TC-CTL-07-emergency-kill-and-owner-identity.md` for acceptance 
 full "Commands run" table with real, freshly-executed numbers, and
 `../../reviews/2026-09-17-ctl-emergency-kill-implementation.md` for the implementation record and
 design decisions.
+
+## 2026-09-18 correction — ordinary legacy kill route removed
+
+The original implementation left a second HTTP entry point,
+`POST /v1/admin/capability-registry/{capabilityKey}/kill`, connected to
+`staff_kill_capability_now`. It bypassed this task's event-sourced expiry, ratification, escalation
+and post-incident-review controls. The route, OpenAPI operation, domain/store method and test path
+were removed; the remaining emergency endpoint is passkey-gated under CTL-13 and preserves this
+task's bounded workflow. The focused 404/non-invocation assertion and final full Alerts verification
+pipeline passed. This corrects the original task's reachable-surface defect; it does not claim the
+separately listed notification, billing or external-review gaps are closed.

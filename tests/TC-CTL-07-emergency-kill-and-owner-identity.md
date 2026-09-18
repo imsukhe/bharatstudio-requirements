@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-17
 **Owner:** **Sukhdev Singh**
-**Task:** `../active/tasks/CTL-07-emergency-kill-and-owner-identity.md`
+**Task:** `../tasks/CTL-07-emergency-kill-and-owner-identity.md`
 **Decision:** `../reviews/2026-09-17-ctl-emergency-kill-implementation.md`
 **Authority:** `../FULL-PRODUCT-DEFINITION.md` §20.6/§20.6.1 · register row CTL-07 ·
 `reviews/2026-09-17-platform-owner-identity-decision.md`
@@ -42,6 +42,7 @@ run, and is the single place this task's numbers live.
 | KILL.8 | **Review blocks the next kill, enforced.** A kill fired with no review on file blocks that actor's NEXT `staff_fire_global_kill` call (409/`object_not_in_prerequisite_state`); filing the review unblocks it |
 | KILL.9 | **Never a tier/limit/pricing change — structural.** `information_schema.parameters` scan proves none of `staff_fire_global_kill`/`staff_ratify_kill_event`/`staff_propose_kill_extension`/`staff_approve_kill_extension`/`staff_file_kill_review` accepts a `min_tier`/`limits`/`rollout_percentage`/`capacity_class`/`tier`/`pric*`-named parameter |
 | KILL.10 | Every function above rejects a non-`is_platform_admin()` caller |
+| KILL.11 | **No legacy bypass remains reachable.** POST /v1/admin/capability-registry/{capabilityKey}/kill is absent from the registered Fastify routes and OpenAPI; an injected request receives no success response and cannot invoke staff_kill_capability_now. The only API-reachable kill is /emergency-kill, which preserves KILL.1–KILL.10. |
 
 ### C. Job 3 — the single-admin bypass, closed
 
@@ -101,3 +102,15 @@ output shape. `pnpm test`'s `measurement:test` sub-step was not separately re-ve
 recorded as environmental (fails in agent sandboxes, passes on `main`) per this task's own dispatch
 instructions and the identical finding `TC-CTL-06-change-management.md` already recorded under the
 same base-commit lineage.
+
+## 2026-09-18 corrective-slice evidence
+
+The legacy ordinary kill route described in the historical implementation record was removed after
+review found it bypassed KILL.1–KILL.10's event-sourced safeguards. The API negative test proves the
+old URI returns 404 and does not invoke a capability store. A fresh final `pnpm verify:local` passed
+with 165 migrations, 88 SQL proofs, 947 API tests, web/measurement checks, Go race/vet checks and
+three command-image builds. `pnpm contracts:route-inventory` reported 0 stale OpenAPI operations,
+and a source reachability scan found no runtime call to `staff_kill_capability_now` (only a comment
+documenting its deliberate absence). The inventory's unrelated 111 pre-existing runtime operations
+outside published OpenAPI remain a separate contract-hardening backlog; this record does not treat
+them as coverage.

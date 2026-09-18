@@ -549,10 +549,10 @@ Generated from `active/traceability/register-map.tsv`; mapping inventory only.
 | CTL-01 | register | new-record-required | Missing from reviewed L-track evidence: Capability registry table with versioned, audited rows | - |
 | CTL-02 | register | new-record-required | Missing from reviewed L-track evidence: Resolution order engine (kill → denylist → rollout → tier → override) | - |
 | CTL-03 | register | new-record-required | Missing from reviewed L-track evidence: Per-channel resolved blob, versioned and cached; never per-capability queries | - |
-| CTL-04 | register | new-record-required | Missing from reviewed L-track evidence: Admin UI: master switch, retier, edit limits, kill | - |
-| CTL-05 | register | new-record-required | Missing from reviewed L-track evidence: Impact preview ("affects 214 channels, 3 live") | - |
+| CTL-04 | register | active-record | Dependency CTL-13 is conditionally complete locally; implementation is authorised but no Layer 2 UI is claimed complete | active/tasks/CTL-04.md, tests/TC-CTL-04-capability-admin-ui.md, reviews/2026-09-18-ctl-admin-control-plane-decision.md |
+| CTL-05 | register | active-record | Blocked: YouTube Live is selected, but its current Phase 2 in-memory result is not a durable v1 predicate; a separate projection, freshness contract and collector deployment gate are required | active/tasks/CTL-05.md, tests/TC-CTL-05-capability-impact-preview.md, reviews/2026-09-18-ctl-admin-control-plane-decision.md |
 | CTL-06 | register | new-record-required | Missing from reviewed L-track evidence: Staged effective-time changes | - |
-| CTL-07 | register | new-record-required | Missing from reviewed L-track evidence: Two-staff approval on every change; **owner sign-off for paid→Free moves**; single-admin `global_kill` for incidents | - |
+| CTL-07 | register | mapped-existing | §20.6 existing CTL-07 task/test/review evidence covers owner identity, governed capability changes and the bounded event-sourced emergency kill; the 2026-09-18 correction removes its reachable ordinary-kill bypass | tasks/CTL-07-emergency-kill-and-owner-identity.md, tests/TC-CTL-07-emergency-kill-and-owner-identity.md, reviews/2026-09-17-ctl-emergency-kill-implementation.md |
 | CTL-08 | register | new-record-required | Missing from reviewed L-track evidence: One-action revert to previous version | - |
 | ENV-01 | register | active-record | - | active/tasks/ENV-01.md, tests/TC-ENV-01-measurement-environment.md, reviews/2026-09-15-env-01-measurement-control.md |
 | ENV-02 | register | active-record | - | active/tasks/ENV-02.md, tests/TC-ENV-02-measurement-environment.md, reviews/2026-09-15-env-02-measurement-control.md |
@@ -569,7 +569,7 @@ Generated from `active/traceability/register-map.tsv`; mapping inventory only.
 | CTL-10 | register | new-record-required | Missing from reviewed L-track evidence: `GET /v1/public/capability-matrix` published snapshot | - |
 | CTL-11 | register | new-record-required | Missing from reviewed L-track evidence: Marketing build reads the snapshot; webhook revalidation | - |
 | CTL-12 | register | new-record-required | Missing from reviewed L-track evidence: Marketing sections behind flags (`kind = marketing_section`) | - |
-| CTL-13 | register | new-record-required | Missing from reviewed L-track evidence: Admin MFA + durable admin registry (ADM-07 dependency) | - |
+| CTL-13 | register | active-record | Conditionally complete locally: migrations 0165/0166, fixed five-minute ceremony and fifteen-minute elevation, MFA enforcement, audited two-person recovery and admin console flow passed local proof; production RP/origin and external release gates remain | active/tasks/CTL-13.md, tests/TC-CTL-13-admin-mfa.md, reviews/2026-09-18-ctl-admin-control-plane-decision.md |
 | WID-01 | register | new-record-required | Missing from reviewed L-track evidence: Companion tap source (+1 win / +1 loss) | - |
 | WID-02 | register | new-record-required | Missing from reviewed L-track evidence: Lobby/tournament auto-fill of results | - |
 | WID-03 | register | new-record-required | Missing from reviewed L-track evidence: Wins This Season, Session Record, Win Streak | - |
